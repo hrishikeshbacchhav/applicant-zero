@@ -97,6 +97,24 @@ python -m applicant_zero --profile-check
 
 The check reports only what is still missing; it does not print your personal information.
 
+## Daily local refresh
+
+Applicant Zero can refresh its permitted public career-board sources every morning on this computer. It updates the existing local database and saves a local run log. It does not apply for jobs.
+
+To test one refresh manually:
+
+```powershell
+.\scripts\refresh_company_boards.ps1
+```
+
+To schedule it for 8:00 AM each day while this computer is on and you are signed in:
+
+```powershell
+.\scripts\create_daily_refresh_task.ps1
+```
+
+Open the dashboard after a refresh to review new jobs. The future hosted version will run independently of this computer; this local schedule is the safe first automation step.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:

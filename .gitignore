@@ -1,6 +1,7 @@
 # Private candidate information and generated application materials
 private/
 data/live/
+data/logs/
 data/company_boards.json
 *.sqlite3
 *.db
