@@ -51,7 +51,8 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
     if not any(place in location for place in profile.locations):
         return MatchResult("Skip", 0, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
 
-    if any(term in text for term in SENIORITY_BLOCKLIST):
+    seniority_text = f"{title} {_normalise(job.seniority)}"
+    if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
         return MatchResult("Review", 25, family, (), (), ("The description may require senior-level experience; check the stated minimum requirements.",))
 
     if family is None:

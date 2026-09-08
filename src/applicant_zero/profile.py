@@ -13,7 +13,7 @@ RISHI_PROFILE = CandidateProfile(
     role_families={
         "data_bi": ("data analyst", "reporting analyst", "analytics analyst"),
         "power_bi": ("business intelligence", "power bi", "bi analyst"),
-        "business_analysis": ("business analyst", "systems analyst", "business systems"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
     },
     skills=(
         "power bi", "dax", "power query", "microsoft fabric", "semantic model",

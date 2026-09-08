@@ -19,3 +19,9 @@ def test_senior_role_is_reviewed():
     job = Job("3", "Senior Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Requires 5+ years of experience.")
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Review"
+
+
+def test_description_mentioning_manager_does_not_make_a_junior_role_senior():
+    job = Job("4", "Junior Business Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Work with a manager on requirements gathering and process mapping.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation != "Review"
