@@ -85,6 +85,26 @@ Select **Prepare brief** under a role title to open its private preparation page
 
 From a preparation brief, select **Save private application packet** to create a Markdown packet in `private/application_packets`. It records the listing, approved résumé file, evidence, requirements to check and application checklist. The packet stays on your computer and is excluded from GitHub.
 
+## Optional AI tailoring drafts
+
+AI drafting is optional. It creates a review draft only; you must check every line before using it. The request is instructed to use only the evidence you place in a private evidence library and to flag unsupported requirements.
+
+Create the private evidence library once:
+
+```powershell
+Copy-Item templates\candidate_evidence.example.json private\candidate_evidence.json
+```
+
+Replace the example sentence with verified facts from your employment, projects and education. Do not add passwords, visa documents, or claims you cannot support.
+
+To enable the drafting button, create an OpenAI API key, then set it for the current terminal session without saving it in Git:
+
+```powershell
+$env:OPENAI_API_KEY = "paste_your_API_key_here"
+```
+
+Open a role's preparation brief and select **Generate AI tailoring draft**. The output is saved as a private JSON file in `private/application_packets`. The request uses the OpenAI Responses API with `store: false`.
+
 ## Private candidate profile
 
 Before application assistance is enabled, create one private profile on your computer. It keeps your current answers and the locations of your approved résumé PDFs together. It is excluded from GitHub and must never contain a password.
