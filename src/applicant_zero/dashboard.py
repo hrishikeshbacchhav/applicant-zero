@@ -6,7 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
 
-from .storage import WORKFLOW_STATUSES, list_matches, update_workflow
+from .storage import WORKFLOW_STATUSES, initialise_database, list_matches, update_workflow
 
 
 def _badge(recommendation: str) -> str:
@@ -59,6 +59,11 @@ table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px 
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
+    # Existing local databases pre-date the tracker fields. Initialise first so
+    # opening the dashboard upgrades them before the first page is rendered.
+    with initialise_database(database_path):
+        pass
+
     class DashboardHandler(BaseHTTPRequestHandler):
         def do_GET(self):
             if self.path != "/":
