@@ -11,6 +11,10 @@ from .private_profile import load_profile
 from .storage import get_match
 
 
+DEFAULT_DRAFT_MODEL = "gpt-5.6-terra"
+MAX_DRAFT_OUTPUT_TOKENS = 1_200
+
+
 class DraftingError(Exception):
     pass
 
@@ -125,6 +129,18 @@ def _response_text(response_data: dict) -> str:
     return "\n".join(parts)
 
 
+def _usage_summary(response_data: dict) -> dict[str, int]:
+    """Keep the API-reported token counts with the private draft record."""
+    usage = response_data.get("usage", {})
+    if not isinstance(usage, dict):
+        return {}
+    return {
+        key: int(usage[key])
+        for key in ("input_tokens", "output_tokens", "total_tokens")
+        if isinstance(usage.get(key), int)
+    }
+
+
 def create_ai_draft(database_path: Path, external_id: str, model: str | None = None) -> Path:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
@@ -135,10 +151,11 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     evidence = _load_evidence(database_path.parent.parent / "private" / "candidate_evidence.json")
     job = _read_job(database_path, external_id)
     payload = json.dumps({
-        "model": model or os.environ.get("APPLICANT_ZERO_MODEL", "gpt-5.5"),
+        "model": model or os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL),
         "store": False,
         "input": _prompt(job, evidence, profile),
         "text": {"verbosity": "low"},
+        "max_output_tokens": MAX_DRAFT_OUTPUT_TOKENS,
     }).encode("utf-8")
     request = Request("https://api.openai.com/v1/responses", data=payload, method="POST", headers={
         "Authorization": f"Bearer {api_key}", "Content-Type": "application/json"
@@ -155,5 +172,11 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     draft = _json_from_text(_response_text(response_data))
     output_path = _draft_path(database_path, job)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps({"created_at": datetime.now().isoformat(timespec="minutes"), "job": job["title"], "draft": draft}, indent=2, ensure_ascii=False), encoding="utf-8")
+    output_path.write_text(json.dumps({
+        "created_at": datetime.now().isoformat(timespec="minutes"),
+        "job": job["title"],
+        "model": payload["model"],
+        "api_usage": _usage_summary(response_data),
+        "draft": draft,
+    }, indent=2, ensure_ascii=False), encoding="utf-8")
     return output_path

@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.ai_drafting import DraftingError, _json_from_text, _load_evidence, _response_text, check_tailoring_setup
+from applicant_zero.ai_drafting import DEFAULT_DRAFT_MODEL, MAX_DRAFT_OUTPUT_TOKENS, DraftingError, _json_from_text, _load_evidence, _response_text, _usage_summary, check_tailoring_setup
 
 
 def test_json_draft_parser_accepts_json_code_fence():
@@ -10,6 +10,12 @@ def test_json_draft_parser_accepts_json_code_fence():
 def test_response_text_reads_responses_api_message_content():
     response = {"output": [{"type": "message", "content": [{"type": "output_text", "text": "{\"cover_letter\": \"Hello\"}"}]}]}
     assert _response_text(response) == '{"cover_letter": "Hello"}'
+
+
+def test_drafting_has_a_cost_conscious_default_and_keeps_usage_counts():
+    assert DEFAULT_DRAFT_MODEL == "gpt-5.6-terra"
+    assert MAX_DRAFT_OUTPUT_TOKENS == 1_200
+    assert _usage_summary({"usage": {"input_tokens": 400, "output_tokens": 200, "total_tokens": 600}}) == {"input_tokens": 400, "output_tokens": 200, "total_tokens": 600}
 
 
 def test_evidence_library_requires_real_facts(tmp_path):
