@@ -25,3 +25,10 @@ def test_description_mentioning_manager_does_not_make_a_junior_role_senior():
     job = Job("4", "Junior Business Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Work with a manager on requirements gathering and process mapping.")
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation != "Review"
+
+
+def test_adjacent_analytics_role_requires_review_before_applying():
+    job = Job("5", "Commercial Pricing Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "SQL, Excel and stakeholder reporting.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert result.resume_family == "data_bi"

@@ -23,6 +23,7 @@ def main() -> None:
     parser.add_argument("--page", type=int, default=1, help="Adzuna results page.")
     parser.add_argument("--dashboard", action="store_true", help="Open the local job review dashboard.")
     parser.add_argument("--port", type=int, default=8765, help="Local dashboard port.")
+    parser.add_argument("--show-all", action="store_true", help="Also show jobs that were skipped as outside the target search.")
     args = parser.parse_args()
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None)
     if args.dashboard:
@@ -48,7 +49,9 @@ def main() -> None:
         save_match(database, job, result)
         queue.append((job, result))
 
-    for job, result in sorted(queue, key=lambda item: item[1].score, reverse=True):
+    visible_queue = queue if args.show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
+    print(f"Collected {len(queue)} roles. Showing {len(visible_queue)} roles worth reviewing; use the dashboard for the full record.")
+    for job, result in sorted(visible_queue, key=lambda item: item[1].score, reverse=True):
         print(f"{result.recommendation:12} {result.score:3} | {job.title} at {job.company}")
         print(f"  Resume: {result.resume_family or 'none'}")
         for reason in result.reasons:

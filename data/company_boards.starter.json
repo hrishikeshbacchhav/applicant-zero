@@ -13,5 +13,15 @@
     "company": "Megaport",
     "ats": "lever",
     "token": "megaport"
+  },
+  {
+    "company": "MYOB",
+    "ats": "lever",
+    "token": "myob-2"
+  },
+  {
+    "company": "Macquarie Technology Group",
+    "ats": "lever",
+    "token": "macquarietechnologygroup"
   }
 ]

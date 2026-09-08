@@ -14,6 +14,11 @@ RISHI_PROFILE = CandidateProfile(
         "data_bi": ("data analyst", "reporting analyst", "analytics analyst"),
         "power_bi": ("business intelligence", "power bi", "bi analyst"),
         "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
+        "adjacent_analytics": (
+            "commercial analyst", "pricing analyst", "operations analyst",
+            "finance operations analyst", "crm analyst", "insights analyst",
+            "workforce analyst", "product analyst",
+        ),
     },
     skills=(
         "power bi", "dax", "power query", "microsoft fabric", "semantic model",

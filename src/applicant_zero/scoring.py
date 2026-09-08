@@ -51,12 +51,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
     if not any(place in location for place in profile.locations):
         return MatchResult("Skip", 0, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
 
+    if family is None:
+        return MatchResult("Skip", 15, None, (), (), ("Title is outside the approved role families.",))
+
     seniority_text = f"{title} {_normalise(job.seniority)}"
     if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
         return MatchResult("Review", 25, family, (), (), ("The description may require senior-level experience; check the stated minimum requirements.",))
-
-    if family is None:
-        return MatchResult("Skip", 15, None, (), (), ("Title is outside the approved role families.",))
 
     matched = tuple(skill for skill in profile.skills if skill in text)
     likely_requirements = tuple(term for term in ("azure", "aws", "snowflake", "dbt", "statistics", "agile", "jira") if term in text)
@@ -74,4 +74,9 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         reasons.append("Role family and location match; review the detailed requirements.")
 
     recommendation = "Strong apply" if score >= 78 else "Apply" if score >= 62 else "Review"
-    return MatchResult(recommendation, min(score, 100), family, matched, missing, tuple(reasons))
+    resume_family = family
+    if family == "adjacent_analytics":
+        recommendation = "Review"
+        resume_family = "data_bi"
+        reasons.insert(0, "This is an adjacent analytics role; review its domain requirements before preparing an application.")
+    return MatchResult(recommendation, min(score, 100), resume_family, matched, missing, tuple(reasons))
