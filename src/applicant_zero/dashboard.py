@@ -16,16 +16,21 @@ from .browser_assist import browser_setup_issue, start_browser_assistant
 from .manual_import import import_listing
 from .profile import RISHI_PROFILE
 from .resume_review import create_resume_review, load_resume_review
+from .application_readiness import evaluate_application_readiness
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
+    get_material_review,
     get_match,
+    get_submission_proof,
     initialise_database,
     list_application_events,
     list_board_checks,
     list_matches,
     log_application_event,
     save_application_route,
+    save_material_review,
+    save_submission_proof,
     update_workflow,
 )
 
@@ -148,6 +153,8 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         row = get_match(connection, external_id)
         saved_route = get_application_route(connection, external_id)
         events = list_application_events(connection, external_id)
+        material_review = get_material_review(connection, external_id)
+        submission_proof = get_submission_proof(connection, external_id)
     if row is None:
         return "<h1>Job not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
     profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
@@ -212,14 +219,28 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         answers = draft.get("application_answer_drafts", {})
         answer_rows = "".join(f"<p><strong>{html.escape(str(label).replace('_', ' ').title())}:</strong> {html.escape(str(answer))}</p>" for label, answer in answers.items()) or "<p>No application-answer drafts returned.</p>"
         draft_section = f"""<section class='card'><h2>Saved AI tailoring review</h2>{usage_summary}<p><strong>Résumé summary:</strong> {html.escape(str(draft.get('resume_summary', 'Not provided.')))}</p><h3>Suggested résumé bullets</h3><ul>{bullets}</ul><h3>Cover-letter draft</h3><pre>{html.escape(str(draft.get('cover_letter', 'Not provided.')))}</pre><h3>Common application-answer drafts</h3>{answer_rows}<h3>Unsupported requirements</h3><ul>{unsupported}</ul><h3>Questions to confirm</h3><ul>{questions}</ul><p>Review every statement against your real experience before using it.</p></section>"""
+    readiness = evaluate_application_readiness(database_path, row, bool(material_review and material_review["materials_reviewed"]))
+    readiness_rows = "".join(
+        f"<li class='{'complete' if item.complete else 'pending'}'><strong>{'Complete' if item.complete else 'Needed'}:</strong> {html.escape(item.label)} - {html.escape(item.detail)}</li>"
+        for item in readiness
+    )
+    ready_to_submit = all(item.complete for item in readiness)
+    readiness_status = "Ready for your final employer-site review." if ready_to_submit else "Complete the remaining items before treating this as ready to submit."
+    proof_html = ""
+    if submission_proof:
+        proof_html = f"<p class='ready'><strong>Employer confirmation recorded:</strong> {html.escape(submission_proof['submitted_at'])}</p>"
+    else:
+        proof_html = f"<form method='post' action='/submission-proof' class='stacked'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><label>Confirmation reference or email subject<input name='confirmation_reference' placeholder='Optional reference'></label><label>Confirmation-page link<input name='confirmation_url' type='url' placeholder='Optional https://... link'></label><label>Submission note<input name='submission_note' placeholder='At least one confirmation detail is required'></label><button type='submit'>Record employer confirmation and mark Applied</button></form>"
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Preparation brief</title><style>
-*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee;border-radius:8px}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}} form{{display:inline-block;margin:5px 6px 5px 0}}button{{border:1px solid #aabbd2;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}}button.primary{{background:#163b67;color:#fff;border-color:#163b67}}.notice{{background:#fff1cc;color:#704b00;padding:10px;border-radius:6px}}.ready{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:6px}}.help{{color:#667085;font-size:13px}}.activity li{{margin-bottom:10px}}</style></head>
+*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee;border-radius:8px}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}} form{{display:inline-block;margin:5px 6px 5px 0}}button{{border:1px solid #aabbd2;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}}button.primary{{background:#163b67;color:#fff;border-color:#163b67}}.notice{{background:#fff1cc;color:#704b00;padding:10px;border-radius:6px}}.ready{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:6px}}.pending{{color:#8a5a00}}.complete{{color:#12643b}}.help{{color:#667085;font-size:13px}}.stacked{{display:grid;grid-template-columns:1fr;gap:8px;max-width:520px}}.stacked label{{font-weight:bold;font-size:13px}}.stacked input{{display:block;width:100%;margin-top:4px;border:1px solid #c7d2e3;border-radius:6px;padding:8px}}.activity li{{margin-bottom:10px}}</style></head>
 <body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
 <section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p></section>
+<section class='card'><h2>Application readiness</h2><p class='{'ready' if ready_to_submit else 'notice'}'>{html.escape(readiness_status)}</p><ol>{readiness_rows}</ol><form method='post' action='/review-materials'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><input name='review_note' placeholder='Optional review note'><button type='submit'>Mark materials reviewed</button></form></section>
 <section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}</section>
+<section class='card'><h2>After you submit</h2><p>Applicant Zero never submits for you. After the employer site confirms your submission, save one confirmation detail here to update the tracker.</p>{proof_html}</section>
 {draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
@@ -252,12 +273,42 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/review-materials", "/submission-proof"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/review-materials":
+                with sqlite3.connect(database_path) as connection:
+                    save_material_review(connection, external_id, values.get("review_note", [""])[0])
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
+            if self.path == "/submission-proof":
+                try:
+                    with sqlite3.connect(database_path) as connection:
+                        save_submission_proof(
+                            connection,
+                            external_id,
+                            values.get("confirmation_reference", [""])[0],
+                            values.get("confirmation_url", [""])[0],
+                            values.get("submission_note", [""])[0],
+                        )
+                        update_workflow(connection, external_id, "Applied", values.get("submission_note", [""])[0])
+                except ValueError as error:
+                    content = f"<h1>Submission confirmation was not recorded</h1><p>{html.escape(str(error))}</p><p><a href='/brief?{urlencode({'external_id': external_id})}'>Return to preparation brief</a></p>".encode("utf-8")
+                    self.send_response(400)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
             if self.path == "/resume-review":
                 try:
                     create_resume_review(database_path, external_id)

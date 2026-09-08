@@ -74,6 +74,27 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_reviews (
+            external_id TEXT PRIMARY KEY,
+            materials_reviewed INTEGER NOT NULL DEFAULT 0,
+            review_note TEXT NOT NULL DEFAULT '',
+            reviewed_at TEXT
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_submissions (
+            external_id TEXT PRIMARY KEY,
+            confirmation_reference TEXT NOT NULL DEFAULT '',
+            confirmation_url TEXT NOT NULL DEFAULT '',
+            submission_note TEXT NOT NULL DEFAULT '',
+            submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
     if "workflow_status" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
@@ -300,6 +321,66 @@ def list_application_events(
         (external_id, limit),
     ).fetchall()
     return [dict(row) for row in rows]
+
+
+def get_material_review(connection: sqlite3.Connection, external_id: str) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        "SELECT external_id, materials_reviewed, review_note, reviewed_at FROM application_reviews WHERE external_id = ?",
+        (external_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def save_material_review(connection: sqlite3.Connection, external_id: str, note: str = "") -> None:
+    connection.execute(
+        """
+        INSERT INTO application_reviews (external_id, materials_reviewed, review_note, reviewed_at)
+        VALUES (?, 1, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(external_id) DO UPDATE SET
+            materials_reviewed=1, review_note=excluded.review_note, reviewed_at=CURRENT_TIMESTAMP
+        """,
+        (external_id, note.strip()[:1000]),
+    )
+    log_application_event(connection, external_id, "materials_review", "completed", "Application materials were marked reviewed by the candidate.")
+    connection.commit()
+
+
+def get_submission_proof(connection: sqlite3.Connection, external_id: str) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        "SELECT external_id, confirmation_reference, confirmation_url, submission_note, submitted_at FROM application_submissions WHERE external_id = ?",
+        (external_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def save_submission_proof(
+    connection: sqlite3.Connection,
+    external_id: str,
+    confirmation_reference: str,
+    confirmation_url: str,
+    submission_note: str,
+) -> None:
+    reference = confirmation_reference.strip()
+    url = confirmation_url.strip()
+    note = submission_note.strip()
+    if not any((reference, url, note)):
+        raise ValueError("Add a confirmation reference, confirmation-page link or short note before recording submission.")
+    connection.execute(
+        """
+        INSERT INTO application_submissions (external_id, confirmation_reference, confirmation_url, submission_note, submitted_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(external_id) DO UPDATE SET
+            confirmation_reference=excluded.confirmation_reference,
+            confirmation_url=excluded.confirmation_url,
+            submission_note=excluded.submission_note,
+            submitted_at=CURRENT_TIMESTAMP
+        """,
+        (external_id, reference[:300], url[:1000], note[:1000]),
+    )
+    log_application_event(connection, external_id, "submission_proof", "recorded", "Employer submission confirmation was recorded by the candidate.")
+    connection.commit()
 
 
 WORKFLOW_STATUSES = ("New", "Saved", "Preparing", "Applied", "Interview", "Closed")

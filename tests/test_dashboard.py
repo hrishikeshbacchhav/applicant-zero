@@ -1,6 +1,7 @@
 from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
+from applicant_zero.application_readiness import evaluate_application_readiness
 from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 import json
@@ -9,11 +10,15 @@ from unittest.mock import patch
 
 from applicant_zero.storage import (
     get_match,
+    get_material_review,
+    get_submission_proof,
     initialise_database,
     list_application_events,
     list_matches,
     mark_company_jobs_inactive,
     save_match,
+    save_material_review,
+    save_submission_proof,
     update_workflow,
 )
 
@@ -44,6 +49,8 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
     assert "Before applying" in brief
     assert "Application compatibility" in brief
+    assert "Application readiness" in brief
+    assert "Record employer confirmation and mark Applied" in brief
     assert "Scan application form" in brief
     assert "Application activity" in brief
     assert "SQL and Power BI" in brief
@@ -178,3 +185,24 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
     review = load_resume_review(project / "data" / "jobs.sqlite3", "job-1")
     assert "Tailored resume review" in review
     assert "Truthful summary" in review
+
+
+def test_review_and_employer_confirmation_are_recorded_in_the_tracker(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    save_material_review(database, job.external_id, "Checked resume and cover letter")
+    save_submission_proof(database, job.external_id, "Thank you email", "https://example.invalid/confirmation", "Submitted through employer site")
+    update_workflow(database, job.external_id, "Applied", "Submitted through employer site")
+    assert get_material_review(database, job.external_id)["materials_reviewed"] == 1
+    assert get_submission_proof(database, job.external_id)["confirmation_reference"] == "Thank you email"
+    assert get_match(database, job.external_id)["workflow_status"] == "Applied"
+
+
+def test_readiness_identifies_the_private_setup_that_is_still_missing(tmp_path):
+    database = initialise_database(tmp_path / "data" / "jobs.sqlite3")
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    readiness = evaluate_application_readiness(tmp_path / "data" / "jobs.sqlite3", get_match(database, job.external_id), False)
+    assert readiness[0].label == "Candidate profile"
+    assert readiness[0].complete is False

@@ -148,6 +148,12 @@ Drafting uses the cost-conscious `gpt-5.6-terra` model by default and limits eac
 
 After reviewing a generated draft, select **Create tailored resume review**. It creates a printable private review page for the chosen résumé family, with the proposed summary, bullet wording, unsupported requirements and questions to resolve. It does not overwrite your approved PDF; that keeps every final résumé change reviewable.
 
+## Application readiness and confirmation
+
+Each preparation brief now shows a private readiness checklist: approved résumé, AI tailoring draft, tailored résumé review, reusable application answers and your final review. Select **Mark materials reviewed** only after you have checked the role-specific content.
+
+Applicant Zero does not submit applications. After an employer site confirms that you submitted, use **Record employer confirmation and mark Applied** to save a confirmation reference, confirmation-page link or short note. This records the submission date and proof in your local tracker.
+
 ## Private candidate profile
 
 Before application assistance is enabled, create one private profile on your computer. It keeps your current answers and the locations of your approved résumé PDFs together. It is excluded from GitHub and must never contain a password.
