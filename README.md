@@ -58,6 +58,13 @@ python -m applicant_zero --company-boards data/company_boards.json
 
 The private company-board list is excluded from Git. This command only reads public job listings and records matching results locally; it does not open or submit an application.
 
+For the first Sydney pilot, a public starter list is already included. Run:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --company-boards data/company_boards.starter.json
+```
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:
