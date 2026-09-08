@@ -1,5 +1,6 @@
 from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page
 from applicant_zero.manual_import import import_listing, source_name
+from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 import json
@@ -147,3 +148,33 @@ def test_imported_listing_is_scored_and_has_a_stable_source_label(tmp_path):
     assert stored["source"] == "Imported · SEEK"
     assert stored["recommendation"] in {"Strong apply", "Apply", "Review"}
     assert source_name("https://www.linkedin.com/jobs/view/123") == "Imported · LinkedIn"
+
+
+def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
+    project = tmp_path / "project"
+    private = project / "private"
+    private.mkdir(parents=True)
+    resumes = {}
+    for family in ("data_bi", "power_bi", "business_analysis"):
+        resume = private / f"{family}.pdf"
+        resume.write_text("resume", encoding="utf-8")
+        resumes[family] = str(resume)
+    (private / "candidate_profile.json").write_text(json.dumps({
+        "contact": {"legal_name": "Rishi", "email": "private@example.com", "phone": "0400000000", "current_location": "Sydney"},
+        "availability": {"full_time_from": "2026-11-15"},
+        "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
+        "resumes": resumes,
+    }), encoding="utf-8")
+    database = initialise_database(project / "data" / "jobs.sqlite3")
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    packet_dir = private / "application_packets"
+    packet_dir.mkdir()
+    (packet_dir / "example-data-analyst-ai-draft.json").write_text(json.dumps({
+        "draft": {"resume_summary": "Truthful summary", "resume_bullet_suggestions": ["Use SQL evidence"], "unsupported_requirements": [], "questions_to_confirm": []}
+    }), encoding="utf-8")
+    output = create_resume_review(project / "data" / "jobs.sqlite3", "job-1")
+    assert output.exists()
+    review = load_resume_review(project / "data" / "jobs.sqlite3", "job-1")
+    assert "Tailored resume review" in review
+    assert "Truthful summary" in review

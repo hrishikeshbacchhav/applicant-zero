@@ -15,6 +15,7 @@ from .application_session import create_session_plan
 from .browser_assist import browser_setup_issue, start_browser_assistant
 from .manual_import import import_listing
 from .profile import RISHI_PROFILE
+from .resume_review import create_resume_review, load_resume_review
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
@@ -197,6 +198,7 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
     if route["support_level"] in {"assisted", "pilot"} and not setup_issue:
         browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>Open assisted application</button></form>"
     saved_draft = load_ai_draft(database_path, external_id)
+    resume_review_button = f"<form method='post' action='/resume-review'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create tailored resume review</button></form>"
     draft_section = ""
     if saved_draft:
         draft = saved_draft.get("draft", {})
@@ -213,7 +215,7 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
 <section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p></section>
-<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form></section>
+<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}</section>
 {draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
@@ -229,6 +231,10 @@ def serve(database_path: Path, port: int = 8765) -> None:
             if parsed.path == "/brief":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 content = build_brief_page(database_path, external_id).encode("utf-8")
+            elif parsed.path == "/resume-review":
+                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
+                review = load_resume_review(database_path, external_id)
+                content = (review or "<h1>Resume review not created</h1><p><a href='/'>Return to Applicant Zero</a></p>").encode("utf-8")
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
             elif parsed.path == "/":
@@ -242,12 +248,27 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/resume-review":
+                try:
+                    create_resume_review(database_path, external_id)
+                except ValueError as error:
+                    content = f"<h1>Resume review was not created</h1><p>{html.escape(str(error))}</p><p><a href='/brief?{urlencode({'external_id': external_id})}'>Return to preparation brief</a></p>".encode("utf-8")
+                    self.send_response(400)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/resume-review?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
             if self.path == "/import":
                 try:
                     with sqlite3.connect(database_path) as connection:
