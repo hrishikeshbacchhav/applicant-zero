@@ -23,10 +23,11 @@ No private profile, résumé, credential, visa document, password or application
 
 ## Running the prototype
 
-After Python is installed locally, run:
+After Python is installed locally, open the VS Code terminal in this folder and run:
 
 ```powershell
-python -m applicant_zero --demo
+$env:PYTHONPATH = "src"
+py -m applicant_zero --demo
 ```
 
-The command writes `data/applicant_zero.sqlite3` locally and prints a ranked queue. The database is excluded from Git.
+The first line tells Python where the local program files are. The second writes `data/applicant_zero.sqlite3` locally and prints a ranked queue. The database is excluded from Git.
