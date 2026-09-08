@@ -43,6 +43,21 @@ python -m applicant_zero --adzuna --query "data analyst" --where "Sydney"
 
 The API's default documented access limit is 2,500 requests each month, which is sufficient for the local discovery-and-matching validation stage. Do not share the `.env` file or either API credential in chat or GitHub.
 
+## Company career-board discovery
+
+The preferred first live source is public company career boards. Greenhouse and Lever publish open positions through documented public GET endpoints, so no account or API key is required to discover the roles.
+
+1. Copy `data/company_boards.example.json` to `data/company_boards.json`.
+2. Add only companies whose careers pages you want Applicant Zero to monitor.
+3. Run:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --company-boards data/company_boards.json
+```
+
+The private company-board list is excluded from Git. This command only reads public job listings and records matching results locally; it does not open or submit an application.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:

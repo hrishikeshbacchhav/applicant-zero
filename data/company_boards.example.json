@@ -1,0 +1,12 @@
+[
+  {
+    "company": "Example Greenhouse employer",
+    "ats": "greenhouse",
+    "token": "replace-with-greenhouse-board-token"
+  },
+  {
+    "company": "Example Lever employer",
+    "ats": "lever",
+    "token": "replace-with-lever-site-name"
+  }
+]
