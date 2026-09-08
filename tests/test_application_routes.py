@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from applicant_zero.application_answers import ensure_answer_library
+from applicant_zero.application_answers import advertised_salary_range, ensure_answer_library, salary_expectation_for_job
 from applicant_zero.application_routes import ApplicationRoute, classify_application_url, inspect_application_route
 from applicant_zero.storage import (
     get_application_route,
@@ -69,3 +69,10 @@ def test_answer_library_uses_profile_and_preserves_confirmed_answers(tmp_path):
     assert library["verified_answers"]["full_name"] == "Rishi Example"
     assert library["answers_requiring_confirmation"]["salary_expectations"] == "AUD 80,000 plus super"
     assert path.exists()
+
+
+def test_salary_guidance_uses_a_clearly_advertised_range_first():
+    job = {"description": "The salary is $90,000 - $110,000 plus super."}
+    answers = {"answers_requiring_confirmation": {"salary_expectations": "AUD 95,000 plus super"}}
+    assert advertised_salary_range(job["description"]) == (90_000, 110_000)
+    assert salary_expectation_for_job(job, answers) == "AUD 100,000 base salary plus superannuation (negotiable)"

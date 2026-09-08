@@ -103,7 +103,7 @@ Open **Prepare application** for a job, then:
 
 1. Select **Scan application form** to inspect its current field count, required fields, account requirement and CAPTCHA markers.
 2. Select **Open assisted application** for a supported route.
-3. Review the separate browser window. Applicant Zero fills stable contact information, location, availability, the approved résumé and any reusable salary, notice-period or profile-link answers you have already confirmed.
+3. Review the separate browser window. Applicant Zero fills stable contact information, location, availability, the approved résumé and reusable notice-period or profile-link answers. It uses the advertised salary range when one is clearly stated, otherwise your private fallback, and can choose a clearly matching "how did you hear about us" option.
 4. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
 5. Review the entire application before choosing the employer's Submit button yourself.
 
