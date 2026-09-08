@@ -83,6 +83,8 @@ The queue starts with **Current listings** and **Live sources** enabled, so expi
 
 Applicant Zero records when each role was first and last seen. Repeated copies with the same company, title and location are combined in the queue, while their underlying records remain available locally. Tracker notes survive every refresh, and the first move to **Applied** records the submission time. The Insights cards show current listings, roles worth reviewing, strong matches, submitted applications and interviews. **Company boards checked** shows the number of employer boards that completed during the latest refresh, rather than the number of job-site types.
 
+The dashboard also records the last completed discovery refresh and provides a **New this week** filter. Use it after the daily refresh to focus on newly collected current listings instead of scanning the entire queue again.
+
 The matcher also checks explicit experience requirements. A role that asks for four or more years is held for review even when its title does not say senior. Listings that mention unrestricted work rights or no sponsorship show a work-rights requirement to verify before application preparation.
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.

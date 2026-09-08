@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
-from .storage import initialise_database, mark_company_jobs_inactive, save_board_checks, save_match
+from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .sources.adzuna import fetch_jobs
 from .sources.company_boards import fetch_company_boards_with_report
 from .dashboard import serve
@@ -90,6 +90,17 @@ def main() -> None:
             mark_company_jobs_inactive(database, report.company, active_ids)
 
     visible_queue = queue if args.show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
+    if args.company_boards:
+        record_refresh_run(
+            database,
+            "Company career boards",
+            len(queue),
+            len(visible_queue),
+            checked_count=len([report for report in reports if report.status == "checked"]),
+            unavailable_count=len([report for report in reports if report.status == "unavailable"]),
+        )
+    elif args.adzuna:
+        record_refresh_run(database, "Adzuna", len(queue), len(visible_queue))
     print(f"Collected {len(queue)} roles. Showing {len(visible_queue)} roles worth reviewing; use the dashboard for the full record.")
     for job, result in sorted(visible_queue, key=lambda item: item[1].score, reverse=True):
         print(f"{result.recommendation:12} {result.score:3} | {job.title} at {job.company}")

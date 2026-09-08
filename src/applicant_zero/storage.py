@@ -95,6 +95,19 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS refresh_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source TEXT NOT NULL,
+            collected_count INTEGER NOT NULL,
+            relevant_count INTEGER NOT NULL,
+            checked_count INTEGER NOT NULL DEFAULT 0,
+            unavailable_count INTEGER NOT NULL DEFAULT 0,
+            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
     if "workflow_status" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
@@ -254,6 +267,35 @@ def list_board_checks(connection: sqlite3.Connection) -> list[dict]:
         "SELECT company, status, job_count, detail, checked_at FROM board_checks ORDER BY company"
     ).fetchall()
     return [dict(row) for row in rows]
+
+
+def record_refresh_run(
+    connection: sqlite3.Connection,
+    source: str,
+    collected_count: int,
+    relevant_count: int,
+    checked_count: int = 0,
+    unavailable_count: int = 0,
+) -> None:
+    connection.execute(
+        """
+        INSERT INTO refresh_runs (source, collected_count, relevant_count, checked_count, unavailable_count)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (source, collected_count, relevant_count, checked_count, unavailable_count),
+    )
+    connection.commit()
+
+
+def latest_refresh_run(connection: sqlite3.Connection) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        """
+        SELECT source, collected_count, relevant_count, checked_count, unavailable_count, completed_at
+        FROM refresh_runs ORDER BY id DESC LIMIT 1
+        """
+    ).fetchone()
+    return dict(row) if row else None
 
 
 def save_application_route(connection: sqlite3.Connection, external_id: str, route: object) -> None:

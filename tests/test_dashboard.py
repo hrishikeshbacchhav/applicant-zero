@@ -19,6 +19,7 @@ from applicant_zero.storage import (
     save_match,
     save_material_review,
     save_submission_proof,
+    record_refresh_run,
     update_workflow,
 )
 
@@ -206,3 +207,14 @@ def test_readiness_identifies_the_private_setup_that_is_still_missing(tmp_path):
     readiness = evaluate_application_readiness(tmp_path / "data" / "jobs.sqlite3", get_match(database, job.external_id), False)
     assert readiness[0].label == "Candidate profile"
     assert readiness[0].complete is False
+
+
+def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    record_refresh_run(database, "Company career boards", 12, 3, checked_count=4, unavailable_count=1)
+    page = build_page(tmp_path / "jobs.sqlite3")
+    assert "Last discovery refresh" in page
+    assert "New this week" in page
+    assert "source(s) unavailable" in page

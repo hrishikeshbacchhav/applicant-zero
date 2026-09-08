@@ -2,6 +2,7 @@ import html
 import json
 import sqlite3
 import webbrowser
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlsplit
@@ -24,6 +25,7 @@ from .storage import (
     get_match,
     get_submission_proof,
     initialise_database,
+    latest_refresh_run,
     list_application_events,
     list_board_checks,
     list_matches,
@@ -40,13 +42,15 @@ def _badge(recommendation: str) -> str:
     return f'<span class="badge {css_class}">{html.escape(recommendation)}</span>'
 
 
-def _insights(rows: list[dict], board_checks: list[dict]) -> str:
+def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | None) -> str:
     live_rows = [row for row in rows if row["source"].lower() != "demo"]
     current_rows = [row for row in live_rows if row["is_active"]]
     relevant = [row for row in current_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
     available_boards = sum(board["status"] == "checked" for board in board_checks)
     workflow = {status: sum(row["workflow_status"] == status for row in live_rows) for status in WORKFLOW_STATUSES}
     workflow_summary = " · ".join(f"{status}: {count}" for status, count in workflow.items() if count)
+    recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+    new_this_week = sum(row["first_seen_at"] >= recent_cutoff for row in current_rows)
     cards = (
         ("Current listings", str(len(current_rows))),
         ("Worth reviewing", str(len(relevant))),
@@ -54,19 +58,27 @@ def _insights(rows: list[dict], board_checks: list[dict]) -> str:
         ("Applications submitted", str(sum(row["workflow_status"] == "Applied" for row in live_rows))),
         ("Interviews", str(sum(row["workflow_status"] == "Interview" for row in live_rows))),
         ("Company boards checked", str(available_boards)),
+        ("New this week", str(new_this_week)),
     )
     card_html = "".join(f"<div class='insight'><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></div>" for label, value in cards)
-    return f"<section class='insights'><h2>Insights</h2><div class='insight-grid'>{card_html}</div><p class='workflow-summary'>Your tracker: {html.escape(workflow_summary or 'No jobs collected yet')}</p></section>"
+    refresh_summary = "No completed discovery refresh recorded yet."
+    if refresh_run:
+        refresh_summary = f"Last discovery refresh: {refresh_run['completed_at']} · {refresh_run['source']} · {refresh_run['collected_count']} roles collected · {refresh_run['relevant_count']} worth reviewing"
+        if refresh_run["unavailable_count"]:
+            refresh_summary += f" · {refresh_run['unavailable_count']} source(s) unavailable"
+    return f"<section class='insights'><h2>Insights</h2><div class='insight-grid'>{card_html}</div><p class='workflow-summary'>{html.escape(refresh_summary)}</p><p class='workflow-summary'>Your tracker: {html.escape(workflow_summary or 'No jobs collected yet')}</p></section>"
 
 
 def build_page(database_path: Path) -> str:
     if not database_path.exists():
         rows: list[dict] = []
         board_checks: list[dict] = []
+        refresh_run: dict | None = None
     else:
         with sqlite3.connect(database_path) as connection:
             rows = list_matches(connection)
             board_checks = list_board_checks(connection)
+            refresh_run = latest_refresh_run(connection)
 
     source_options = sorted({row["source"] for row in rows})
     company_options = sorted({row["company"] for row in rows if row["source"].lower() != "demo"})
@@ -93,8 +105,10 @@ def build_page(database_path: Path) -> str:
         route = classify_application_url(row["url"])
         route_labels = {"assisted": "Assist ready", "pilot": "Pilot", "login_required": "Login needed", "complex": "Complex", "manual_review": "Manual review"}
         route_label = html.escape(route_labels.get(route.support_level, route.support_level))
+        recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+        is_new = str(row["first_seen_at"]) >= recent_cutoff
         table_rows.append(
-            f"<tr class='job-row' data-status='{html.escape(row['recommendation'])}' data-workflow='{html.escape(row['workflow_status'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-active='{str(is_active).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
+            f"<tr class='job-row' data-status='{html.escape(row['recommendation'])}' data-workflow='{html.escape(row['workflow_status'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-active='{str(is_active).lower()}' data-new='{str(is_new).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
             f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a>{listing_state}<small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare application</a></small></td>"
             f"<td>{html.escape(row['location'])}<small>{source} · Last seen {last_seen}</small><span class='route route-{html.escape(route.support_level)}'>{html.escape(route.platform)} · {route_label}</span>{duplicate_note}</td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
@@ -105,7 +119,7 @@ def build_page(database_path: Path) -> str:
         )
 
     body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
-    insights = _insights(rows, board_checks)
+    insights = _insights(rows, board_checks, refresh_run)
     source_select = "".join(f"<option value='{html.escape(source)}'>{html.escape(source)}</option>" for source in source_options)
     company_select = "".join(f"<option value='{html.escape(company)}'>{html.escape(company)}</option>" for company in company_options)
     return f"""<!doctype html>
@@ -122,9 +136,9 @@ button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 1
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a></p>{insights}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
-<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button></div>
+<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button><button id='new-toggle' onclick='toggleNew(this)'>New this week</button></div>
 <div class='table-wrap'><table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table></div><div id='no-results'>No listings match the selected filters.</div>
-</main><script>let recommendation='All';let liveOnly=true;let currentOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function toggleCurrent(button){{currentOnly=!currentOnly;button.classList.toggle('active',currentOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;const workflow=document.getElementById('workflow').value;let visible=0;document.querySelectorAll('tbody tr.job-row').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(workflow==='All'||row.dataset.workflow===workflow)&&(!liveOnly||row.dataset.demo!=='true')&&(!currentOnly||row.dataset.active==='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none';if(show)visible++}});document.getElementById('no-results').style.display=visible?'none':'block'}}refreshRows()</script></body></html>"""
+</main><script>let recommendation='All';let liveOnly=true;let currentOnly=true;let newOnly=false;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function toggleCurrent(button){{currentOnly=!currentOnly;button.classList.toggle('active',currentOnly);refreshRows()}}function toggleNew(button){{newOnly=!newOnly;button.classList.toggle('active',newOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;const workflow=document.getElementById('workflow').value;let visible=0;document.querySelectorAll('tbody tr.job-row').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(workflow==='All'||row.dataset.workflow===workflow)&&(!liveOnly||row.dataset.demo!=='true')&&(!currentOnly||row.dataset.active==='true')&&(!newOnly||row.dataset.new==='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none';if(show)visible++}});document.getElementById('no-results').style.display=visible?'none':'block'}}refreshRows()</script></body></html>"""
 
 
 def build_answers_page(database_path: Path) -> str:
