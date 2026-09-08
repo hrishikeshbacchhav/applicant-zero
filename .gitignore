@@ -6,6 +6,7 @@ data/live/
 *.pdf
 *.docx
 *.xlsx
+.env
 
 # Python
 __pycache__/

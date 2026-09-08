@@ -21,6 +21,28 @@ No private profile, résumé, credential, visa document, password or application
 - Generate tailored application packets.
 - Test form assistance source by source, without bypassing platform controls.
 
+## First live discovery source: Adzuna
+
+Applicant Zero supports Adzuna's official Australian job-search API as its first live source. It searches and scores vacancies only; it does not submit applications.
+
+1. Register for a free API key at https://developer.adzuna.com/signup.
+2. Create a file named `.env` in the project folder. This file is private and excluded from Git.
+3. Add your credentials using this format:
+
+```text
+ADZUNA_APP_ID=your_app_id
+ADZUNA_APP_KEY=your_app_key
+```
+
+4. In the VS Code terminal, run:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --adzuna --query "data analyst" --where "Sydney"
+```
+
+The API's default documented access limit is 2,500 requests each month, which is sufficient for the local discovery-and-matching validation stage. Do not share the `.env` file or either API credential in chat or GitHub.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:

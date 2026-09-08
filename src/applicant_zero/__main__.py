@@ -5,23 +5,32 @@ from pathlib import Path
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
 from .storage import initialise_database, save_match
+from .sources.adzuna import fetch_jobs
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Rank a safe demo feed of jobs for Applicant Zero.")
+    parser = argparse.ArgumentParser(description="Rank job listings for Applicant Zero.")
     parser.add_argument("--demo", action="store_true", help="Import the safe demo job feed.")
+    parser.add_argument("--adzuna", action="store_true", help="Search Adzuna's official Australian job API.")
+    parser.add_argument("--query", default="data analyst", help="Job title or skill query for Adzuna.")
+    parser.add_argument("--where", default="Sydney", help="Location query for Adzuna.")
+    parser.add_argument("--page", type=int, default=1, help="Adzuna results page.")
     args = parser.parse_args()
-    if not args.demo:
-        parser.error("Use --demo for the first local prototype run.")
+    if args.demo == args.adzuna:
+        parser.error("Choose exactly one source: --demo or --adzuna.")
 
-    records = json.loads((ROOT / "data" / "demo_jobs.json").read_text(encoding="utf-8"))
+    if args.demo:
+        records = json.loads((ROOT / "data" / "demo_jobs.json").read_text(encoding="utf-8"))
+        jobs = [Job(**record) for record in records]
+    else:
+        jobs = fetch_jobs(ROOT, args.query, args.where, args.page)
+
     database = initialise_database(ROOT / "data" / "applicant_zero.sqlite3")
     queue = []
-    for record in records:
-        job = Job(**record)
+    for job in jobs:
         result = score_job(job, RISHI_PROFILE)
         save_match(database, job, result)
         queue.append((job, result))

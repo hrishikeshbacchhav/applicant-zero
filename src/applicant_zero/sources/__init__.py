@@ -1,0 +1,1 @@
+"""Approved discovery-source adapters."""
