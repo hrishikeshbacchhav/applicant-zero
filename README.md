@@ -103,7 +103,15 @@ To enable the drafting button, create an OpenAI API key, then set it for the cur
 $env:OPENAI_API_KEY = "paste_your_API_key_here"
 ```
 
+Check the setup without exposing the key:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --tailoring-check
+```
+
 Open a role's preparation brief and select **Generate AI tailoring draft**. The output is saved as a private JSON file in `private/application_packets`. The request uses the OpenAI Responses API with `store: false`.
+The same brief then displays the saved review draft, including suggested résumé bullets, a cover-letter draft, unsupported requirements and questions to confirm.
 
 ## Private candidate profile
 

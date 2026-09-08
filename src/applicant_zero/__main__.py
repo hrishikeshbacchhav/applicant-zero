@@ -8,6 +8,7 @@ from .storage import initialise_database, save_board_checks, save_match
 from .sources.adzuna import fetch_jobs
 from .sources.company_boards import fetch_company_boards_with_report
 from .dashboard import serve
+from .ai_drafting import check_tailoring_setup
 from .private_profile import check_profile
 
 
@@ -26,6 +27,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8765, help="Local dashboard port.")
     parser.add_argument("--show-all", action="store_true", help="Also show jobs that were skipped as outside the target search.")
     parser.add_argument("--profile-check", action="store_true", help="Check whether the private candidate profile is ready for application preparation.")
+    parser.add_argument("--tailoring-check", action="store_true", help="Check whether private evidence and optional AI drafting are ready.")
     args = parser.parse_args()
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None)
     if args.profile_check:
@@ -38,6 +40,17 @@ def main() -> None:
                 print(f"- {issue}")
         else:
             print("Your private candidate profile is ready for application preparation.")
+        return
+    if args.tailoring_check:
+        if source_count or args.dashboard:
+            parser.error("Use --tailoring-check on its own.")
+        issues = check_tailoring_setup(ROOT)
+        if issues:
+            print("AI tailoring still needs:")
+            for issue in issues:
+                print(f"- {issue}")
+        else:
+            print("AI tailoring is ready. Open a job preparation brief to generate a review draft.")
         return
     if args.dashboard:
         if source_count:

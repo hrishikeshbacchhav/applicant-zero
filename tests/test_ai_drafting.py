@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.ai_drafting import DraftingError, _json_from_text, _load_evidence
+from applicant_zero.ai_drafting import DraftingError, _json_from_text, _load_evidence, check_tailoring_setup
 
 
 def test_json_draft_parser_accepts_json_code_fence():
@@ -16,3 +16,9 @@ def test_evidence_library_requires_real_facts(tmp_path):
         assert "verified evidence" in str(error)
     else:
         raise AssertionError("Expected drafting setup to reject placeholder evidence")
+
+
+def test_tailoring_check_reports_missing_private_setup(tmp_path):
+    issues = check_tailoring_setup(tmp_path)
+    assert "Private candidate profile is not ready." in issues
+    assert any("evidence library" in issue for issue in issues)

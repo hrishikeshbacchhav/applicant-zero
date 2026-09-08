@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 from .private_profile import load_profile
 from .packets import create_application_packet
-from .ai_drafting import DraftingError, create_ai_draft
+from .ai_drafting import DraftingError, create_ai_draft, load_ai_draft
 from .storage import WORKFLOW_STATUSES, initialise_database, list_board_checks, list_matches, update_workflow
 
 
@@ -109,6 +109,14 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
             f"<p>Approved résumé file: <code>{html.escape(resume_path)}</code></p>"
             f"<p>Confirmed full-time availability: <strong>{html.escape(availability)}</strong></p>"
         )
+    saved_draft = load_ai_draft(database_path, external_id)
+    draft_section = ""
+    if saved_draft:
+        draft = saved_draft.get("draft", {})
+        bullets = "".join(f"<li>{html.escape(str(item))}</li>" for item in draft.get("resume_bullet_suggestions", [])) or "<li>No bullet suggestions returned.</li>"
+        unsupported = "".join(f"<li>{html.escape(str(item))}</li>" for item in draft.get("unsupported_requirements", [])) or "<li>No unsupported requirements identified.</li>"
+        questions = "".join(f"<li>{html.escape(str(item))}</li>" for item in draft.get("questions_to_confirm", [])) or "<li>No additional questions returned.</li>"
+        draft_section = f"""<section class='card'><h2>Saved AI tailoring review</h2><p><strong>Résumé summary:</strong> {html.escape(str(draft.get('resume_summary', 'Not provided.')))}</p><h3>Suggested résumé bullets</h3><ul>{bullets}</ul><h3>Cover-letter draft</h3><pre>{html.escape(str(draft.get('cover_letter', 'Not provided.')))}</pre><h3>Unsupported requirements</h3><ul>{unsupported}</ul><h3>Questions to confirm</h3><ul>{questions}</ul><p>Review every statement against your real experience before using it.</p></section>"""
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Preparation brief</title><style>
 body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}}</style></head>
@@ -116,7 +124,7 @@ body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} m
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
 <section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form></section>
-<section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
+{draft_section}<section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
