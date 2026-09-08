@@ -77,6 +77,7 @@ Return valid JSON only with these keys:
 - resume_summary: string, maximum 70 words
 - resume_bullet_suggestions: array of up to 5 strings
 - cover_letter: string, maximum 220 words
+- application_answer_drafts: object with keys why_interested, relevant_experience, and availability; use "Needs confirmation" where evidence is insufficient
 - unsupported_requirements: array of strings
 - questions_to_confirm: array of strings
 
