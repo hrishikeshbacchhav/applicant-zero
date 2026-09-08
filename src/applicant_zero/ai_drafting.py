@@ -102,7 +102,26 @@ def _json_from_text(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as error:
+        start = cleaned.find("{")
+        if start >= 0:
+            try:
+                value, _ = json.JSONDecoder().raw_decode(cleaned[start:])
+                return value
+            except json.JSONDecodeError:
+                pass
         raise DraftingError("The drafting service returned an invalid format. Try again.") from error
+
+
+def _response_text(response_data: dict) -> str:
+    direct_text = response_data.get("output_text")
+    if isinstance(direct_text, str) and direct_text.strip():
+        return direct_text
+    parts: list[str] = []
+    for item in response_data.get("output", []):
+        for content in item.get("content", []):
+            if content.get("type") == "output_text" and isinstance(content.get("text"), str):
+                parts.append(content["text"])
+    return "\n".join(parts)
 
 
 def create_ai_draft(database_path: Path, external_id: str, model: str | None = None) -> Path:
@@ -132,7 +151,7 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
         raise DraftingError(f"Drafting service returned HTTP {error.code}.") from error
     except URLError as error:
         raise DraftingError("Could not reach the drafting service.") from error
-    draft = _json_from_text(response_data.get("output_text", ""))
+    draft = _json_from_text(_response_text(response_data))
     output_path = _draft_path(database_path, job)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps({"created_at": datetime.now().isoformat(timespec="minutes"), "job": job["title"], "draft": draft}, indent=2, ensure_ascii=False), encoding="utf-8")
