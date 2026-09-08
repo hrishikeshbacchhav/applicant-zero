@@ -29,6 +29,17 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS board_checks (
+            company TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            job_count INTEGER NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
     if "workflow_status" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
@@ -69,6 +80,28 @@ def list_matches(connection: sqlite3.Connection) -> list[dict]:
         FROM job_matches
         ORDER BY score DESC, company, title
         """
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> None:
+    for report in reports:
+        connection.execute(
+            """
+            INSERT INTO board_checks (company, status, job_count, detail, checked_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(company) DO UPDATE SET status=excluded.status, job_count=excluded.job_count,
+                detail=excluded.detail, checked_at=excluded.checked_at
+            """,
+            (report.company, report.status, report.job_count, report.message),
+        )
+    connection.commit()
+
+
+def list_board_checks(connection: sqlite3.Connection) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        "SELECT company, status, job_count, detail, checked_at FROM board_checks ORDER BY company"
     ).fetchall()
     return [dict(row) for row in rows]
 

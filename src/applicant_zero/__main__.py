@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
-from .storage import initialise_database, save_match
+from .storage import initialise_database, save_board_checks, save_match
 from .sources.adzuna import fetch_jobs
 from .sources.company_boards import fetch_company_boards_with_report
 from .dashboard import serve
@@ -61,6 +61,8 @@ def main() -> None:
             print(f"  - {report.company}: {report.message}")
 
     database = initialise_database(ROOT / "data" / "applicant_zero.sqlite3")
+    if args.company_boards:
+        save_board_checks(database, reports)
     queue = []
     for job in jobs:
         result = score_job(job, RISHI_PROFILE)

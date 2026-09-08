@@ -3,6 +3,7 @@ from unittest.mock import patch
 import json
 
 from applicant_zero.sources.company_boards import _greenhouse_jobs, _lever_jobs, fetch_company_boards_with_report
+from applicant_zero.storage import initialise_database, list_board_checks, save_board_checks
 
 
 def test_greenhouse_mapping():
@@ -35,3 +36,11 @@ def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
         jobs, reports = fetch_company_boards_with_report(path)
     assert jobs == []
     assert [report.status for report in reports] == ["checked", "unavailable"]
+
+
+def test_board_health_is_saved_locally(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_board_checks(database, [type("Report", (), {"company": "Example", "status": "checked", "job_count": 3, "message": ""})()])
+    rows = list_board_checks(database)
+    assert rows[0]["company"] == "Example"
+    assert rows[0]["job_count"] == 3

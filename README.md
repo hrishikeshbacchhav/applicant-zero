@@ -79,7 +79,11 @@ Use the **Your tracker** column to keep the job's progress as New, Saved, Prepar
 
 The queue starts with **Live jobs only** so the original demo examples do not clutter the review. Use the search box, recommendation buttons and source selector to narrow the queue. If one employer career board is temporarily unavailable, the refresh records the remaining boards instead of failing the entire search.
 
+The Insights cards count live listings only. **Company boards checked** shows the number of employer boards that completed during the latest refresh, rather than the number of job-site types.
+
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
+
+From a preparation brief, select **Save private application packet** to create a Markdown packet in `private/application_packets`. It records the listing, approved résumé file, evidence, requirements to check and application checklist. The packet stays on your computer and is excluded from GitHub.
 
 ## Private candidate profile
 

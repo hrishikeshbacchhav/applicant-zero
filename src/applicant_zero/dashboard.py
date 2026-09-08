@@ -7,7 +7,8 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 from .private_profile import load_profile
-from .storage import WORKFLOW_STATUSES, initialise_database, list_matches, update_workflow
+from .packets import create_application_packet
+from .storage import WORKFLOW_STATUSES, initialise_database, list_board_checks, list_matches, update_workflow
 
 
 def _badge(recommendation: str) -> str:
@@ -15,16 +16,17 @@ def _badge(recommendation: str) -> str:
     return f'<span class="badge {css_class}">{html.escape(recommendation)}</span>'
 
 
-def _insights(rows: list[dict]) -> str:
-    relevant = [row for row in rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
-    source_count = len({row["source"] for row in rows})
-    workflow = {status: sum(row["workflow_status"] == status for row in rows) for status in WORKFLOW_STATUSES}
+def _insights(rows: list[dict], board_checks: list[dict]) -> str:
+    live_rows = [row for row in rows if row["source"].lower() != "demo"]
+    relevant = [row for row in live_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
+    available_boards = sum(board["status"] == "checked" for board in board_checks)
+    workflow = {status: sum(row["workflow_status"] == status for row in live_rows) for status in WORKFLOW_STATUSES}
     workflow_summary = " · ".join(f"{status}: {count}" for status, count in workflow.items() if count)
     cards = (
-        ("Jobs collected", str(len(rows))),
-        ("Worth reviewing", str(len(relevant))),
-        ("Strong matches", str(sum(row["recommendation"] == "Strong apply" for row in rows))),
-        ("Sources checked", str(source_count)),
+        ("Live jobs collected", str(len(live_rows))),
+        ("Live roles worth reviewing", str(len(relevant))),
+        ("Live strong matches", str(sum(row["recommendation"] == "Strong apply" for row in live_rows))),
+        ("Company boards checked", str(available_boards)),
     )
     card_html = "".join(f"<div class='insight'><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></div>" for label, value in cards)
     return f"<section class='insights'><h2>Insights</h2><div class='insight-grid'>{card_html}</div><p class='workflow-summary'>Your tracker: {html.escape(workflow_summary or 'No jobs collected yet')}</p></section>"
@@ -33,11 +35,14 @@ def _insights(rows: list[dict]) -> str:
 def build_page(database_path: Path) -> str:
     if not database_path.exists():
         rows: list[dict] = []
+        board_checks: list[dict] = []
     else:
         with sqlite3.connect(database_path) as connection:
             rows = list_matches(connection)
+            board_checks = list_board_checks(connection)
 
     source_options = sorted({row["source"] for row in rows})
+    company_options = sorted({row["company"] for row in rows if row["source"].lower() != "demo"})
     table_rows = []
     for row in rows:
         reasons = "<br>".join(html.escape(reason) for reason in json.loads(row["reasons"]))
@@ -53,7 +58,7 @@ def build_page(database_path: Path) -> str:
         source = html.escape(row["source"])
         is_demo = str(row["source"]).lower() == "demo"
         table_rows.append(
-            f"<tr data-status='{html.escape(row['recommendation'])}' data-source='{source}' data-demo='{str(is_demo).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
+            f"<tr data-status='{html.escape(row['recommendation'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
             f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a><small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare brief</a></small></td>"
             f"<td>{html.escape(row['location'])}<small>{source}</small></td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
@@ -64,8 +69,9 @@ def build_page(database_path: Path) -> str:
         )
 
     body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
-    insights = _insights(rows)
+    insights = _insights(rows, board_checks)
     source_select = "".join(f"<option value='{html.escape(source)}'>{html.escape(source)}</option>" for source in source_options)
+    company_select = "".join(f"<option value='{html.escape(company)}'>{html.escape(company)}</option>" for company in company_options)
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Review queue</title>
@@ -77,9 +83,9 @@ button{{border:1px solid #c7d2e3;border-radius:5px;background:#fff;padding:8px 1
 table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px #dce3ee}} th{{text-align:left;background:#eaf0f8;color:#163b67;padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:#1261a0;font-weight:bold;text-decoration:none}} small{{display:block;color:#667085;margin-top:4px}} .badge{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}}
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>{insights}
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
-<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live jobs only</button></div>
+<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live jobs only</button></div>
 <table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table>
-</main><script>let recommendation='All';let liveOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;document.querySelectorAll('tbody tr').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(!liveOnly||row.dataset.demo!=='true')&&(source==='All'||row.dataset.source===source)&&row.dataset.search.includes(search);row.style.display=show?'':'none'}})}}refreshRows()</script></body></html>"""
+</main><script>let recommendation='All';let liveOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;document.querySelectorAll('tbody tr').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(!liveOnly||row.dataset.demo!=='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none'}})}}refreshRows()</script></body></html>"""
 
 
 def build_brief_page(database_path: Path, external_id: str) -> str:
@@ -108,7 +114,7 @@ body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} m
 <body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
-<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol></section>
+<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form></section>
 <section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
@@ -135,12 +141,22 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path != "/update":
+            if self.path not in {"/update", "/packet"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/packet":
+                try:
+                    create_application_packet(database_path, external_id)
+                except ValueError:
+                    self.send_error(400)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
             workflow_status = values.get("workflow_status", [""])[0]
             notes = values.get("notes", [""])[0]
             try:

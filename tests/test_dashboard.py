@@ -22,9 +22,11 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker" in page
     assert "Insights" in page
-    assert "Jobs collected" in page
+    assert "Live jobs collected" in page
     assert "Live jobs only" in page
     assert "Search role, company or location" in page
+    assert "All companies" in page
+    assert "Live jobs collected" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
     assert "Before applying" in brief
