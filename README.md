@@ -65,6 +65,17 @@ $env:PYTHONPATH = "src"
 python -m applicant_zero --company-boards data/company_boards.starter.json
 ```
 
+## Local review dashboard
+
+After a discovery run, open a browser-based local review queue:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --dashboard
+```
+
+The dashboard opens only on your computer and displays the jobs already saved in the local database. Keep the terminal open while using it, then press `Ctrl+C` in the terminal to stop it.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:

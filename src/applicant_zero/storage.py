@@ -45,3 +45,16 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
          json.dumps(result.matched_evidence), json.dumps(result.missing_requirements), json.dumps(result.reasons)),
     )
     connection.commit()
+
+
+def list_matches(connection: sqlite3.Connection) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """
+        SELECT title, company, location, source, url, recommendation, score,
+               resume_family, matched_evidence, missing_requirements, reasons
+        FROM job_matches
+        ORDER BY score DESC, company, title
+        """
+    ).fetchall()
+    return [dict(row) for row in rows]

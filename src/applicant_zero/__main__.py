@@ -7,6 +7,7 @@ from .scoring import Job, score_job
 from .storage import initialise_database, save_match
 from .sources.adzuna import fetch_jobs
 from .sources.company_boards import fetch_company_boards
+from .dashboard import serve
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -20,10 +21,17 @@ def main() -> None:
     parser.add_argument("--query", default="data analyst", help="Job title or skill query for Adzuna.")
     parser.add_argument("--where", default="Sydney", help="Location query for Adzuna.")
     parser.add_argument("--page", type=int, default=1, help="Adzuna results page.")
+    parser.add_argument("--dashboard", action="store_true", help="Open the local job review dashboard.")
+    parser.add_argument("--port", type=int, default=8765, help="Local dashboard port.")
     args = parser.parse_args()
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None)
+    if args.dashboard:
+        if source_count:
+            parser.error("Use --dashboard on its own.")
+        serve(ROOT / "data" / "applicant_zero.sqlite3", args.port)
+        return
     if source_count != 1:
-        parser.error("Choose exactly one source: --demo, --adzuna or --company-boards.")
+        parser.error("Choose exactly one source: --demo, --adzuna, --company-boards or --dashboard.")
 
     if args.demo:
         records = json.loads((ROOT / "data" / "demo_jobs.json").read_text(encoding="utf-8"))
