@@ -97,7 +97,7 @@ From a preparation brief, select **Save private application packet** to create a
 
 ## Supervised application pilot
 
-The dashboard labels every job by its application route. Lever forms have passed the browser-assistance test, while Greenhouse forms remain a supervised pilot because their browser-rendering behaviour varies. SEEK and LinkedIn are labelled as requiring the candidate's login, Workday is labelled as a complex multi-step form, and unknown systems stay in manual review.
+The dashboard labels every job by its application route. Lever forms have passed the browser-assistance test, while Greenhouse forms remain a supervised pilot because their browser-rendering behaviour varies. SEEK and LinkedIn can use a supervised login handoff: you sign in yourself, then Applicant Zero waits for a visible application form and fills only safe reusable answers. Workday gets the same supervised handoff for its multi-step forms. Unknown systems stay in manual review.
 
 Install the free local browser-control package once:
 
@@ -110,8 +110,9 @@ Open **Prepare application** for a job, then:
 1. Select **Scan application form** to inspect its current field count, required fields, account requirement and CAPTCHA markers.
 2. Select **Open assisted application** for a supported route.
 3. Review the separate browser window. Applicant Zero fills stable contact information, location, availability, the approved résumé and reusable notice-period or profile-link answers. It uses the advertised salary range when one is clearly stated, otherwise your private fallback, and can choose a clearly matching "how did you hear about us" option.
-4. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
-5. Review the entire application before choosing the employer's Submit button yourself.
+4. For a login handoff, sign in or complete account steps yourself. Applicant Zero does not enter, store or create passwords, and it waits for an application form before filling safe fields.
+5. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
+6. Review the entire application before choosing the employer's Submit button yourself.
 
 The browser uses a private local profile under `private/browser_profile`. Login sessions may be retained there by the browser, while Applicant Zero never stores or creates passwords. Every route scan and assistance attempt appears under **Application activity** in the job brief.
 

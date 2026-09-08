@@ -120,6 +120,16 @@ def test_supported_route_offers_supervised_browser_assistance(tmp_path):
     assert "Open assisted application" in brief
 
 
+def test_login_required_route_offers_supervised_handoff(tmp_path):
+    path = tmp_path / "project" / "data" / "jobs.sqlite3"
+    database = initialise_database(path)
+    job = Job("seek:example:1", "Data Analyst", "Example", "Sydney", "SEEK", "https://www.seek.com.au/job/123", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    with patch("applicant_zero.dashboard.browser_setup_issue", return_value=""):
+        brief = build_brief_page(path, job.external_id)
+    assert "Open supervised login handoff" in brief
+
+
 def test_private_answers_page_can_be_opened_without_showing_contact_values(tmp_path):
     project = tmp_path / "project"
     private = project / "private"

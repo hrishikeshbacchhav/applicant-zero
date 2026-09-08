@@ -4,6 +4,9 @@ from urllib.parse import urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 
+SUPERVISED_BROWSER_LEVELS = frozenset({"assisted", "pilot", "login_required", "complex"})
+
+
 @dataclass(frozen=True)
 class ApplicationRoute:
     platform: str
@@ -32,6 +35,11 @@ class _FormInspector(HTMLParser):
         self.field_count += 1
         if "required" in attributes or attributes.get("aria-required") == "true":
             self.required_field_count += 1
+
+
+def supports_supervised_browser_handoff(route: "ApplicationRoute") -> bool:
+    """A candidate may open these routes with the assistant; it never handles login or submit."""
+    return route.support_level in SUPERVISED_BROWSER_LEVELS
 
 
 def classify_application_url(url: str) -> ApplicationRoute:

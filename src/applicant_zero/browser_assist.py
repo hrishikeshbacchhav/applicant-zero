@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from .application_answers import ensure_answer_library, salary_expectation_for_job
-from .application_routes import classify_application_url
+from .application_routes import classify_application_url, supports_supervised_browser_handoff
 from .private_profile import load_profile
 from .storage import get_match, log_application_event, update_workflow
 
@@ -71,6 +71,35 @@ def _choose_select_option(element, descriptor: str, salary_expectation: str, ref
             if value and (preferred in label or label in preferred or "company" in label and "website" in label):
                 element.select_option(value)
                 return True
+    return False
+
+
+def _application_form_is_ready(page) -> bool:
+    """Avoid credential pages; wait until the candidate has navigated to an application form."""
+    try:
+        if page.locator("input[type='password']").count():
+            return False
+        fields = page.locator("input, textarea, select")
+        if fields.count() < 3:
+            return False
+        descriptors = []
+        for index in range(min(fields.count(), 30)):
+            element = fields.nth(index)
+            if element.is_visible():
+                descriptors.append(_descriptor(element))
+        text = " ".join(descriptors)
+        return bool(re.search(r"first.?name|given.?name|resume|cv|cover.?letter", text))
+    except Exception:
+        return False
+
+
+def _wait_for_candidate_handoff(page, timeout_seconds: int = 480) -> bool:
+    """Wait for the candidate to log in or navigate; never interact with credentials."""
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        if _application_form_is_ready(page):
+            return True
+        page.wait_for_timeout(1_000)
     return False
 
 
@@ -192,7 +221,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             return
         answers = ensure_answer_library(project_root, profile)
         route = classify_application_url(job["url"])
-        if route.support_level not in {"assisted", "pilot"}:
+        if not supports_supervised_browser_handoff(route):
             _log(database_path, external_id, "manual_review", route.detail)
             return
 
@@ -214,6 +243,19 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             page = context.pages[0] if context.pages else context.new_page()
             page.goto(route.apply_url, wait_until="domcontentloaded", timeout=45_000)
             page.wait_for_timeout(2_000)
+            if route.support_level in {"login_required", "complex"}:
+                _log(
+                    database_path,
+                    external_id,
+                    "waiting_for_candidate",
+                    "Sign in or complete the employer's account steps yourself. Applicant Zero will wait for an application form and will not enter credentials.",
+                )
+                if not _wait_for_candidate_handoff(page):
+                    _log(database_path, external_id, "candidate_action_required", "No supported application form appeared during the supervised handoff. Continue manually on the employer site.")
+                    while context.pages:
+                        time.sleep(1)
+                    _log(database_path, external_id, "closed", "The supervised browser was closed without Applicant Zero clicking submit.")
+                    return
             filled, unresolved = _prefill_page(page, job, profile, answers)
             _log(
                 database_path,

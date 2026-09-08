@@ -2,7 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 from applicant_zero.application_answers import advertised_salary_range, ensure_answer_library, salary_expectation_for_job
-from applicant_zero.application_routes import ApplicationRoute, classify_application_url, inspect_application_route
+from applicant_zero.application_routes import ApplicationRoute, classify_application_url, inspect_application_route, supports_supervised_browser_handoff
 from applicant_zero.storage import (
     get_application_route,
     initialise_database,
@@ -26,6 +26,9 @@ def test_known_application_platforms_are_classified():
     assert workday.platform == "Workday"
     assert workday.account_required is True
     assert workday.support_level == "complex"
+    assert supports_supervised_browser_handoff(workday) is True
+    assert supports_supervised_browser_handoff(classify_application_url("https://www.seek.com.au/job/123")) is True
+    assert supports_supervised_browser_handoff(classify_application_url("https://example.com/jobs/123")) is False
 
 
 def test_form_scan_counts_fields_and_detects_captcha():

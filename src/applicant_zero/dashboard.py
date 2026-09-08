@@ -11,7 +11,7 @@ from .private_profile import load_profile
 from .packets import create_application_packet
 from .ai_drafting import DraftingError, create_ai_draft, load_ai_draft
 from .application_answers import CONFIRMATION_FIELDS, ensure_answer_library, save_confirmed_answer
-from .application_routes import classify_application_url, inspect_application_route
+from .application_routes import classify_application_url, inspect_application_route, supports_supervised_browser_handoff
 from .application_session import create_session_plan
 from .browser_assist import browser_setup_issue, start_browser_assistant
 from .manual_import import import_listing
@@ -216,8 +216,9 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         for event in events
     ) or "<li>No application activity has been recorded for this role.</li>"
     browser_button = ""
-    if route["support_level"] in {"assisted", "pilot"} and not setup_issue:
-        browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>Open assisted application</button></form>"
+    if supports_supervised_browser_handoff(predicted_route) and not setup_issue:
+        button_label = "Open assisted application" if route["support_level"] in {"assisted", "pilot"} else "Open supervised login handoff"
+        browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>{button_label}</button></form>"
     saved_draft = load_ai_draft(database_path, external_id)
     resume_review_button = f"<form method='post' action='/resume-review'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create tailored resume review</button></form>"
     draft_section = ""
