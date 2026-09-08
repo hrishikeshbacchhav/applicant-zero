@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.private_profile import check_profile
+from applicant_zero.private_profile import check_profile, load_profile
 
 
 def test_profile_check_identifies_missing_file():
@@ -22,3 +22,4 @@ def test_profile_check_accepts_complete_profile(tmp_path):
     path = tmp_path / "candidate_profile.json"
     path.write_text(json.dumps(profile), encoding="utf-8")
     assert check_profile(path) == []
+    assert load_profile(path)["contact"]["legal_name"] == "Rishi"

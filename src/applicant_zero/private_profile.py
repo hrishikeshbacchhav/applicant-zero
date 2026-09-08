@@ -43,3 +43,9 @@ def check_profile(path: Path) -> list[str]:
         if value and not value.startswith("REPLACE_") and not Path(value).expanduser().exists():
             issues.append(f"Check the file path for {_read_value(profile, key)}.")
     return issues
+
+
+def load_profile(path: Path) -> dict:
+    if check_profile(path):
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
