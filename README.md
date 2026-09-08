@@ -87,6 +87,10 @@ The matcher also checks explicit experience requirements. A role that asks for f
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
 
+### Listings you find yourself
+
+Use **Add a job from another website** at the top of the dashboard for a public listing found on SEEK, LinkedIn, Indeed or a company site. Paste its link and job description once. Applicant Zero scores it, stores it in the same tracker, creates the same preparation brief and can generate a truthful AI review draft. It does not scrape the source website or submit anything.
+
 From a preparation brief, select **Save private application packet** to create a Markdown packet in `private/application_packets`. It records the listing, approved résumé file, evidence, requirements to check and application checklist. The packet stays on your computer and is excluded from GitHub.
 
 ## Supervised application pilot

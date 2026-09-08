@@ -1,4 +1,5 @@
 from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page
+from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 import json
@@ -19,6 +20,7 @@ from applicant_zero.storage import (
 def test_empty_dashboard_has_guidance(tmp_path):
     page = build_page(tmp_path / "missing.sqlite3")
     assert "No jobs collected yet" in page
+    assert "Add a job from another website" in page
 
 
 def test_dashboard_includes_local_workflow_tracker(tmp_path):
@@ -128,3 +130,20 @@ def test_private_answers_page_can_be_opened_without_showing_contact_values(tmp_p
     assert "Reusable application answers" in page
     assert "Salary expectations" in page
     assert "private@example.com" not in page
+
+
+def test_imported_listing_is_scored_and_has_a_stable_source_label(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = import_listing(
+        database,
+        RISHI_PROFILE,
+        title="Data Analyst",
+        company="Example Analytics",
+        location="Sydney, NSW",
+        url="https://www.seek.com.au/job/123456",
+        description="Use SQL and Power BI to develop reports, improve data quality and work with stakeholders across the business.",
+    )
+    stored = get_match(database, job.external_id)
+    assert stored["source"] == "Imported · SEEK"
+    assert stored["recommendation"] in {"Strong apply", "Apply", "Review"}
+    assert source_name("https://www.linkedin.com/jobs/view/123") == "Imported · LinkedIn"

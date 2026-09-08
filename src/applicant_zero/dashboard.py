@@ -13,6 +13,8 @@ from .application_answers import CONFIRMATION_FIELDS, ensure_answer_library, sav
 from .application_routes import classify_application_url, inspect_application_route
 from .application_session import create_session_plan
 from .browser_assist import browser_setup_issue, start_browser_assistant
+from .manual_import import import_listing
+from .profile import RISHI_PROFILE
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
@@ -107,10 +109,12 @@ def build_page(database_path: Path) -> str:
 :root{{--navy:#163b67;--blue:#1261a0;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1440px;margin:0 auto;padding:32px}}
 h1{{margin:0;color:var(--navy)}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters,.controls{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}} input[type=search],input[name=notes],select{{border:1px solid #c7d2e3;border-radius:6px;padding:9px;background:#fff}} input[type=search]{{min-width:270px;flex:1;max-width:420px}}
 button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}} button:hover{{border-color:#7f98b9}} button.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
+.import-card{{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:18px 0;box-shadow:0 1px 4px var(--border)}}.import-card summary{{font-weight:bold;color:var(--navy);cursor:pointer}}.import-card p{{color:var(--muted);font-size:14px}}.import-form{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:900px}}.import-form label{{font-size:13px;font-weight:bold;color:var(--navy)}}.import-form input,.import-form textarea{{display:block;width:100%;margin-top:4px;border:1px solid #c7d2e3;border-radius:6px;padding:9px;font:inherit}}.import-form .description{{grid-column:1 / -1}}.import-form textarea{{min-height:110px;resize:vertical}}.import-form button{{width:max-content}}
 .insights{{margin:22px 0}} .insights h2{{font-size:18px;color:var(--navy);margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px var(--border);border-radius:8px}} .insight strong{{display:block;font-size:24px;color:var(--navy)}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}}}
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a></p>{insights}
+<details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
 <div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button></div>
 <div class='table-wrap'><table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table></div><div id='no-results'>No listings match the selected filters.</div>
@@ -238,12 +242,36 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/import":
+                try:
+                    with sqlite3.connect(database_path) as connection:
+                        job = import_listing(
+                            connection,
+                            RISHI_PROFILE,
+                            title=values.get("title", [""])[0],
+                            company=values.get("company", [""])[0],
+                            location=values.get("location", [""])[0],
+                            url=values.get("url", [""])[0],
+                            description=values.get("description", [""])[0],
+                        )
+                except ValueError as error:
+                    content = f"<h1>Job was not imported</h1><p>{html.escape(str(error))}</p><p><a href='/'>Return to job queue</a></p>".encode("utf-8")
+                    self.send_response(400)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": job.external_id}))
+                self.end_headers()
+                return
             if self.path == "/answers":
                 profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
                 try:
