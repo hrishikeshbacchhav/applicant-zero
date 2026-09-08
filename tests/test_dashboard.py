@@ -21,6 +21,8 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert rows[0]["notes"] == "Check the Excel requirement"
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker" in page
+    assert "Insights" in page
+    assert "Jobs collected" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
     assert "Before applying" in brief

@@ -14,6 +14,21 @@ def _badge(recommendation: str) -> str:
     return f'<span class="badge {css_class}">{html.escape(recommendation)}</span>'
 
 
+def _insights(rows: list[dict]) -> str:
+    relevant = [row for row in rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
+    source_count = len({row["source"] for row in rows})
+    workflow = {status: sum(row["workflow_status"] == status for row in rows) for status in WORKFLOW_STATUSES}
+    workflow_summary = " · ".join(f"{status}: {count}" for status, count in workflow.items() if count)
+    cards = (
+        ("Jobs collected", str(len(rows))),
+        ("Worth reviewing", str(len(relevant))),
+        ("Strong matches", str(sum(row["recommendation"] == "Strong apply" for row in rows))),
+        ("Sources checked", str(source_count)),
+    )
+    card_html = "".join(f"<div class='insight'><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></div>" for label, value in cards)
+    return f"<section class='insights'><h2>Insights</h2><div class='insight-grid'>{card_html}</div><p class='workflow-summary'>Your tracker: {html.escape(workflow_summary or 'No jobs collected yet')}</p></section>"
+
+
 def build_page(database_path: Path) -> str:
     if not database_path.exists():
         rows: list[dict] = []
@@ -44,7 +59,8 @@ def build_page(database_path: Path) -> str:
             f"<select name='workflow_status'>{status_options}</select><input name='notes' value='{notes}' placeholder='Your note'><button type='submit'>Save</button></form></td></tr>"
         )
 
-    body = "".join(table_rows) or "<tr><td colspan='5'>No jobs collected yet. Run a discovery source first.</td></tr>"
+    body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
+    insights = _insights(rows)
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Review queue</title>
@@ -52,8 +68,9 @@ def build_page(database_path: Path) -> str:
 body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1280px;margin:0 auto;padding:32px}}
 h1{{margin:0;color:#163b67}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}}
 button{{border:1px solid #c7d2e3;border-radius:5px;background:#fff;padding:8px 12px;cursor:pointer}} button.active{{background:#163b67;color:#fff}}
+.insights{{margin:22px 0}} .insights h2{{font-size:18px;color:#163b67;margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px #dce3ee;border-radius:4px}} .insight strong{{display:block;font-size:24px;color:#163b67}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
 table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px #dce3ee}} th{{text-align:left;background:#eaf0f8;color:#163b67;padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:#1261a0;font-weight:bold;text-decoration:none}} small{{display:block;color:#667085;margin-top:4px}} .badge{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}}
-</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>
+</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>{insights}
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
 <table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table>
 </main><script>function filterRows(status,button){{document.querySelectorAll('tbody tr').forEach(row=>row.style.display=status==='All'||row.dataset.status===status?'':'none');document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));button.classList.add('active')}}</script></body></html>"""
