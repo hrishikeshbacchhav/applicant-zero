@@ -47,9 +47,8 @@ The API's default documented access limit is 2,500 requests each month, which is
 
 The preferred first live source is public company career boards. Greenhouse and Lever publish open positions through documented public GET endpoints, so no account or API key is required to discover the roles.
 
-1. Copy `data/company_boards.example.json` to `data/company_boards.json`.
-2. Add only companies whose careers pages you want Applicant Zero to monitor.
-3. Run:
+1. Add only companies whose careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file.
+2. Run:
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -76,13 +75,15 @@ python -m applicant_zero --dashboard
 
 The dashboard opens only on your computer and displays the jobs already saved in the local database. Keep the terminal open while using it, then press `Ctrl+C` in the terminal to stop it.
 
+Use the **Your tracker** column to keep the job's progress as New, Saved, Preparing, Applied, Interview, or Closed. You can also save a short personal note. This is your own local record; it does not contact the employer or submit anything.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:
 
 ```powershell
 $env:PYTHONPATH = "src"
-py -m applicant_zero --demo
+python -m applicant_zero --demo
 ```
 
 The first line tells Python where the local program files are. The second writes `data/applicant_zero.sqlite3` locally and prints a ranked queue. The database is excluded from Git.
