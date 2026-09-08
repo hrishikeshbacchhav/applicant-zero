@@ -50,7 +50,7 @@ def main() -> None:
             for issue in issues:
                 print(f"- {issue}")
         else:
-            print("AI tailoring is ready. Open a job preparation brief to generate a review draft.")
+            print("AI tailoring files are ready and an API key value is present. The key is verified only when you generate the first review draft.")
         return
     if args.dashboard:
         if source_count:

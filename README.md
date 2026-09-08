@@ -112,6 +112,7 @@ python -m applicant_zero --tailoring-check
 
 Open a role's preparation brief and select **Generate AI tailoring draft**. The output is saved as a private JSON file in `private/application_packets`. The request uses the OpenAI Responses API with `store: false`.
 The same brief then displays the saved review draft, including suggested résumé bullets, a cover-letter draft, unsupported requirements and questions to confirm.
+The setup check confirms only that a key value is present; the first draft verifies that the key is valid for the API.
 
 ## Private candidate profile
 

@@ -127,6 +127,8 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
         with urlopen(request, timeout=90) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except HTTPError as error:
+        if error.code == 401:
+            raise DraftingError("OpenAI rejected the API key. Create a valid API key on the OpenAI Platform, set it in this terminal, then try again.") from error
         raise DraftingError(f"Drafting service returned HTTP {error.code}.") from error
     except URLError as error:
         raise DraftingError("Could not reach the drafting service.") from error
