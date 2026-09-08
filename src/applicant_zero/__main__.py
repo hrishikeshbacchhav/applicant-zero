@@ -6,7 +6,7 @@ from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
 from .storage import initialise_database, save_match
 from .sources.adzuna import fetch_jobs
-from .sources.company_boards import fetch_company_boards
+from .sources.company_boards import fetch_company_boards_with_report
 from .dashboard import serve
 from .private_profile import check_profile
 
@@ -53,7 +53,12 @@ def main() -> None:
     elif args.adzuna:
         jobs = fetch_jobs(ROOT, args.query, args.where, args.page)
     else:
-        jobs = fetch_company_boards(args.company_boards)
+        jobs, reports = fetch_company_boards_with_report(args.company_boards)
+        checked = [report for report in reports if report.status == "checked"]
+        unavailable = [report for report in reports if report.status == "unavailable"]
+        print(f"Career boards checked: {len(checked)}. Unavailable boards skipped: {len(unavailable)}.")
+        for report in unavailable:
+            print(f"  - {report.company}: {report.message}")
 
     database = initialise_database(ROOT / "data" / "applicant_zero.sqlite3")
     queue = []

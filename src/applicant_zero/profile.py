@@ -11,13 +11,13 @@ class CandidateProfile:
 RISHI_PROFILE = CandidateProfile(
     locations=("sydney", "hybrid", "remote"),
     role_families={
-        "data_bi": ("data analyst", "reporting analyst", "analytics analyst"),
+        "data_bi": ("data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst"),
         "power_bi": ("business intelligence", "power bi", "bi analyst"),
         "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
         "adjacent_analytics": (
             "commercial analyst", "pricing analyst", "operations analyst",
             "finance operations analyst", "crm analyst", "insights analyst",
-            "workforce analyst", "product analyst",
+            "workforce analyst", "product analyst", "data insights analyst",
         ),
     },
     skills=(

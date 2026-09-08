@@ -37,6 +37,7 @@ def build_page(database_path: Path) -> str:
         with sqlite3.connect(database_path) as connection:
             rows = list_matches(connection)
 
+    source_options = sorted({row["source"] for row in rows})
     table_rows = []
     for row in rows:
         reasons = "<br>".join(html.escape(reason) for reason in json.loads(row["reasons"]))
@@ -49,10 +50,12 @@ def build_page(database_path: Path) -> str:
         notes = html.escape(row["notes"], quote=True)
         job_id = html.escape(row["external_id"], quote=True)
         brief_link = "/brief?" + urlencode({"external_id": row["external_id"]})
+        source = html.escape(row["source"])
+        is_demo = str(row["source"]).lower() == "demo"
         table_rows.append(
-            f"<tr data-status='{html.escape(row['recommendation'])}'>"
+            f"<tr data-status='{html.escape(row['recommendation'])}' data-source='{source}' data-demo='{str(is_demo).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
             f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a><small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare brief</a></small></td>"
-            f"<td>{html.escape(row['location'])}<small>{html.escape(row['source'])}</small></td>"
+            f"<td>{html.escape(row['location'])}<small>{source}</small></td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
             f"<td>{html.escape(row['resume_family'] or 'Not recommended')}</td>"
             f"<td>{reasons}</td>"
@@ -62,19 +65,21 @@ def build_page(database_path: Path) -> str:
 
     body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
     insights = _insights(rows)
+    source_select = "".join(f"<option value='{html.escape(source)}'>{html.escape(source)}</option>" for source in source_options)
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Review queue</title>
 <style>
 body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1280px;margin:0 auto;padding:32px}}
-h1{{margin:0;color:#163b67}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}}
+h1{{margin:0;color:#163b67}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}} .controls{{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}} input[type=search],select{{border:1px solid #c7d2e3;border-radius:5px;padding:8px;background:#fff}} input[type=search]{{min-width:250px}}
 button{{border:1px solid #c7d2e3;border-radius:5px;background:#fff;padding:8px 12px;cursor:pointer}} button.active{{background:#163b67;color:#fff}}
 .insights{{margin:22px 0}} .insights h2{{font-size:18px;color:#163b67;margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px #dce3ee;border-radius:4px}} .insight strong{{display:block;font-size:24px;color:#163b67}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
 table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px #dce3ee}} th{{text-align:left;background:#eaf0f8;color:#163b67;padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:#1261a0;font-weight:bold;text-decoration:none}} small{{display:block;color:#667085;margin-top:4px}} .badge{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}}
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>{insights}
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
+<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live jobs only</button></div>
 <table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table>
-</main><script>function filterRows(status,button){{document.querySelectorAll('tbody tr').forEach(row=>row.style.display=status==='All'||row.dataset.status===status?'':'none');document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));button.classList.add('active')}}</script></body></html>"""
+</main><script>let recommendation='All';let liveOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;document.querySelectorAll('tbody tr').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(!liveOnly||row.dataset.demo!=='true')&&(source==='All'||row.dataset.source===source)&&row.dataset.search.includes(search);row.style.display=show?'':'none'}})}}refreshRows()</script></body></html>"""
 
 
 def build_brief_page(database_path: Path, external_id: str) -> str:

@@ -77,6 +77,8 @@ The dashboard opens only on your computer and displays the jobs already saved in
 
 Use the **Your tracker** column to keep the job's progress as New, Saved, Preparing, Applied, Interview, or Closed. You can also save a short personal note. This is your own local record; it does not contact the employer or submit anything.
 
+The queue starts with **Live jobs only** so the original demo examples do not clutter the review. Use the search box, recommendation buttons and source selector to narrow the queue. If one employer career board is temporarily unavailable, the refresh records the remaining boards instead of failing the entire search.
+
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
 
 ## Private candidate profile
