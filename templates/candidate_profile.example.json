@@ -1,0 +1,24 @@
+{
+  "contact": {
+    "legal_name": "REPLACE_WITH_YOUR_LEGAL_NAME",
+    "email": "REPLACE_WITH_YOUR_EMAIL",
+    "phone": "REPLACE_WITH_YOUR_PHONE",
+    "current_location": "Sydney, NSW"
+  },
+  "availability": {
+    "full_time_from": "REPLACE_WITH_CONFIRMED_DATE"
+  },
+  "eligibility": {
+    "current_work_rights": "REPLACE_WITH_YOUR_TRUE_CURRENT_STATUS",
+    "requires_sponsorship_answer": "REPLACE_WITH_YOUR_TRUTHFUL_ANSWER"
+  },
+  "resumes": {
+    "data_bi": "REPLACE_WITH_FULL_PATH_TO_DATA_BI_RESUME.pdf",
+    "power_bi": "REPLACE_WITH_FULL_PATH_TO_POWER_BI_RESUME.pdf",
+    "business_analysis": "REPLACE_WITH_FULL_PATH_TO_BUSINESS_ANALYST_RESUME.pdf"
+  },
+  "rules": {
+    "never_store_passwords_here": true,
+    "confirm_visa_or_work_rights_answers_at_the_time_of_each_application": true
+  }
+}

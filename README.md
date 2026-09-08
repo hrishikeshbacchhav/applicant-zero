@@ -79,6 +79,24 @@ Use the **Your tracker** column to keep the job's progress as New, Saved, Prepar
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
 
+## Private candidate profile
+
+Before application assistance is enabled, create one private profile on your computer. It keeps your current answers and the locations of your approved résumé PDFs together. It is excluded from GitHub and must never contain a password.
+
+```powershell
+New-Item -ItemType Directory -Force private
+Copy-Item templates\candidate_profile.example.json private\candidate_profile.json
+```
+
+Open `private/candidate_profile.json` in VS Code and replace each `REPLACE_...` value with your current, truthful information. Do not enter a future visa status before it is actually in effect. Then run:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --profile-check
+```
+
+The check reports only what is still missing; it does not print your personal information.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:

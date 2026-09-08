@@ -8,6 +8,7 @@ from .storage import initialise_database, save_match
 from .sources.adzuna import fetch_jobs
 from .sources.company_boards import fetch_company_boards
 from .dashboard import serve
+from .private_profile import check_profile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,8 +25,20 @@ def main() -> None:
     parser.add_argument("--dashboard", action="store_true", help="Open the local job review dashboard.")
     parser.add_argument("--port", type=int, default=8765, help="Local dashboard port.")
     parser.add_argument("--show-all", action="store_true", help="Also show jobs that were skipped as outside the target search.")
+    parser.add_argument("--profile-check", action="store_true", help="Check whether the private candidate profile is ready for application preparation.")
     args = parser.parse_args()
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None)
+    if args.profile_check:
+        if source_count or args.dashboard:
+            parser.error("Use --profile-check on its own.")
+        issues = check_profile(ROOT / "private" / "candidate_profile.json")
+        if issues:
+            print("Your private profile still needs:")
+            for issue in issues:
+                print(f"- {issue}")
+        else:
+            print("Your private candidate profile is ready for application preparation.")
+        return
     if args.dashboard:
         if source_count:
             parser.error("Use --dashboard on its own.")
