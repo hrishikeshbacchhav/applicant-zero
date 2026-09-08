@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_page
+from applicant_zero.dashboard import build_brief_page, build_page
 from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 import sqlite3
@@ -22,6 +22,9 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker" in page
     assert "Preparing" in page
+    brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
+    assert "Before applying" in brief
+    assert "SQL and Power BI" in brief
 
 
 def test_existing_database_is_upgraded_for_the_tracker(tmp_path):

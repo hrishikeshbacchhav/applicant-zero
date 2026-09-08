@@ -17,6 +17,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
             location TEXT NOT NULL,
             source TEXT NOT NULL,
             url TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
             recommendation TEXT NOT NULL,
             score INTEGER NOT NULL,
             resume_family TEXT,
@@ -33,6 +34,8 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
     if "notes" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
+    if "description" not in columns:
+        connection.execute("ALTER TABLE job_matches ADD COLUMN description TEXT NOT NULL DEFAULT ''")
     connection.commit()
     return connection
 
@@ -40,16 +43,16 @@ def initialise_database(path: Path) -> sqlite3.Connection:
 def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) -> None:
     connection.execute(
         """
-        INSERT INTO job_matches (external_id, title, company, location, source, url, recommendation, score, resume_family, matched_evidence, missing_requirements, reasons)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO job_matches (external_id, title, company, location, source, url, description, recommendation, score, resume_family, matched_evidence, missing_requirements, reasons)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(external_id) DO UPDATE SET
             title=excluded.title, company=excluded.company, location=excluded.location,
-            source=excluded.source, url=excluded.url, recommendation=excluded.recommendation,
+            source=excluded.source, url=excluded.url, description=excluded.description, recommendation=excluded.recommendation,
             score=excluded.score, resume_family=excluded.resume_family,
             matched_evidence=excluded.matched_evidence, missing_requirements=excluded.missing_requirements,
             reasons=excluded.reasons
         """,
-        (job.external_id, job.title, job.company, job.location, job.source, job.url,
+        (job.external_id, job.title, job.company, job.location, job.source, job.url, job.description,
          result.recommendation, result.score, result.resume_family,
          json.dumps(result.matched_evidence), json.dumps(result.missing_requirements), json.dumps(result.reasons)),
     )
@@ -60,7 +63,7 @@ def list_matches(connection: sqlite3.Connection) -> list[dict]:
     connection.row_factory = sqlite3.Row
     rows = connection.execute(
         """
-        SELECT external_id, title, company, location, source, url, recommendation, score,
+        SELECT external_id, title, company, location, source, url, description, recommendation, score,
                resume_family, matched_evidence, missing_requirements, reasons
                , workflow_status, notes
         FROM job_matches

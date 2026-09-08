@@ -4,7 +4,7 @@ import sqlite3
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from .storage import WORKFLOW_STATUSES, initialise_database, list_matches, update_workflow
 
@@ -32,9 +32,10 @@ def build_page(database_path: Path) -> str:
         )
         notes = html.escape(row["notes"], quote=True)
         job_id = html.escape(row["external_id"], quote=True)
+        brief_link = "/brief?" + urlencode({"external_id": row["external_id"]})
         table_rows.append(
             f"<tr data-status='{html.escape(row['recommendation'])}'>"
-            f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a><small>{html.escape(row['company'])}</small></td>"
+            f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a><small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare brief</a></small></td>"
             f"<td>{html.escape(row['location'])}<small>{html.escape(row['source'])}</small></td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
             f"<td>{html.escape(row['resume_family'] or 'Not recommended')}</td>"
@@ -58,6 +59,27 @@ table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px 
 </main><script>function filterRows(status,button){{document.querySelectorAll('tbody tr').forEach(row=>row.style.display=status==='All'||row.dataset.status===status?'':'none');document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));button.classList.add('active')}}</script></body></html>"""
 
 
+def build_brief_page(database_path: Path, external_id: str) -> str:
+    with sqlite3.connect(database_path) as connection:
+        rows = [row for row in list_matches(connection) if row["external_id"] == external_id]
+    if not rows:
+        return "<h1>Job not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
+    row = rows[0]
+    reasons = "".join(f"<li>{html.escape(reason)}</li>" for reason in json.loads(row["reasons"]))
+    evidence = json.loads(row["matched_evidence"])
+    missing = json.loads(row["missing_requirements"])
+    description = html.escape(row["description"] or "Run the discovery command again to import this job's current description.")
+    original_url = html.escape(row["url"], quote=True)
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Applicant Zero - Preparation brief</title><style>
+body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}}</style></head>
+<body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
+<section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p><ul>{reasons}</ul></section>
+<section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
+<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol></section>
+<section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
+
+
 def serve(database_path: Path, port: int = 8765) -> None:
     # Existing local databases pre-date the tracker fields. Initialise first so
     # opening the dashboard upgrades them before the first page is rendered.
@@ -66,10 +88,15 @@ def serve(database_path: Path, port: int = 8765) -> None:
 
     class DashboardHandler(BaseHTTPRequestHandler):
         def do_GET(self):
-            if self.path != "/":
+            parsed = urlsplit(self.path)
+            if parsed.path == "/brief":
+                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
+                content = build_brief_page(database_path, external_id).encode("utf-8")
+            elif parsed.path == "/":
+                content = build_page(database_path).encode("utf-8")
+            else:
                 self.send_error(404)
                 return
-            content = build_page(database_path).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(content)))

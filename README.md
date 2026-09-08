@@ -77,6 +77,8 @@ The dashboard opens only on your computer and displays the jobs already saved in
 
 Use the **Your tracker** column to keep the job's progress as New, Saved, Preparing, Applied, Interview, or Closed. You can also save a short personal note. This is your own local record; it does not contact the employer or submit anything.
 
+Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:
