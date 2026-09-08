@@ -150,8 +150,9 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
         raise DraftingError("Private candidate profile is not ready.")
     evidence = _load_evidence(database_path.parent.parent / "private" / "candidate_evidence.json")
     job = _read_job(database_path, external_id)
+    model_name = model or os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL)
     payload = json.dumps({
-        "model": model or os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL),
+        "model": model_name,
         "store": False,
         "input": _prompt(job, evidence, profile),
         "text": {"verbosity": "low"},
@@ -175,7 +176,7 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     output_path.write_text(json.dumps({
         "created_at": datetime.now().isoformat(timespec="minutes"),
         "job": job["title"],
-        "model": payload["model"],
+        "model": model_name,
         "api_usage": _usage_summary(response_data),
         "draft": draft,
     }, indent=2, ensure_ascii=False), encoding="utf-8")
