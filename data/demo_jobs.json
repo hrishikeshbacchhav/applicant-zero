@@ -1,0 +1,42 @@
+[
+  {
+    "external_id": "demo-power-bi-001",
+    "title": "Graduate Power BI Analyst",
+    "company": "Harbour Insights",
+    "location": "Sydney, NSW - Hybrid",
+    "source": "demo",
+    "url": "https://example.invalid/jobs/demo-power-bi-001",
+    "description": "Graduate analyst role supporting Power BI dashboards, DAX measures, Power Query, SQL and stakeholder reporting. Experience with semantic models and Microsoft Fabric is helpful.",
+    "seniority": "graduate"
+  },
+  {
+    "external_id": "demo-business-analyst-001",
+    "title": "Junior Business Analyst",
+    "company": "Civic Systems",
+    "location": "Sydney, NSW",
+    "source": "demo",
+    "url": "https://example.invalid/jobs/demo-business-analyst-001",
+    "description": "Work with stakeholders to gather requirements, map processes, support a data migration and maintain business requirements documentation in Jira.",
+    "seniority": "junior"
+  },
+  {
+    "external_id": "demo-senior-001",
+    "title": "Senior Data Analyst",
+    "company": "Enterprise Metrics",
+    "location": "Sydney, NSW",
+    "source": "demo",
+    "url": "https://example.invalid/jobs/demo-senior-001",
+    "description": "Senior analyst role requiring 5+ years of experience in SQL, Tableau and stakeholder management.",
+    "seniority": "senior"
+  },
+  {
+    "external_id": "demo-outside-location-001",
+    "title": "Data Analyst",
+    "company": "Perth Data Co",
+    "location": "Perth, WA",
+    "source": "demo",
+    "url": "https://example.invalid/jobs/demo-outside-location-001",
+    "description": "Data analysis, Excel and Power BI role.",
+    "seniority": "graduate"
+  }
+]

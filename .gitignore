@@ -1,0 +1,19 @@
+# Private candidate information and generated application materials
+private/
+data/live/
+*.sqlite3
+*.db
+*.pdf
+*.docx
+*.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
