@@ -23,5 +23,40 @@
     "company": "Macquarie Technology Group",
     "ats": "lever",
     "token": "macquarietechnologygroup"
+  },
+  {
+    "company": "hipages Group",
+    "ats": "greenhouse",
+    "token": "hipagesgroup"
+  },
+  {
+    "company": "InterWorks",
+    "ats": "greenhouse",
+    "token": "interworks"
+  },
+  {
+    "company": "Zip",
+    "ats": "greenhouse",
+    "token": "zipcolimited"
+  },
+  {
+    "company": "ShopBack",
+    "ats": "lever",
+    "token": "shopback-2"
+  },
+  {
+    "company": "Smart Energy Group",
+    "ats": "lever",
+    "token": "smartenergy"
+  },
+  {
+    "company": "StackAdapt",
+    "ats": "greenhouse",
+    "token": "stackadapt"
+  },
+  {
+    "company": "Prezzee",
+    "ats": "greenhouse",
+    "token": "prezzee"
   }
 ]

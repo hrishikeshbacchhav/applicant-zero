@@ -9,8 +9,22 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 from .private_profile import load_profile
 from .packets import create_application_packet
 from .ai_drafting import DraftingError, create_ai_draft, load_ai_draft
+from .application_answers import CONFIRMATION_FIELDS, ensure_answer_library, save_confirmed_answer
+from .application_routes import classify_application_url, inspect_application_route
 from .application_session import create_session_plan
-from .storage import WORKFLOW_STATUSES, get_match, initialise_database, list_board_checks, list_matches, update_workflow
+from .browser_assist import browser_setup_issue, start_browser_assistant
+from .storage import (
+    WORKFLOW_STATUSES,
+    get_application_route,
+    get_match,
+    initialise_database,
+    list_application_events,
+    list_board_checks,
+    list_matches,
+    log_application_event,
+    save_application_route,
+    update_workflow,
+)
 
 
 def _badge(recommendation: str) -> str:
@@ -68,10 +82,13 @@ def build_page(database_path: Path) -> str:
         if row.get("duplicate_count", 1) > 1:
             duplicate_note = f"<small>{row['duplicate_count']} repeated copies combined</small>"
         last_seen = html.escape(str(row["last_seen_at"]).split(" ")[0])
+        route = classify_application_url(row["url"])
+        route_labels = {"assisted": "Assist ready", "pilot": "Pilot", "login_required": "Login needed", "complex": "Complex", "manual_review": "Manual review"}
+        route_label = html.escape(route_labels.get(route.support_level, route.support_level))
         table_rows.append(
             f"<tr class='job-row' data-status='{html.escape(row['recommendation'])}' data-workflow='{html.escape(row['workflow_status'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-active='{str(is_active).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
             f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a>{listing_state}<small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare application</a></small></td>"
-            f"<td>{html.escape(row['location'])}<small>{source} · Last seen {last_seen}</small>{duplicate_note}</td>"
+            f"<td>{html.escape(row['location'])}<small>{source} · Last seen {last_seen}</small><span class='route route-{html.escape(route.support_level)}'>{html.escape(route.platform)} · {route_label}</span>{duplicate_note}</td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
             f"<td>{html.escape(row['resume_family'] or 'Not recommended')}</td>"
             f"<td>{reasons}</td>"
@@ -91,21 +108,45 @@ def build_page(database_path: Path) -> str:
 h1{{margin:0;color:var(--navy)}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters,.controls{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}} input[type=search],input[name=notes],select{{border:1px solid #c7d2e3;border-radius:6px;padding:9px;background:#fff}} input[type=search]{{min-width:270px;flex:1;max-width:420px}}
 button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}} button:hover{{border-color:#7f98b9}} button.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
 .insights{{margin:22px 0}} .insights h2{{font-size:18px;color:var(--navy);margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px var(--border);border-radius:8px}} .insight strong{{display:block;font-size:24px;color:var(--navy)}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
-.table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
+.table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}}}
-</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>{insights}
+</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a></p>{insights}
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
 <div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button></div>
 <div class='table-wrap'><table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table></div><div id='no-results'>No listings match the selected filters.</div>
 </main><script>let recommendation='All';let liveOnly=true;let currentOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function toggleCurrent(button){{currentOnly=!currentOnly;button.classList.toggle('active',currentOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;const workflow=document.getElementById('workflow').value;let visible=0;document.querySelectorAll('tbody tr.job-row').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(workflow==='All'||row.dataset.workflow===workflow)&&(!liveOnly||row.dataset.demo!=='true')&&(!currentOnly||row.dataset.active==='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none';if(show)visible++}});document.getElementById('no-results').style.display=visible?'none':'block'}}refreshRows()</script></body></html>"""
 
 
+def build_answers_page(database_path: Path) -> str:
+    project_root = database_path.parent.parent
+    profile = load_profile(project_root / "private" / "candidate_profile.json")
+    if not profile:
+        return "<h1>Candidate profile is not ready</h1><p><a href='/'>Return to Applicant Zero</a></p>"
+    library = ensure_answer_library(project_root, profile)
+    verified = library.get("verified_answers", {})
+    editable = library.get("answers_requiring_confirmation", {})
+    verified_items = "".join(
+        f"<li>{html.escape(key.replace('_', ' ').title())}: <strong>{'Loaded' if value else 'Missing'}</strong></li>"
+        for key, value in verified.items()
+    )
+    fields = "".join(
+        f"<form method='post' action='/answers'><label>{html.escape(label)}<input name='value' value='{html.escape(str(editable.get(key, '')), quote=True)}' placeholder='Leave blank until confirmed'></label>"
+        f"<input type='hidden' name='key' value='{html.escape(key, quote=True)}'><button type='submit'>Save</button></form>"
+        for key, label in CONFIRMATION_FIELDS.items()
+    )
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Application answers</title><style>
+*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:800px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}.card{{background:#fff;padding:20px;margin:16px 0;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a{{color:#1261a0;font-weight:bold}}form{{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:14px 0}}label{{font-weight:bold}}input{{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #c7d2e3;border-radius:6px}}button{{padding:10px 16px;border:0;border-radius:6px;background:#163b67;color:#fff;cursor:pointer}}li{{margin:7px 0}}.help{{color:#667085}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Reusable application answers</h1><p class='help'>These values stay in your private folder. Empty answers will never be guessed or filled automatically.</p><section class='card'><h2>Verified from your candidate profile</h2><ul>{verified_items}</ul></section><section class='card'><h2>Confirm once, reuse later</h2>{fields}</section></main></body></html>"""
+
+
 def build_brief_page(database_path: Path, external_id: str) -> str:
     with sqlite3.connect(database_path) as connection:
         row = get_match(connection, external_id)
+        saved_route = get_application_route(connection, external_id)
+        events = list_application_events(connection, external_id)
     if row is None:
         return "<h1>Job not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
     profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
+    answer_library = ensure_answer_library(database_path.parent.parent, profile) if profile else {}
     reasons = "".join(f"<li>{html.escape(reason)}</li>" for reason in json.loads(row["reasons"]))
     evidence = json.loads(row["matched_evidence"])
     missing = json.loads(row["missing_requirements"])
@@ -119,6 +160,38 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
             f"<p>Approved résumé file: <code>{html.escape(resume_path)}</code></p>"
             f"<p>Confirmed full-time availability: <strong>{html.escape(availability)}</strong></p>"
         )
+    predicted_route = classify_application_url(row["url"])
+    route = saved_route or {
+        "platform": predicted_route.platform,
+        "support_level": predicted_route.support_level,
+        "apply_url": predicted_route.apply_url,
+        "account_required": predicted_route.account_required,
+        "captcha_detected": predicted_route.captcha_detected,
+        "field_count": predicted_route.field_count,
+        "required_field_count": predicted_route.required_field_count,
+        "detail": predicted_route.detail,
+        "checked_at": "Not scanned yet",
+    }
+    route_labels = {"assisted": "Browser assistance ready", "pilot": "Supervised pilot", "login_required": "Candidate login required", "complex": "Complex multi-step form", "manual_review": "Manual review required"}
+    route_label = route_labels.get(route["support_level"], route["support_level"])
+    route_details = (
+        f"<p><strong>{html.escape(route['platform'])}:</strong> {html.escape(route_label)}</p>"
+        f"<p>{html.escape(route['detail'])}</p>"
+        f"<p>Account required: <strong>{'Yes' if route['account_required'] else 'No detected requirement'}</strong> · "
+        f"CAPTCHA detected: <strong>{'Yes' if route['captcha_detected'] else 'No'}</strong> · "
+        f"Fields detected: <strong>{route['field_count']}</strong> · Required fields detected: <strong>{route['required_field_count']}</strong></p>"
+    )
+    verified_count = len([value for value in answer_library.get("verified_answers", {}).values() if value])
+    confirmation_count = len([value for value in answer_library.get("answers_requiring_confirmation", {}).values() if not value])
+    setup_issue = browser_setup_issue()
+    setup_html = f"<p class='notice'>{html.escape(setup_issue)}</p>" if setup_issue else "<p class='ready'>Browser assistance is installed and ready.</p>"
+    event_items = "".join(
+        f"<li><strong>{html.escape(event['status'].replace('_', ' ').title())}</strong> · {html.escape(event['created_at'])}<br>{html.escape(event['detail'])}</li>"
+        for event in events
+    ) or "<li>No application activity has been recorded for this role.</li>"
+    browser_button = ""
+    if route["support_level"] in {"assisted", "pilot"} and not setup_issue:
+        browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>Open assisted application</button></form>"
     saved_draft = load_ai_draft(database_path, external_id)
     draft_section = ""
     if saved_draft:
@@ -131,12 +204,13 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         draft_section = f"""<section class='card'><h2>Saved AI tailoring review</h2><p><strong>Résumé summary:</strong> {html.escape(str(draft.get('resume_summary', 'Not provided.')))}</p><h3>Suggested résumé bullets</h3><ul>{bullets}</ul><h3>Cover-letter draft</h3><pre>{html.escape(str(draft.get('cover_letter', 'Not provided.')))}</pre><h3>Common application-answer drafts</h3>{answer_rows}<h3>Unsupported requirements</h3><ul>{unsupported}</ul><h3>Questions to confirm</h3><ul>{questions}</ul><p>Review every statement against your real experience before using it.</p></section>"""
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Preparation brief</title><style>
-body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}}</style></head>
+*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee;border-radius:8px}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}} form{{display:inline-block;margin:5px 6px 5px 0}}button{{border:1px solid #aabbd2;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}}button.primary{{background:#163b67;color:#fff;border-color:#163b67}}.notice{{background:#fff1cc;color:#704b00;padding:10px;border-radius:6px}}.ready{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:6px}}.activity li{{margin-bottom:10px}}</style></head>
 <body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
+<section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p></section>
 <section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form></section>
-{draft_section}<section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
+{draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
@@ -151,6 +225,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
             if parsed.path == "/brief":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 content = build_brief_page(database_path, external_id).encode("utf-8")
+            elif parsed.path == "/answers":
+                content = build_answers_page(database_path).encode("utf-8")
             elif parsed.path == "/":
                 content = build_page(database_path).encode("utf-8")
             else:
@@ -162,12 +238,55 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/answers":
+                profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
+                try:
+                    save_confirmed_answer(
+                        database_path.parent.parent,
+                        profile,
+                        values.get("key", [""])[0],
+                        values.get("value", [""])[0],
+                    )
+                except ValueError:
+                    self.send_error(400)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/answers")
+                self.end_headers()
+                return
+            if self.path == "/route-check":
+                with sqlite3.connect(database_path) as connection:
+                    job = get_match(connection, external_id)
+                if job is None:
+                    self.send_error(400)
+                    return
+                try:
+                    route = inspect_application_route(job["url"])
+                    with sqlite3.connect(database_path) as connection:
+                        save_application_route(connection, external_id, route)
+                        log_application_event(connection, external_id, "route_check", "completed", route.detail)
+                except (OSError, ValueError) as error:
+                    with sqlite3.connect(database_path) as connection:
+                        log_application_event(connection, external_id, "route_check", "unavailable", f"Application form could not be scanned: {error}")
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
+            if self.path == "/assist":
+                started = start_browser_assistant(database_path, external_id)
+                if not started:
+                    with sqlite3.connect(database_path) as connection:
+                        log_application_event(connection, external_id, "browser_assist", "already_running", "An assisted browser is already open for this role.")
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
             if self.path == "/packet":
                 try:
                     create_application_packet(database_path, external_id)

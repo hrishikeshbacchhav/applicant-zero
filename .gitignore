@@ -14,6 +14,7 @@ data/company_boards.json
 __pycache__/
 *.py[cod]
 .venv/
+*.egg-info/
 
 # Editor and operating-system files
 .vscode/

@@ -46,6 +46,34 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_routes (
+            external_id TEXT PRIMARY KEY,
+            platform TEXT NOT NULL,
+            support_level TEXT NOT NULL,
+            apply_url TEXT NOT NULL,
+            account_required INTEGER NOT NULL DEFAULT 0,
+            captcha_detected INTEGER NOT NULL DEFAULT 0,
+            field_count INTEGER NOT NULL DEFAULT 0,
+            required_field_count INTEGER NOT NULL DEFAULT 0,
+            detail TEXT NOT NULL DEFAULT '',
+            checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            external_id TEXT NOT NULL,
+            event_type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
     if "workflow_status" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
@@ -207,12 +235,82 @@ def list_board_checks(connection: sqlite3.Connection) -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def save_application_route(connection: sqlite3.Connection, external_id: str, route: object) -> None:
+    connection.execute(
+        """
+        INSERT INTO application_routes (
+            external_id, platform, support_level, apply_url, account_required,
+            captcha_detected, field_count, required_field_count, detail, checked_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(external_id) DO UPDATE SET
+            platform=excluded.platform, support_level=excluded.support_level,
+            apply_url=excluded.apply_url, account_required=excluded.account_required,
+            captcha_detected=excluded.captcha_detected, field_count=excluded.field_count,
+            required_field_count=excluded.required_field_count, detail=excluded.detail,
+            checked_at=excluded.checked_at
+        """,
+        (
+            external_id,
+            route.platform,
+            route.support_level,
+            route.apply_url,
+            int(route.account_required),
+            int(route.captcha_detected),
+            route.field_count,
+            route.required_field_count,
+            route.detail,
+        ),
+    )
+    connection.commit()
+
+
+def get_application_route(connection: sqlite3.Connection, external_id: str) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        "SELECT * FROM application_routes WHERE external_id = ?", (external_id,)
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def log_application_event(
+    connection: sqlite3.Connection,
+    external_id: str,
+    event_type: str,
+    status: str,
+    detail: str = "",
+) -> None:
+    connection.execute(
+        "INSERT INTO application_events (external_id, event_type, status, detail) VALUES (?, ?, ?, ?)",
+        (external_id, event_type, status, detail[:1000]),
+    )
+    connection.commit()
+
+
+def list_application_events(
+    connection: sqlite3.Connection, external_id: str, limit: int = 10
+) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """
+        SELECT event_type, status, detail, created_at
+        FROM application_events
+        WHERE external_id = ?
+        ORDER BY id DESC LIMIT ?
+        """,
+        (external_id, limit),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
 WORKFLOW_STATUSES = ("New", "Saved", "Preparing", "Applied", "Interview", "Closed")
 
 
 def update_workflow(connection: sqlite3.Connection, external_id: str, workflow_status: str, notes: str) -> None:
     if workflow_status not in WORKFLOW_STATUSES:
         raise ValueError("Unknown workflow status")
+    previous = connection.execute(
+        "SELECT workflow_status FROM job_matches WHERE external_id = ?", (external_id,)
+    ).fetchone()
     connection.execute(
         """
         UPDATE job_matches
@@ -226,4 +324,13 @@ def update_workflow(connection: sqlite3.Connection, external_id: str, workflow_s
         """,
         (workflow_status, notes.strip(), workflow_status, external_id),
     )
+    if previous and previous[0] != workflow_status:
+        connection.execute(
+            "INSERT INTO application_events (external_id, event_type, status, detail) VALUES (?, 'tracker', ?, ?)",
+            (
+                external_id,
+                workflow_status,
+                f"Tracker changed from {previous[0]} to {workflow_status}.",
+            ),
+        )
     connection.commit()
