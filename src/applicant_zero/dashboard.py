@@ -10,7 +10,7 @@ from .private_profile import load_profile
 from .packets import create_application_packet
 from .ai_drafting import DraftingError, create_ai_draft, load_ai_draft
 from .application_session import create_session_plan
-from .storage import WORKFLOW_STATUSES, initialise_database, list_board_checks, list_matches, update_workflow
+from .storage import WORKFLOW_STATUSES, get_match, initialise_database, list_board_checks, list_matches, update_workflow
 
 
 def _badge(recommendation: str) -> str:
@@ -20,14 +20,17 @@ def _badge(recommendation: str) -> str:
 
 def _insights(rows: list[dict], board_checks: list[dict]) -> str:
     live_rows = [row for row in rows if row["source"].lower() != "demo"]
-    relevant = [row for row in live_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
+    current_rows = [row for row in live_rows if row["is_active"]]
+    relevant = [row for row in current_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
     available_boards = sum(board["status"] == "checked" for board in board_checks)
     workflow = {status: sum(row["workflow_status"] == status for row in live_rows) for status in WORKFLOW_STATUSES}
     workflow_summary = " · ".join(f"{status}: {count}" for status, count in workflow.items() if count)
     cards = (
-        ("Live jobs collected", str(len(live_rows))),
-        ("Live roles worth reviewing", str(len(relevant))),
-        ("Live strong matches", str(sum(row["recommendation"] == "Strong apply" for row in live_rows))),
+        ("Current listings", str(len(current_rows))),
+        ("Worth reviewing", str(len(relevant))),
+        ("Strong matches", str(sum(row["recommendation"] == "Strong apply" for row in current_rows))),
+        ("Applications submitted", str(sum(row["workflow_status"] == "Applied" for row in live_rows))),
+        ("Interviews", str(sum(row["workflow_status"] == "Interview" for row in live_rows))),
         ("Company boards checked", str(available_boards)),
     )
     card_html = "".join(f"<div class='insight'><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></div>" for label, value in cards)
@@ -59,10 +62,16 @@ def build_page(database_path: Path) -> str:
         brief_link = "/brief?" + urlencode({"external_id": row["external_id"]})
         source = html.escape(row["source"])
         is_demo = str(row["source"]).lower() == "demo"
+        is_active = bool(row["is_active"])
+        listing_state = "" if is_active else "<span class='listing-closed'>Listing no longer active</span>"
+        duplicate_note = ""
+        if row.get("duplicate_count", 1) > 1:
+            duplicate_note = f"<small>{row['duplicate_count']} repeated copies combined</small>"
+        last_seen = html.escape(str(row["last_seen_at"]).split(" ")[0])
         table_rows.append(
-            f"<tr data-status='{html.escape(row['recommendation'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
-            f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a><small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare brief</a></small></td>"
-            f"<td>{html.escape(row['location'])}<small>{source}</small></td>"
+            f"<tr class='job-row' data-status='{html.escape(row['recommendation'])}' data-workflow='{html.escape(row['workflow_status'])}' data-source='{source}' data-company='{html.escape(row['company'], quote=True)}' data-demo='{str(is_demo).lower()}' data-active='{str(is_active).lower()}' data-search='{html.escape((row['title'] + ' ' + row['company'] + ' ' + row['location']).lower(), quote=True)}'>"
+            f"<td><a href='{link}' target='_blank' rel='noreferrer'>{title}</a>{listing_state}<small>{html.escape(row['company'])}</small><small><a href='{html.escape(brief_link, quote=True)}'>Prepare application</a></small></td>"
+            f"<td>{html.escape(row['location'])}<small>{source} · Last seen {last_seen}</small>{duplicate_note}</td>"
             f"<td>{_badge(row['recommendation'])}<small>Score: {row['score']}</small></td>"
             f"<td>{html.escape(row['resume_family'] or 'Not recommended')}</td>"
             f"<td>{reasons}</td>"
@@ -78,24 +87,24 @@ def build_page(database_path: Path) -> str:
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Review queue</title>
 <style>
-body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1280px;margin:0 auto;padding:32px}}
-h1{{margin:0;color:#163b67}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}} .controls{{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}} input[type=search],select{{border:1px solid #c7d2e3;border-radius:5px;padding:8px;background:#fff}} input[type=search]{{min-width:250px}}
-button{{border:1px solid #c7d2e3;border-radius:5px;background:#fff;padding:8px 12px;cursor:pointer}} button.active{{background:#163b67;color:#fff}}
-.insights{{margin:22px 0}} .insights h2{{font-size:18px;color:#163b67;margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px #dce3ee;border-radius:4px}} .insight strong{{display:block;font-size:24px;color:#163b67}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
-table{{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 4px #dce3ee}} th{{text-align:left;background:#eaf0f8;color:#163b67;padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:#1261a0;font-weight:bold;text-decoration:none}} small{{display:block;color:#667085;margin-top:4px}} .badge{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}}
+:root{{--navy:#163b67;--blue:#1261a0;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1440px;margin:0 auto;padding:32px}}
+h1{{margin:0;color:var(--navy)}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters,.controls{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}} input[type=search],input[name=notes],select{{border:1px solid #c7d2e3;border-radius:6px;padding:9px;background:#fff}} input[type=search]{{min-width:270px;flex:1;max-width:420px}}
+button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}} button:hover{{border-color:#7f98b9}} button.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
+.insights{{margin:22px 0}} .insights h2{{font-size:18px;color:var(--navy);margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px var(--border);border-radius:8px}} .insight strong{{display:block;font-size:24px;color:var(--navy)}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
+.table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
+@media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}}}
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application.</p>{insights}
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
-<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live jobs only</button></div>
-<table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table>
-</main><script>let recommendation='All';let liveOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;document.querySelectorAll('tbody tr').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(!liveOnly||row.dataset.demo!=='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none'}})}}refreshRows()</script></body></html>"""
+<div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button></div>
+<div class='table-wrap'><table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table></div><div id='no-results'>No listings match the selected filters.</div>
+</main><script>let recommendation='All';let liveOnly=true;let currentOnly=true;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function toggleCurrent(button){{currentOnly=!currentOnly;button.classList.toggle('active',currentOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;const workflow=document.getElementById('workflow').value;let visible=0;document.querySelectorAll('tbody tr.job-row').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(workflow==='All'||row.dataset.workflow===workflow)&&(!liveOnly||row.dataset.demo!=='true')&&(!currentOnly||row.dataset.active==='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none';if(show)visible++}});document.getElementById('no-results').style.display=visible?'none':'block'}}refreshRows()</script></body></html>"""
 
 
 def build_brief_page(database_path: Path, external_id: str) -> str:
     with sqlite3.connect(database_path) as connection:
-        rows = [row for row in list_matches(connection) if row["external_id"] == external_id]
-    if not rows:
+        row = get_match(connection, external_id)
+    if row is None:
         return "<h1>Job not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
-    row = rows[0]
     profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
     reasons = "".join(f"<li>{html.escape(reason)}</li>" for reason in json.loads(row["reasons"]))
     evidence = json.loads(row["matched_evidence"])

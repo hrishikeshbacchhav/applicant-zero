@@ -32,3 +32,17 @@ def test_adjacent_analytics_role_requires_review_before_applying():
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Review"
     assert result.resume_family == "data_bi"
+
+
+def test_high_experience_requirement_is_flagged_even_without_senior_title():
+    job = Job("6", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Applicants require at least 5 years of relevant experience with SQL.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert result.score == 35
+    assert "5+ years of experience" in result.missing_requirements
+
+
+def test_work_rights_condition_is_shown_as_a_requirement_to_check():
+    job = Job("7", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Power BI and SQL. Applicants must have unrestricted working rights in Australia.")
+    result = score_job(job, RISHI_PROFILE)
+    assert "work-rights eligibility" in result.missing_requirements

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 from .profile import CandidateProfile
 
@@ -25,7 +26,21 @@ class MatchResult:
     reasons: tuple[str, ...]
 
 
-SENIORITY_BLOCKLIST = ("senior", "lead", "principal", "manager", "director", "5+ years", "7+ years")
+SENIORITY_BLOCKLIST = ("senior", "lead", "principal", "manager", "director", "head of", "staff")
+
+EXPERIENCE_PATTERNS = (
+    r"(?:minimum(?: of)?|at least|requires?|with)\s+(\d+)\+?\s+years?(?:\s+of)?\s+(?:relevant\s+|professional\s+|commercial\s+)?experience",
+    r"(\d+)\+\s+years?(?:\s+of)?\s+(?:relevant\s+|professional\s+|commercial\s+)?experience",
+)
+
+WORK_RIGHTS_TERMS = (
+    "unrestricted working rights",
+    "unrestricted work rights",
+    "full working rights",
+    "no sponsorship",
+    "citizen or permanent resident",
+    "citizenship or permanent residency",
+)
 
 
 def _normalise(value: str) -> str:
@@ -38,6 +53,13 @@ def _role_family(title: str, profile: CandidateProfile) -> str | None:
         if any(term in title for term in terms):
             return family
     return None
+
+
+def _required_experience_years(description: str) -> int | None:
+    matches: list[int] = []
+    for pattern in EXPERIENCE_PATTERNS:
+        matches.extend(int(value) for value in re.findall(pattern, description))
+    return max(matches) if matches else None
 
 
 def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
@@ -56,11 +78,26 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
 
     seniority_text = f"{title} {_normalise(job.seniority)}"
     if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
-        return MatchResult("Review", 25, family, (), (), ("The description may require senior-level experience; check the stated minimum requirements.",))
+        return MatchResult("Review", 25, family, (), (), ("The role title or stated seniority appears senior; check the experience requirements before applying.",))
+
+    required_years = _required_experience_years(description)
+    if required_years is not None and required_years >= 4:
+        requirement = f"{required_years}+ years of experience"
+        return MatchResult(
+            "Review",
+            35,
+            family,
+            (),
+            (requirement,),
+            (f"The listing appears to require {requirement}; verify that your evidence supports it before applying.",),
+        )
 
     matched = tuple(skill for skill in profile.skills if skill in text)
     likely_requirements = tuple(term for term in ("azure", "aws", "snowflake", "dbt", "statistics", "agile", "jira") if term in text)
-    missing = tuple(requirement for requirement in likely_requirements if requirement not in profile.skills)
+    missing_list = [requirement for requirement in likely_requirements if requirement not in profile.skills]
+    if any(term in text for term in WORK_RIGHTS_TERMS):
+        missing_list.append("work-rights eligibility")
+    missing = tuple(missing_list)
 
     score = 55 + min(len(matched) * 4, 32) - min(len(missing) * 5, 15)
     if "graduate" in text or "junior" in text or "entry level" in text:

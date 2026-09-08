@@ -77,9 +77,11 @@ The dashboard opens only on your computer and displays the jobs already saved in
 
 Use the **Your tracker** column to keep the job's progress as New, Saved, Preparing, Applied, Interview, or Closed. You can also save a short personal note. This is your own local record; it does not contact the employer or submit anything.
 
-The queue starts with **Live jobs only** so the original demo examples do not clutter the review. Use the search box, recommendation buttons and source selector to narrow the queue. If one employer career board is temporarily unavailable, the refresh records the remaining boards instead of failing the entire search.
+The queue starts with **Current listings** and **Live sources** enabled, so expired listings and the original demo examples do not clutter the review. Use the search box, recommendation buttons, company, source and tracker-stage selectors to narrow the queue. Turn off **Current listings** when you need to review a role that has disappeared from its company board. If one employer career board is temporarily unavailable, the refresh records the remaining boards instead of failing the entire search or incorrectly closing that employer's saved jobs.
 
-The Insights cards count live listings only. **Company boards checked** shows the number of employer boards that completed during the latest refresh, rather than the number of job-site types.
+Applicant Zero records when each role was first and last seen. Repeated copies with the same company, title and location are combined in the queue, while their underlying records remain available locally. Tracker notes survive every refresh, and the first move to **Applied** records the submission time. The Insights cards show current listings, roles worth reviewing, strong matches, submitted applications and interviews. **Company boards checked** shows the number of employer boards that completed during the latest refresh, rather than the number of job-site types.
+
+The matcher also checks explicit experience requirements. A role that asks for four or more years is held for review even when its title does not say senior. Listings that mention unrestricted work rights or no sponsorship show a work-rights requirement to verify before application preparation.
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
 

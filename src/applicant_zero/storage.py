@@ -1,4 +1,5 @@
 import json
+import re
 import sqlite3
 from pathlib import Path
 
@@ -25,7 +26,12 @@ def initialise_database(path: Path) -> sqlite3.Connection:
             missing_requirements TEXT NOT NULL,
             reasons TEXT NOT NULL,
             workflow_status TEXT NOT NULL DEFAULT 'New',
-            notes TEXT NOT NULL DEFAULT ''
+            notes TEXT NOT NULL DEFAULT '',
+            first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            applied_at TEXT,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
@@ -47,6 +53,30 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         connection.execute("ALTER TABLE job_matches ADD COLUMN notes TEXT NOT NULL DEFAULT ''")
     if "description" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN description TEXT NOT NULL DEFAULT ''")
+    migrations = {
+        "first_seen_at": "TEXT NOT NULL DEFAULT ''",
+        "last_seen_at": "TEXT NOT NULL DEFAULT ''",
+        "is_active": "INTEGER NOT NULL DEFAULT 1",
+        "applied_at": "TEXT",
+        "updated_at": "TEXT NOT NULL DEFAULT ''",
+    }
+    for column, definition in migrations.items():
+        if column not in columns:
+            connection.execute(f"ALTER TABLE job_matches ADD COLUMN {column} {definition}")
+    connection.execute(
+        "UPDATE job_matches SET first_seen_at = CURRENT_TIMESTAMP WHERE first_seen_at = ''"
+    )
+    connection.execute(
+        "UPDATE job_matches SET last_seen_at = CURRENT_TIMESTAMP WHERE last_seen_at = ''"
+    )
+    connection.execute(
+        "UPDATE job_matches SET updated_at = CURRENT_TIMESTAMP WHERE updated_at = ''"
+    )
+    current_columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
+    if {"company", "is_active"}.issubset(current_columns):
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_job_matches_company_active ON job_matches(company, is_active)"
+        )
     connection.commit()
     return connection
 
@@ -61,7 +91,8 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
             source=excluded.source, url=excluded.url, description=excluded.description, recommendation=excluded.recommendation,
             score=excluded.score, resume_family=excluded.resume_family,
             matched_evidence=excluded.matched_evidence, missing_requirements=excluded.missing_requirements,
-            reasons=excluded.reasons
+            reasons=excluded.reasons, last_seen_at=CURRENT_TIMESTAMP,
+            is_active=1, updated_at=CURRENT_TIMESTAMP
         """,
         (job.external_id, job.title, job.company, job.location, job.source, job.url, job.description,
          result.recommendation, result.score, result.resume_family,
@@ -70,18 +101,88 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
     connection.commit()
 
 
-def list_matches(connection: sqlite3.Connection) -> list[dict]:
+def _duplicate_key(row: dict) -> str:
+    values = (row["company"], row["title"], row["location"])
+    return "|".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip() for value in values)
+
+
+def list_matches(connection: sqlite3.Connection, include_duplicates: bool = False) -> list[dict]:
     connection.row_factory = sqlite3.Row
     rows = connection.execute(
         """
         SELECT external_id, title, company, location, source, url, description, recommendation, score,
                resume_family, matched_evidence, missing_requirements, reasons
-               , workflow_status, notes
+               , workflow_status, notes, first_seen_at, last_seen_at, is_active,
+               applied_at, updated_at
         FROM job_matches
         ORDER BY score DESC, company, title
         """
     ).fetchall()
-    return [dict(row) for row in rows]
+    records = [dict(row) for row in rows]
+    if include_duplicates:
+        for record in records:
+            record["duplicate_count"] = 1
+        return records
+
+    workflow_priority = {"Interview": 5, "Applied": 4, "Preparing": 3, "Saved": 2, "New": 1, "Closed": 0}
+    grouped: dict[str, list[dict]] = {}
+    for record in records:
+        grouped.setdefault(_duplicate_key(record), []).append(record)
+
+    deduplicated: list[dict] = []
+    for duplicates in grouped.values():
+        duplicates.sort(
+            key=lambda row: (
+                int(row["is_active"]),
+                workflow_priority.get(row["workflow_status"], 0),
+                int(row["score"]),
+                row["last_seen_at"],
+            ),
+            reverse=True,
+        )
+        selected = duplicates[0]
+        selected["duplicate_count"] = len(duplicates)
+        deduplicated.append(selected)
+    return sorted(deduplicated, key=lambda row: (-int(row["score"]), row["company"], row["title"]))
+
+
+def get_match(connection: sqlite3.Connection, external_id: str) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        """
+        SELECT external_id, title, company, location, source, url, description, recommendation, score,
+               resume_family, matched_evidence, missing_requirements, reasons, workflow_status, notes,
+               first_seen_at, last_seen_at, is_active, applied_at, updated_at
+        FROM job_matches WHERE external_id = ?
+        """,
+        (external_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    result = dict(row)
+    result["duplicate_count"] = 1
+    return result
+
+
+def mark_company_jobs_inactive(
+    connection: sqlite3.Connection, company: str, active_external_ids: list[str]
+) -> int:
+    parameters: list[object] = [company]
+    exclusion = ""
+    if active_external_ids:
+        placeholders = ", ".join("?" for _ in active_external_ids)
+        exclusion = f" AND external_id NOT IN ({placeholders})"
+        parameters.extend(active_external_ids)
+    cursor = connection.execute(
+        """
+        UPDATE job_matches
+        SET is_active = 0, updated_at = CURRENT_TIMESTAMP
+        WHERE company = ? AND lower(source) != 'demo' AND is_active = 1
+        """ + exclusion,
+        parameters,
+    )
+    connection.commit()
+    return cursor.rowcount
 
 
 def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> None:
@@ -113,7 +214,16 @@ def update_workflow(connection: sqlite3.Connection, external_id: str, workflow_s
     if workflow_status not in WORKFLOW_STATUSES:
         raise ValueError("Unknown workflow status")
     connection.execute(
-        "UPDATE job_matches SET workflow_status = ?, notes = ? WHERE external_id = ?",
-        (workflow_status, notes.strip(), external_id),
+        """
+        UPDATE job_matches
+        SET workflow_status = ?, notes = ?,
+            applied_at = CASE
+                WHEN ? = 'Applied' AND applied_at IS NULL THEN CURRENT_TIMESTAMP
+                ELSE applied_at
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE external_id = ?
+        """,
+        (workflow_status, notes.strip(), workflow_status, external_id),
     )
     connection.commit()

@@ -5,15 +5,14 @@ from datetime import datetime
 from pathlib import Path
 
 from .private_profile import load_profile
-from .storage import list_matches
+from .storage import get_match
 
 
 def create_session_plan(database_path: Path, external_id: str) -> Path:
     with sqlite3.connect(database_path) as connection:
-        rows = [row for row in list_matches(connection) if row["external_id"] == external_id]
-    if not rows:
+        job = get_match(connection, external_id)
+    if job is None:
         raise ValueError("Job not found")
-    job = rows[0]
     profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
     if not profile:
         raise ValueError("Private candidate profile is not ready")

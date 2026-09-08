@@ -8,7 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .private_profile import load_profile
-from .storage import list_matches
+from .storage import get_match
 
 
 class DraftingError(Exception):
@@ -44,10 +44,10 @@ def _load_evidence(path: Path) -> dict:
 
 def _read_job(database_path: Path, external_id: str) -> dict:
     with sqlite3.connect(database_path) as connection:
-        rows = [row for row in list_matches(connection) if row["external_id"] == external_id]
-    if not rows:
+        row = get_match(connection, external_id)
+    if row is None:
         raise DraftingError("Job not found.")
-    return rows[0]
+    return row
 
 
 def _draft_path(database_path: Path, job: dict) -> Path:
