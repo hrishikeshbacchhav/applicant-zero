@@ -51,6 +51,29 @@ def _lever_jobs(company: str, token: str) -> list[Job]:
     ]
 
 
+def _ashby_jobs(company: str, token: str) -> list[Job]:
+    payload = _get_json(f"https://api.ashbyhq.com/posting-api/job-board/{token}?includeCompensation=true")
+    jobs = []
+    for item in payload.get("jobs", []):
+        if item.get("isListed") is False:
+            continue
+        description = item.get("descriptionPlain", item.get("descriptionHtml", ""))
+        compensation = item.get("compensation", {})
+        salary = compensation.get("scrapeableCompensationSalarySummary", "") if isinstance(compensation, dict) else ""
+        if salary:
+            description = f"{description}\nCompensation: {salary}"
+        jobs.append(Job(
+            external_id=f"ashby:{token}:{item.get('applyUrl', item.get('jobUrl', item.get('title', 'role')))}",
+            title=item.get("title", "Untitled role"),
+            company=company,
+            location=item.get("location", "Unknown location"),
+            source="Ashby",
+            url=item.get("applyUrl", item.get("jobUrl", "")),
+            description=description,
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -73,8 +96,10 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
                 board_jobs = _greenhouse_jobs(company, token)
             elif ats == "lever":
                 board_jobs = _lever_jobs(company, token)
+            elif ats == "ashby":
+                board_jobs = _ashby_jobs(company, token)
             else:
-                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse or lever.")
+                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever or ashby.")
         except (OSError, ValueError, KeyError, TypeError) as error:
             reports.append(BoardReport(company, "unavailable", 0, str(error)))
             continue

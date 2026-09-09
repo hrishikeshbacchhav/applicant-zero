@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import json
 
-from applicant_zero.sources.company_boards import _greenhouse_jobs, _lever_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _greenhouse_jobs, _lever_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, save_board_checks
 
 
@@ -20,6 +20,14 @@ def test_lever_mapping():
         jobs = _lever_jobs("Example", "token")
     assert jobs[0].external_id == "lever:token:9"
     assert jobs[0].title == "Business Analyst"
+
+
+def test_ashby_mapping_keeps_plain_description_and_salary():
+    payload = {"jobs": [{"title": "Data Analyst", "location": "Sydney", "isListed": True, "applyUrl": "https://jobs.ashbyhq.com/example/apply", "descriptionPlain": "Use SQL", "compensation": {"scrapeableCompensationSalarySummary": "$80K - $90K"}}]}
+    with patch("applicant_zero.sources.company_boards._get_json", return_value=payload):
+        jobs = _ashby_jobs("Example", "example")
+    assert jobs[0].source == "Ashby"
+    assert "Compensation" in jobs[0].description
 
 
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):

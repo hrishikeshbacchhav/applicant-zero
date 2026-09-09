@@ -36,3 +36,12 @@ def load_targets(path: Path) -> list[TargetCompany]:
         key = item.company.casefold()
         unique[key] = min(item, unique[key], key=lambda target: target.priority) if key in unique else item
     return sorted(unique.values(), key=lambda item: (item.priority, item.company))
+
+
+def board_coverage(targets: list[TargetCompany], board_path: Path) -> dict[str, list[str]]:
+    """Show which target companies have a verified public ATS board configured."""
+    boards = _load(board_path)
+    configured = {str(board.get("company", "")).casefold() for board in boards}
+    covered = [target.company for target in targets if target.company.casefold() in configured]
+    pending = [target.company for target in targets if target.company.casefold() not in configured]
+    return {"configured": covered, "research_needed": pending}
