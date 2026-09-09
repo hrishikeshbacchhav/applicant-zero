@@ -15,6 +15,8 @@ from .storage import get_match
 DEFAULT_DRAFT_MODEL = "gpt-5.6-terra"
 MAX_DRAFT_OUTPUT_TOKENS = 1_200
 MAX_QUESTION_OUTPUT_TOKENS = 500
+MAX_SUMMARY_WORDS = 70
+MAX_COVER_LETTER_WORDS = 220
 _CANDIDATE_ONLY_QUESTION = re.compile(
     r"visa|sponsor|work.?rights|citizen|permanent.?resident|gender|race|ethnic|disab|medical|injury|birth|date.?of.?birth|veteran|criminal|conviction",
     re.IGNORECASE,
@@ -170,6 +172,43 @@ def _json_from_text(text: str) -> dict:
         raise DraftingError("The drafting service returned an invalid format. Try again.") from error
 
 
+def _word_count(value: str) -> int:
+    return len(re.findall(r"\S+", value))
+
+
+def validate_ai_draft(draft: dict) -> dict:
+    """Validate the bounded review format before storing it privately.
+
+    This is a format and length gate, not a substitute for the evidence rules
+    in the prompt or the candidate's final factual review.
+    """
+    required = {
+        "resume_summary": str,
+        "resume_bullet_suggestions": list,
+        "cover_letter": str,
+        "application_answer_drafts": dict,
+        "unsupported_requirements": list,
+        "questions_to_confirm": list,
+    }
+    if not isinstance(draft, dict) or any(not isinstance(draft.get(key), value_type) for key, value_type in required.items()):
+        raise DraftingError("The drafting service returned an incomplete review format. Try again.")
+    if _word_count(draft["resume_summary"]) > MAX_SUMMARY_WORDS:
+        raise DraftingError("The drafting service returned a résumé summary that is too long. Try again.")
+    if _word_count(draft["cover_letter"]) > MAX_COVER_LETTER_WORDS:
+        raise DraftingError("The drafting service returned a cover letter that is too long. Try again.")
+    bullets = draft["resume_bullet_suggestions"]
+    if len(bullets) > 5 or any(not isinstance(item, str) or not item.strip() for item in bullets):
+        raise DraftingError("The drafting service returned invalid résumé bullet suggestions. Try again.")
+    for key in ("unsupported_requirements", "questions_to_confirm"):
+        if any(not isinstance(item, str) for item in draft[key]):
+            raise DraftingError("The drafting service returned an invalid review list. Try again.")
+    answers = draft["application_answer_drafts"]
+    expected_answers = {"why_interested", "relevant_experience", "availability"}
+    if not expected_answers.issubset(answers) or any(not isinstance(answers[key], str) for key in expected_answers):
+        raise DraftingError("The drafting service returned incomplete application-answer drafts. Try again.")
+    return draft
+
+
 def _response_text(response_data: dict) -> str:
     direct_text = response_data.get("output_text")
     if isinstance(direct_text, str) and direct_text.strip():
@@ -229,7 +268,7 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
         "max_output_tokens": MAX_DRAFT_OUTPUT_TOKENS,
     }
     response_data = _create_response(api_key, payload)
-    draft = _json_from_text(_response_text(response_data))
+    draft = validate_ai_draft(_json_from_text(_response_text(response_data)))
     output_path = _draft_path(database_path, job)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps({

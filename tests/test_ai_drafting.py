@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.ai_drafting import DEFAULT_DRAFT_MODEL, MAX_DRAFT_OUTPUT_TOKENS, DraftingError, _json_from_text, _load_evidence, _response_text, _usage_summary, check_tailoring_setup, create_question_draft, evidence_for_job
+from applicant_zero.ai_drafting import DEFAULT_DRAFT_MODEL, MAX_DRAFT_OUTPUT_TOKENS, DraftingError, _json_from_text, _load_evidence, _response_text, _usage_summary, check_tailoring_setup, create_question_draft, evidence_for_job, validate_ai_draft
 
 
 def test_json_draft_parser_accepts_json_code_fence():
@@ -53,3 +53,25 @@ def test_tailoring_check_reports_missing_private_setup(tmp_path):
     issues = check_tailoring_setup(tmp_path)
     assert "Private candidate profile is not ready." in issues
     assert any("evidence library" in issue for issue in issues)
+
+
+def test_ai_draft_validation_accepts_the_expected_bounded_review_shape():
+    draft = {
+        "resume_summary": "Data analyst with verified reporting experience.",
+        "resume_bullet_suggestions": ["Used SQL for verified reporting work."],
+        "cover_letter": "I am interested in this role.",
+        "application_answer_drafts": {"why_interested": "Relevant role.", "relevant_experience": "Verified experience.", "availability": "Available."},
+        "unsupported_requirements": [],
+        "questions_to_confirm": [],
+    }
+    assert validate_ai_draft(draft) == draft
+
+
+def test_ai_draft_validation_rejects_unbounded_or_incomplete_model_output():
+    incomplete = {"cover_letter": "Hello"}
+    try:
+        validate_ai_draft(incomplete)
+    except DraftingError as error:
+        assert "incomplete review format" in str(error)
+    else:
+        raise AssertionError("Expected malformed draft to be rejected")
