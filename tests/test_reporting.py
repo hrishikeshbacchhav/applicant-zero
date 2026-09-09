@@ -1,5 +1,5 @@
 from applicant_zero.profile import RISHI_PROFILE
-from applicant_zero.reporting import tracker_csv
+from applicant_zero.reporting import outcome_summary, tracker_csv
 from applicant_zero.scoring import Job, score_job
 from applicant_zero.storage import initialise_database, save_match, save_submission_proof, update_workflow
 
@@ -16,3 +16,18 @@ def test_tracker_export_contains_job_status_and_followup(tmp_path):
     assert "Data Analyst" in export
     assert "Applied" in export
     assert "Due" in export
+
+
+def test_outcome_summary_reports_submissions_and_interviews(tmp_path):
+    database_path = tmp_path / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    applied = Job("applied", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid/a", "SQL and Power BI")
+    interview = Job("interview", "Power BI Analyst", "Example", "Sydney", "Lever", "https://example.invalid/b", "Power BI and DAX")
+    save_match(database, applied, score_job(applied, RISHI_PROFILE))
+    save_match(database, interview, score_job(interview, RISHI_PROFILE))
+    update_workflow(database, applied.external_id, "Applied", "Submitted")
+    update_workflow(database, interview.external_id, "Interview", "Interview booked")
+    summary = outcome_summary(database_path)
+    assert summary["submitted"] == 2
+    assert summary["interviews"] == 1
+    assert summary["interview_rate"] == 50.0

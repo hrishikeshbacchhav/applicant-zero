@@ -21,7 +21,7 @@ from .resume_output import create_editable_resume_copy, editable_resume_copy_pat
 from .application_readiness import evaluate_application_readiness
 from .daily_digest import create_daily_digest
 from .system_health import health_page
-from .reporting import tracker_csv
+from .reporting import outcome_summary, tracker_csv
 from .platform_pilots import build_platform_pilots_page
 from .storage import (
     WORKFLOW_STATUSES,
@@ -172,7 +172,7 @@ button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 1
 .focus-panel{{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:22px;align-items:start;background:linear-gradient(135deg,#163b67,#1c4d85);color:#fff;border-radius:12px;padding:22px 24px;margin:22px 0;box-shadow:0 4px 14px #ced8e6}}.focus-panel h2{{font-size:19px;line-height:1.35;margin:0}}.focus-panel .eyebrow{{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.09em;margin:0 0 8px;color:#bcd6f4}}.focus-panel ul{{padding-left:20px;margin:4px 0;line-height:1.55}}.focus-panel li{{margin:7px 0}}.focus-panel a{{color:#fff;text-decoration:underline;text-underline-offset:3px}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}.focus-panel{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:16px}}.insight-grid{{grid-template-columns:1fr 1fr;gap:8px}}.insight{{padding:12px}}.focus-panel{{padding:18px}}.import-form{{grid-template-columns:1fr}}}}
-</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a> · <a href='/daily-digest'>Daily priorities</a> · <a href='/platform-pilots'>Platform pilots</a> · <a href='/export-tracker'>Export tracker</a> · <a href='/health'>System health</a></p>{insights}
+</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a> · <a href='/daily-digest'>Daily priorities</a> · <a href='/outcomes'>Search progress</a> · <a href='/platform-pilots'>Platform pilots</a> · <a href='/export-tracker'>Export tracker</a> · <a href='/health'>System health</a></p>{insights}
 {focus_panel}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
@@ -208,6 +208,22 @@ def build_resume_copy_page(database_path: Path, external_id: str) -> str:
         return "<h1>Editable role copy not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
     query = urlencode({"external_id": external_id})
     return f"""<!doctype html><html><head><meta charset='utf-8'><title>Editable role copy ready</title><style>body{{font-family:Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;background:#f5f7fb;color:#182230}}h1{{color:#163b67}}section{{background:#fff;padding:22px;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a.button{{display:inline-block;background:#163b67;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none;font-weight:bold}}code{{word-break:break-all}}</style></head><body><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Editable role copy ready</h1><section><p>Your private Word copy has been created. Edit this copy for the role; your master résumé remains unchanged.</p><p><strong>File:</strong> {html.escape(path.name)}</p><p><a class='button' href='/download-resume-copy?{query}'>Open or download Word copy</a></p><p><small>Private location: <code>{html.escape(str(path))}</code></small></p></section></body></html>"""
+
+
+def build_outcomes_page(database_path: Path) -> str:
+    summary = outcome_summary(database_path)
+    cards = (
+        ("Applications submitted", str(summary["submitted"])),
+        ("Interviews", str(summary["interviews"])),
+        ("Interview rate", f"{summary['interview_rate']:.1f}%"),
+        ("Follow-ups due", str(summary["due_followups"])),
+        ("In progress", str(summary["in_progress"])),
+    )
+    card_html = "".join(f"<article><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></article>" for label, value in cards)
+    next_step = "Prepare your strongest current role." if summary["in_progress"] else "Review the current queue and prepare one suitable role."
+    if summary["due_followups"]:
+        next_step = "Complete the due follow-up before preparing another application."
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Search progress</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:960px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}.cards{{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}}article,section{{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px var(--border)}}article strong{{font-size:26px;color:var(--navy);display:block}}article span{{font-size:13px;color:var(--muted)}}section{{margin-top:18px;line-height:1.55}}.next{{background:#d9f3e6;color:#12643b}}@media(max-width:760px){{.cards{{grid-template-columns:repeat(2,1fr)}}}}@media(max-width:420px){{.cards{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Search progress</h1><p>Private, local progress figures based only on roles you have recorded in Applicant Zero.</p><div class='cards'>{card_html}</div><section class='next'><h2>Next action</h2><p>{html.escape(next_step)}</p></section><section><h2>How to use these figures</h2><p>“Applications submitted” includes roles marked Applied, Interview or Closed. The interview rate is interviews divided by submitted applications. These figures do not infer employer responses and never send follow-ups automatically.</p><p><a href='/export-tracker'>Download the full tracker CSV</a> when you want to review details in Excel.</p></section></main></body></html>"""
 
 
 def build_brief_page(database_path: Path, external_id: str) -> str:
@@ -362,6 +378,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 return
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
+            elif parsed.path == "/outcomes":
+                content = build_outcomes_page(database_path).encode("utf-8")
             elif parsed.path == "/daily-digest":
                 content = create_daily_digest(database_path).read_bytes()
             elif parsed.path == "/health":

@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page, build_resume_copy_page
+from applicant_zero.dashboard import build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -31,6 +31,9 @@ def test_empty_dashboard_has_guidance(tmp_path):
     assert "No jobs collected yet" in page
     assert "Add a job from another website" in page
     assert "Focus for today" in page
+    outcomes = build_outcomes_page(tmp_path / "missing.sqlite3")
+    assert "Search progress" in outcomes
+    assert "Applications submitted" in outcomes
 
 
 def test_dashboard_includes_local_workflow_tracker(tmp_path):

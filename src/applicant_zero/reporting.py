@@ -3,9 +3,28 @@
 import csv
 import io
 import sqlite3
+from datetime import date
 from pathlib import Path
 
 from .storage import initialise_database, list_followups, list_matches
+
+
+def outcome_summary(database_path: Path) -> dict[str, int | float]:
+    """Return private, local job-search funnel numbers for the dashboard."""
+    with initialise_database(database_path) as connection:
+        jobs = list_matches(connection, include_duplicates=True)
+        followups = list_followups(connection, include_completed=True)
+    submitted = [job for job in jobs if job["workflow_status"] in {"Applied", "Interview", "Closed"}]
+    interviews = [job for job in jobs if job["workflow_status"] == "Interview"]
+    due_followups = [item for item in followups if item["status"] != "Completed" and item["due_date"] <= date.today().isoformat()]
+    interview_rate = round((len(interviews) / len(submitted) * 100), 1) if submitted else 0.0
+    return {
+        "submitted": len(submitted),
+        "interviews": len(interviews),
+        "interview_rate": interview_rate,
+        "due_followups": len(due_followups),
+        "in_progress": sum(job["workflow_status"] in {"Saved", "Preparing"} for job in jobs),
+    }
 
 
 def tracker_csv(database_path: Path) -> str:
