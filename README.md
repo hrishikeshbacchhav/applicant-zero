@@ -161,7 +161,7 @@ The setup check confirms only that a key value is present; the first draft verif
 
 Drafting uses the cost-conscious `gpt-5.6-terra` model by default and limits each response to 1,200 output tokens. The saved review shows the API-reported input and output token count. Set `APPLICANT_ZERO_MODEL` only if you deliberately want a different model.
 
-After reviewing a generated draft, select **Create tailored resume review**. It creates a printable private review page for the chosen résumé family, with the proposed summary, bullet wording, unsupported requirements and questions to resolve. It does not overwrite your approved PDF; that keeps every final résumé change reviewable.
+After reviewing a generated draft, select **Create tailored resume review**. It creates a printable private résumé editing pack for the chosen résumé family, with the proposed summary, bullet wording, cover letter, application-answer drafts, unsupported requirements and questions to resolve. It does not overwrite your approved PDF; that keeps every final résumé change reviewable.
 
 Use **Application question workspace** on a preparation brief for unfamiliar role-specific questions. Paste the question and Applicant Zero creates a short private review draft from your verified evidence. It refuses to draft visa, work-rights, identity, health or similar personal-eligibility answers; complete those directly in the employer form.
 

@@ -194,8 +194,9 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
     output = create_resume_review(project / "data" / "jobs.sqlite3", "job-1")
     assert output.exists()
     review = load_resume_review(project / "data" / "jobs.sqlite3", "job-1")
-    assert "Tailored resume review" in review
+    assert "Tailored résumé editing pack" in review
     assert "Truthful summary" in review
+    assert "Quality check before use" in review
 
 
 def test_review_and_employer_confirmation_are_recorded_in_the_tracker(tmp_path):
