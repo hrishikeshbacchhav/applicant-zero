@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import json
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _greenhouse_jobs, _lever_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, save_board_checks
 
 
@@ -12,6 +12,20 @@ def test_greenhouse_mapping():
         jobs = _greenhouse_jobs("Example", "token")
     assert jobs[0].external_id == "greenhouse:token:7"
     assert jobs[0].location == "Sydney, NSW"
+
+
+def test_public_feed_requests_identify_the_private_discovery_client(monkeypatch):
+    seen = {}
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def read(self): return b'{}'
+    def fake_open(request, timeout):
+        seen["agent"] = request.get_header("User-agent")
+        return Response()
+    monkeypatch.setattr("applicant_zero.sources.company_boards.urlopen", fake_open)
+    assert _get_json("https://example.invalid") == {}
+    assert "Applicant-Zero" in seen["agent"]
 
 
 def test_lever_mapping():

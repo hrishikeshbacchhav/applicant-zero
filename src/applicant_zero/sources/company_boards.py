@@ -2,7 +2,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 from ..scoring import Job
 
@@ -16,7 +16,11 @@ class BoardReport:
 
 
 def _get_json(url: str) -> dict | list:
-    with urlopen(url, timeout=12) as response:
+    # Public career-board APIs occasionally reject Python's anonymous default
+    # user agent. This identifies the private, read-only discovery client; it
+    # does not evade an access control or retry around a rejected request.
+    request = Request(url, headers={"User-Agent": "Applicant-Zero/0.1 (private job discovery)"})
+    with urlopen(request, timeout=12) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
