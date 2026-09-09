@@ -55,6 +55,7 @@ def _direct_title_alignment(title: str, family: str) -> bool:
         "data_bi": ("data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst"),
         "power_bi": ("power bi", "business intelligence", "bi analyst"),
         "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
+        "it_support": ("service desk", "help desk", "it support", "technical support", "desktop support", "application support", "support analyst"),
     }
     return any(term in title for term in core_titles.get(family, ()))
 
@@ -154,4 +155,11 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         recommendation = "Review"
         resume_family = "data_bi"
         reasons.insert(0, "This is an adjacent analytics role; review its domain requirements before preparing an application.")
+    if family == "it_support":
+        recommendation = "Review"
+        # An IT-support résumé will be added as a separate supported master.
+        # Until then, surface the role with the closest current master rather
+        # than pretending that a data résumé is already tailored for it.
+        resume_family = "data_bi"
+        reasons.insert(0, "This is an IT-support route. Review the technical and customer-support requirements before preparing a role-specific résumé.")
     return MatchResult(recommendation, min(score, 100), resume_family, matched, missing, tuple(reasons))

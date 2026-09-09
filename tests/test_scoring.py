@@ -73,3 +73,16 @@ def test_named_gap_prevents_a_strong_apply_label():
     assert result.score >= 78
     assert result.recommendation == "Apply"
     assert "azure" in result.missing_requirements
+
+
+def test_service_desk_role_is_routed_to_review_not_discarded():
+    job = Job("12", "IT Service Desk Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Provide technical support, resolve incidents and communicate with stakeholders.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert result.resume_family == "data_bi"
+    assert "IT-support route" in " ".join(result.reasons)
+
+
+def test_data_governance_role_is_discovered_as_data_analytics():
+    job = Job("13", "Data Governance Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Data quality, SQL and stakeholder engagement.")
+    assert score_job(job, RISHI_PROFILE).recommendation in {"Apply", "Strong apply", "Review"}

@@ -3,6 +3,7 @@
 import os
 import shutil
 import sqlite3
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -32,6 +33,35 @@ def prepare_state(repository_root: Path) -> Path:
 
 def database_path(repository_root: Path) -> Path:
     return prepare_state(repository_root) / "data" / "applicant_zero.sqlite3"
+
+
+def synchronise_board_registry(repository_root: Path) -> Path:
+    """Merge newly verified starter boards into a candidate's private registry.
+
+    A private board file is never overwritten: candidate-added boards and any
+    custom notes remain intact, while newly shipped public boards become
+    available after the next normal refresh.
+    """
+    state = prepare_state(repository_root)
+    destination = state / "data" / "company_boards.json"
+    starter = repository_root / "data" / "company_boards.starter.json"
+    starter_rows = json.loads(starter.read_text(encoding="utf-8")) if starter.exists() else []
+    existing_rows = []
+    if destination.exists():
+        try:
+            existing_rows = json.loads(destination.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            existing_rows = []
+    keys = {(str(row.get("company", "")).casefold(), str(row.get("ats", "")).casefold(), str(row.get("token", "")).casefold()) for row in existing_rows}
+    merged = list(existing_rows)
+    for row in starter_rows:
+        key = (str(row.get("company", "")).casefold(), str(row.get("ats", "")).casefold(), str(row.get("token", "")).casefold())
+        if key not in keys:
+            merged.append(row)
+            keys.add(key)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    return destination
 
 
 def backup_database(repository_root: Path, reason: str = "startup") -> Path | None:

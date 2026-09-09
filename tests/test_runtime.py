@@ -1,6 +1,8 @@
 import sqlite3
 
-from applicant_zero.runtime import backup_database, database_path, prepare_state
+import json
+
+from applicant_zero.runtime import backup_database, database_path, prepare_state, synchronise_board_registry
 
 
 def test_prepare_state_copies_legacy_private_state_once(tmp_path, monkeypatch):
@@ -28,3 +30,20 @@ def test_backup_database_uses_a_valid_sqlite_snapshot(tmp_path, monkeypatch):
     assert backup is not None and backup.exists()
     with sqlite3.connect(backup) as connection:
         assert connection.execute("SELECT value FROM example").fetchone()[0] == "kept"
+
+
+def test_board_registry_merges_new_starters_without_losing_custom_board(tmp_path, monkeypatch):
+    repository = tmp_path / "repository"
+    (repository / "data").mkdir(parents=True)
+    (repository / "data" / "company_boards.starter.json").write_text(
+        json.dumps([{"company": "Verified", "ats": "lever", "token": "verified"}]), encoding="utf-8"
+    )
+    monkeypatch.setenv("APPLICANT_ZERO_STATE_DIR", str(tmp_path / "runtime"))
+    state = prepare_state(repository)
+    private = state / "data" / "company_boards.json"
+    private.write_text(json.dumps([{"company": "Candidate board", "ats": "ashby", "token": "candidate"}]), encoding="utf-8")
+
+    path = synchronise_board_registry(repository)
+
+    companies = {row["company"] for row in json.loads(path.read_text(encoding="utf-8"))}
+    assert companies == {"Candidate board", "Verified"}

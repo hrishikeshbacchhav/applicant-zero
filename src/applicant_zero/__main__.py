@@ -15,7 +15,7 @@ from .sources.adzuna import fetch_jobs, fetch_query_batch
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .system_health import health_report
-from .runtime import backup_database, database_path, prepare_state
+from .runtime import backup_database, database_path, prepare_state, synchronise_board_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -36,8 +36,7 @@ def _save_jobs(database, jobs: list[Job], show_all: bool = False) -> list[tuple[
 
 
 def _board_path(state: Path) -> Path:
-    private = state / "data" / "company_boards.json"
-    return private if private.exists() else ROOT / "data" / "company_boards.starter.json"
+    return synchronise_board_registry(ROOT)
 
 
 def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int, int, str]:
