@@ -47,6 +47,26 @@ def board_coverage(targets: list[TargetCompany], board_path: Path) -> dict[str, 
     return {"configured": covered, "research_needed": pending}
 
 
+def employer_coverage_rows(targets_path: Path, board_path: Path) -> list[dict[str, object]]:
+    """Return an auditable employer-by-employer coverage map for the dashboard."""
+    targets = load_targets(targets_path)
+    boards = _load(board_path)
+    board_by_company = {
+        str(board.get("company", "")).casefold(): str(board.get("ats", "")).title()
+        for board in boards if isinstance(board, dict)
+    }
+    return [
+        {
+            "company": target.company,
+            "sector": target.sector,
+            "priority": target.priority,
+            "route": "Public ATS refresh" if target.company.casefold() in board_by_company else "Research queue",
+            "ats": board_by_company.get(target.company.casefold(), ""),
+        }
+        for target in targets
+    ]
+
+
 def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path) -> dict[str, object]:
     """Report discovery coverage without implying every target has a live vacancy."""
     sources = load_sources(sources_path)

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from applicant_zero.discovery_registry import board_coverage, discovery_overview, load_sources, load_targets
+from applicant_zero.discovery_registry import board_coverage, discovery_overview, employer_coverage_rows, load_sources, load_targets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,3 +35,12 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18
     assert {"Omni", "Lime", "Qualtrics"} <= {board["company"] for board in boards}
+
+
+def test_employer_coverage_map_keeps_priority_sector_and_route():
+    rows = employer_coverage_rows(ROOT / "data" / "target_companies.starter.json", ROOT / "data" / "company_boards.starter.json")
+    plenti = next(row for row in rows if row["company"] == "Plenti")
+    canva = next(row for row in rows if row["company"] == "Canva")
+    assert plenti["route"] == "Public ATS refresh"
+    assert plenti["ats"] == "Lever"
+    assert canva["route"] == "Research queue"
