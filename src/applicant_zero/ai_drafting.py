@@ -51,6 +51,27 @@ def _load_evidence(path: Path) -> dict:
     return evidence
 
 
+def evidence_for_job(evidence: dict, lane: str | None) -> list[str]:
+    """Combine global and role-lane evidence without inventing a new fact.
+
+    Existing evidence files with only ``truthful_evidence`` remain fully
+    compatible.  Candidates can optionally add lane-specific facts when a
+    responsibility belongs only to one résumé direction.
+    """
+    facts = [str(item).strip() for item in evidence.get("truthful_evidence", []) if str(item).strip()]
+    lane_facts = evidence.get("evidence_by_lane", {})
+    if lane and isinstance(lane_facts, dict):
+        facts.extend(str(item).strip() for item in lane_facts.get(lane, []) if str(item).strip())
+    unique: list[str] = []
+    seen: set[str] = set()
+    for fact in facts:
+        key = fact.casefold()
+        if key not in seen:
+            unique.append(fact)
+            seen.add(key)
+    return unique
+
+
 def _read_job(database_path: Path, external_id: str) -> dict:
     with sqlite3.connect(database_path) as connection:
         row = get_match(connection, external_id)
@@ -101,6 +122,7 @@ def load_question_drafts(database_path: Path, external_id: str) -> list[dict]:
 
 
 def _prompt(job: dict, evidence: dict, profile: dict) -> str:
+    selected_evidence = evidence_for_job(evidence, job.get("lane"))
     return f"""You prepare truthful job-application drafts. Use only the verified evidence provided below. Never invent a responsibility, metric, employer, date, qualification, tool, work right, or application answer. If the role asks for something unsupported, list it under unsupported_requirements.
 
 Return valid JSON only with these keys:
@@ -117,8 +139,8 @@ Company: {job['company']}
 Location: {job['location']}
 Description: {job['description']}
 
-VERIFIED EVIDENCE
-{json.dumps(evidence['truthful_evidence'], ensure_ascii=False)}
+VERIFIED EVIDENCE FOR THIS ROLE LANE
+{json.dumps(selected_evidence, ensure_ascii=False)}
 
 WRITING RULES
 {json.dumps(evidence.get('writing_rules', []), ensure_ascii=False)}
@@ -206,6 +228,8 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     output_path.write_text(json.dumps({
         "created_at": datetime.now().isoformat(timespec="minutes"),
         "job": job["title"],
+        "lane": job.get("lane"),
+        "evidence_used": evidence_for_job(evidence, job.get("lane")),
         "model": model_name,
         "api_usage": _usage_summary(response_data),
         "draft": draft,
@@ -235,7 +259,7 @@ Return valid JSON only with keys: answer (maximum 170 words), unsupported_requir
 
 ROLE: {job['title']} at {job['company']}
 QUESTION: {clean_question}
-VERIFIED EVIDENCE: {json.dumps(evidence['truthful_evidence'], ensure_ascii=False)}
+VERIFIED EVIDENCE: {json.dumps(evidence_for_job(evidence, job.get('lane')), ensure_ascii=False)}
 WRITING RULES: {json.dumps(evidence.get('writing_rules', []), ensure_ascii=False)}
 FULL-TIME AVAILABILITY: {profile['availability']['full_time_from']}
 """

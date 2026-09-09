@@ -2,6 +2,17 @@
   "truthful_evidence": [
     "Replace this with a verified responsibility, result, project detail, skill, or qualification from your own background."
   ],
+  "evidence_by_lane": {
+    "data_bi": [
+      "Add a verified data, reporting, SQL, Power BI, dashboard, or data-quality detail here when it belongs specifically to this lane."
+    ],
+    "business_analysis": [
+      "Add a verified requirements, stakeholder, process, systems, or migration detail here when it belongs specifically to this lane."
+    ],
+    "it_support": [
+      "Add a verified support, incident, customer, troubleshooting, or systems-support detail here when it belongs specifically to this lane."
+    ]
+  },
   "writing_rules": [
     "Do not invent achievements, metrics, employers, dates, tools, qualifications, or work authorisation.",
     "Use concise professional Australian English.",

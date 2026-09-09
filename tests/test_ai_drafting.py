@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.ai_drafting import DEFAULT_DRAFT_MODEL, MAX_DRAFT_OUTPUT_TOKENS, DraftingError, _json_from_text, _load_evidence, _response_text, _usage_summary, check_tailoring_setup, create_question_draft
+from applicant_zero.ai_drafting import DEFAULT_DRAFT_MODEL, MAX_DRAFT_OUTPUT_TOKENS, DraftingError, _json_from_text, _load_evidence, _response_text, _usage_summary, check_tailoring_setup, create_question_draft, evidence_for_job
 
 
 def test_json_draft_parser_accepts_json_code_fence():
@@ -36,6 +36,17 @@ def test_evidence_library_requires_real_facts(tmp_path):
         assert "verified evidence" in str(error)
     else:
         raise AssertionError("Expected drafting setup to reject placeholder evidence")
+
+
+def test_evidence_library_can_add_only_the_relevant_role_lane_facts():
+    evidence = {
+        "truthful_evidence": ["Built verified SQL reporting."],
+        "evidence_by_lane": {
+            "data_bi": ["Built verified Power BI dashboards."],
+            "it_support": ["Resolved verified support incidents."],
+        },
+    }
+    assert evidence_for_job(evidence, "data_bi") == ["Built verified SQL reporting.", "Built verified Power BI dashboards."]
 
 
 def test_tailoring_check_reports_missing_private_setup(tmp_path):
