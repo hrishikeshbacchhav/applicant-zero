@@ -138,9 +138,10 @@ Open **Prepare application** for a job, then:
 1. Select **Scan application form** to inspect its current field count, required fields, account requirement and CAPTCHA markers.
 2. Select **Open assisted application** for a supported route.
 3. Review the separate browser window. Applicant Zero fills stable contact information, location, availability, the approved résumé and reusable notice-period or profile-link answers. It uses the advertised salary range when one is clearly stated, otherwise your private fallback, and can choose a clearly matching "how did you hear about us" option.
-4. For a login handoff, sign in or complete account steps yourself. Applicant Zero does not enter, store or create passwords, and it waits for an application form before filling safe fields.
-5. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
-6. Review the entire application before choosing the employer's Submit button yourself.
+4. On a supported multi-step form, it keeps watching for the next ordinary page, fills newly visible verified fields and can move through a normal **Next** or **Continue** step once every required field on that step is already complete. It stops for CAPTCHA, login, legal/identity declarations, unfamiliar questions and the final Submit button.
+5. For a login handoff, sign in or complete account steps yourself. Applicant Zero does not enter, store or create passwords, and it waits for an application form before filling safe fields.
+6. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
+7. Review the entire application before choosing the employer's Submit button yourself.
 
 The browser uses a private local profile under `private/browser_profile`. Login sessions may be retained there by the browser, while Applicant Zero never stores or creates passwords. Every route scan and assistance attempt appears under **Application activity** in the job brief.
 

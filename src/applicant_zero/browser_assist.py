@@ -14,6 +14,43 @@ _running: set[str] = set()
 _running_lock = threading.Lock()
 
 
+def _captcha_present(page) -> bool:
+    """Detect a CAPTCHA without attempting to solve, click, or bypass it."""
+    try:
+        return page.locator(
+            "iframe[src*='recaptcha'], iframe[src*='hcaptcha'], .g-recaptcha, .h-captcha, [data-sitekey]"
+        ).count() > 0
+    except Exception:
+        return False
+
+
+def _next_step_button(page):
+    """Return a normal progression control, never an application-submit control."""
+    try:
+        controls = page.locator("button, input[type='button'], input[type='submit']")
+        for index in range(controls.count()):
+            control = controls.nth(index)
+            if not control.is_visible() or not control.is_enabled():
+                continue
+            label = " ".join(
+                filter(
+                    None,
+                    [
+                        control.inner_text().strip(),
+                        control.get_attribute("value"),
+                        control.get_attribute("aria-label"),
+                    ],
+                )
+            ).lower()
+            if re.search(r"\b(submit|apply now|send application|finish application)\b", label):
+                continue
+            if re.search(r"\b(next|continue|review application|save and continue)\b", label):
+                return control
+    except Exception:
+        return None
+    return None
+
+
 def browser_setup_issue() -> str:
     try:
         import playwright.sync_api  # noqa: F401
@@ -282,19 +319,41 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                         time.sleep(1)
                     _log(database_path, external_id, "closed", "The supervised browser was closed without Applicant Zero clicking submit.")
                     return
-            filled, unresolved = _prefill_page(page, job, profile, answers)
-            _log(
-                database_path,
-                external_id,
-                "ready_for_review",
-                f"Filled {filled} safe fields. {unresolved} required fields remain highlighted for review. Final submission was not clicked.",
-            )
+            # Multi-step forms are handled as a supervised loop.  On each new
+            # page the assistant fills newly visible, verified fields.  It can
+            # proceed through an ordinary "Next" step only when every required
+            # field is already complete and no CAPTCHA is present.  It never
+            # selects legal/identity answers and never clicks final submission.
+            total_filled = 0
+            last_signature = ""
+            while context.pages:
+                page = context.pages[-1]
+                try:
+                    descriptors = page.locator("input, textarea, select").count()
+                    signature = f"{page.url}|{descriptors}"
+                    newly_filled, unresolved = _prefill_page(page, job, profile, answers)
+                except Exception:
+                    page.wait_for_timeout(750)
+                    continue
+                total_filled += newly_filled
+                if signature != last_signature or newly_filled:
+                    detail = (
+                        f"Filled {total_filled} safe fields across the form. "
+                        f"{unresolved} required fields remain highlighted for review. "
+                        "Final submission was not clicked."
+                    )
+                    _log(database_path, external_id, "ready_for_review", detail)
+                    last_signature = signature
+                next_button = _next_step_button(page)
+                if unresolved == 0 and next_button is not None and not _captcha_present(page):
+                    next_button.click()
+                    page.wait_for_timeout(1_000)
+                    continue
+                page.wait_for_timeout(1_000)
+            _log(database_path, external_id, "closed", "The assisted browser was closed without Applicant Zero clicking submit.")
             if job["workflow_status"] in {"New", "Saved"}:
                 with sqlite3.connect(database_path) as connection:
                     update_workflow(connection, external_id, "Preparing", job["notes"])
-            while context.pages:
-                time.sleep(1)
-            _log(database_path, external_id, "closed", "The assisted browser was closed without Applicant Zero clicking submit.")
     except Exception as error:
         _log(database_path, external_id, "error", f"Browser assistance stopped: {type(error).__name__}: {error}")
     finally:
