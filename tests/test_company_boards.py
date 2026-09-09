@@ -63,3 +63,16 @@ def test_board_health_is_saved_locally(tmp_path):
     rows = list_board_checks(database)
     assert rows[0]["company"] == "Example"
     assert rows[0]["job_count"] == 3
+
+
+def test_invalid_or_duplicate_board_config_does_not_stop_valid_collection(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([
+        {"company": "Valid", "ats": "lever", "token": "valid"},
+        {"company": "Duplicate", "ats": "lever", "token": "valid"},
+        {"company": "Broken", "ats": "unknown", "token": "broken"},
+    ]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._lever_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert [report.company for report in reports] == ["Duplicate", "Broken", "Valid"]
+    assert [report.status for report in reports] == ["unavailable", "unavailable", "checked"]

@@ -84,8 +84,38 @@ def fetch_company_boards(path: Path) -> list[Job]:
     return jobs
 
 
+def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
+    """Keep one bad private board entry from stopping all scheduled discovery."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError) as error:
+        return [], [BoardReport("Career board configuration", "unavailable", 0, str(error))]
+    if not isinstance(payload, list):
+        return [], [BoardReport("Career board configuration", "unavailable", 0, "Board configuration must be a JSON list.")]
+    valid: list[dict] = []
+    reports: list[BoardReport] = []
+    seen: set[tuple[str, str]] = set()
+    for index, item in enumerate(payload, start=1):
+        if not isinstance(item, dict):
+            reports.append(BoardReport(f"Board entry {index}", "unavailable", 0, "Board entry must be an object."))
+            continue
+        company = str(item.get("company", "")).strip()
+        token = str(item.get("token", "")).strip()
+        ats = str(item.get("ats", "")).strip().lower()
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby"}:
+            reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
+            continue
+        key = (ats, token.casefold())
+        if key in seen:
+            reports.append(BoardReport(company, "unavailable", 0, "Duplicate ATS board token was skipped."))
+            continue
+        seen.add(key)
+        valid.append({"company": company, "token": token, "ats": ats})
+    return valid, reports
+
+
 def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
-    boards = json.loads(path.read_text(encoding="utf-8"))
+    boards, configuration_reports = _load_valid_boards(path)
     def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
         company = board["company"]
         token = board["token"]
@@ -106,11 +136,11 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
     # Board APIs are independent. Parallel requests keep one slow employer
     # endpoint from holding up every other source during scheduled refreshes.
     if not boards:
-        return [], []
+        return [], configuration_reports
     with ThreadPoolExecutor(max_workers=min(8, len(boards)), thread_name_prefix="applicant-zero-board") as executor:
         results = list(executor.map(fetch_one, boards))
     jobs: list[Job] = []
-    reports: list[BoardReport] = []
+    reports: list[BoardReport] = list(configuration_reports)
     for board_jobs, report in results:
         jobs.extend(board_jobs)
         reports.append(report)
