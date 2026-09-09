@@ -151,6 +151,8 @@ Drafting uses the cost-conscious `gpt-5.6-terra` model by default and limits eac
 
 After reviewing a generated draft, select **Create tailored resume review**. It creates a printable private review page for the chosen résumé family, with the proposed summary, bullet wording, unsupported requirements and questions to resolve. It does not overwrite your approved PDF; that keeps every final résumé change reviewable.
 
+Use **Application question workspace** on a preparation brief for unfamiliar role-specific questions. Paste the question and Applicant Zero creates a short private review draft from your verified evidence. It refuses to draft visa, work-rights, identity, health or similar personal-eligibility answers; complete those directly in the employer form.
+
 ## Application readiness and confirmation
 
 Each preparation brief now shows a private readiness checklist: approved résumé, AI tailoring draft, tailored résumé review, reusable application answers and your final review. Select **Mark materials reviewed** only after you have checked the role-specific content.

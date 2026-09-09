@@ -13,6 +13,11 @@ from .storage import get_match
 
 DEFAULT_DRAFT_MODEL = "gpt-5.6-terra"
 MAX_DRAFT_OUTPUT_TOKENS = 1_200
+MAX_QUESTION_OUTPUT_TOKENS = 500
+_CANDIDATE_ONLY_QUESTION = re.compile(
+    r"visa|sponsor|work.?rights|citizen|permanent.?resident|gender|race|ethnic|disab|medical|injury|birth|date.?of.?birth|veteran|criminal|conviction",
+    re.IGNORECASE,
+)
 
 
 class DraftingError(Exception):
@@ -60,6 +65,12 @@ def _draft_path(database_path: Path, job: dict) -> Path:
     return packet_directory / f"{safe_name}-ai-draft.json"
 
 
+def _question_draft_path(database_path: Path, job: dict) -> Path:
+    packet_directory = database_path.parent.parent / "private" / "application_packets"
+    safe_name = re.sub(r"[^a-z0-9]+", "-", f"{job['company']}-{job['title']}".lower()).strip("-")
+    return packet_directory / f"{safe_name}-question-drafts.json"
+
+
 def load_ai_draft(database_path: Path, external_id: str) -> dict | None:
     try:
         job = _read_job(database_path, external_id)
@@ -72,6 +83,21 @@ def load_ai_draft(database_path: Path, external_id: str) -> dict | None:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
+
+
+def load_question_drafts(database_path: Path, external_id: str) -> list[dict]:
+    try:
+        job = _read_job(database_path, external_id)
+    except DraftingError:
+        return []
+    path = _question_draft_path(database_path, job)
+    if not path.exists():
+        return []
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    return value if isinstance(value, list) else []
 
 
 def _prompt(job: dict, evidence: dict, profile: dict) -> str:
@@ -141,6 +167,21 @@ def _usage_summary(response_data: dict) -> dict[str, int]:
     }
 
 
+def _create_response(api_key: str, payload: dict) -> dict:
+    request = Request("https://api.openai.com/v1/responses", data=json.dumps(payload).encode("utf-8"), method="POST", headers={
+        "Authorization": f"Bearer {api_key}", "Content-Type": "application/json"
+    })
+    try:
+        with urlopen(request, timeout=90) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        if error.code == 401:
+            raise DraftingError("OpenAI rejected the API key. Create a valid API key on the OpenAI Platform, set it in this terminal, then try again.") from error
+        raise DraftingError(f"Drafting service returned HTTP {error.code}.") from error
+    except URLError as error:
+        raise DraftingError("Could not reach the drafting service.") from error
+
+
 def create_ai_draft(database_path: Path, external_id: str, model: str | None = None) -> Path:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
@@ -151,25 +192,14 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     evidence = _load_evidence(database_path.parent.parent / "private" / "candidate_evidence.json")
     job = _read_job(database_path, external_id)
     model_name = model or os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL)
-    payload = json.dumps({
+    payload = {
         "model": model_name,
         "store": False,
         "input": _prompt(job, evidence, profile),
         "text": {"verbosity": "low"},
         "max_output_tokens": MAX_DRAFT_OUTPUT_TOKENS,
-    }).encode("utf-8")
-    request = Request("https://api.openai.com/v1/responses", data=payload, method="POST", headers={
-        "Authorization": f"Bearer {api_key}", "Content-Type": "application/json"
-    })
-    try:
-        with urlopen(request, timeout=90) as response:
-            response_data = json.loads(response.read().decode("utf-8"))
-    except HTTPError as error:
-        if error.code == 401:
-            raise DraftingError("OpenAI rejected the API key. Create a valid API key on the OpenAI Platform, set it in this terminal, then try again.") from error
-        raise DraftingError(f"Drafting service returned HTTP {error.code}.") from error
-    except URLError as error:
-        raise DraftingError("Could not reach the drafting service.") from error
+    }
+    response_data = _create_response(api_key, payload)
     draft = _json_from_text(_response_text(response_data))
     output_path = _draft_path(database_path, job)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -181,3 +211,54 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
         "draft": draft,
     }, indent=2, ensure_ascii=False), encoding="utf-8")
     return output_path
+
+
+def create_question_draft(database_path: Path, external_id: str, question: str) -> list[dict]:
+    clean_question = question.strip()
+    if len(clean_question) < 8:
+        raise DraftingError("Paste the full application question first.")
+    if _CANDIDATE_ONLY_QUESTION.search(clean_question):
+        raise DraftingError("Answer this personal eligibility or identity question directly in the employer form; Applicant Zero will not draft it.")
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise DraftingError("OPENAI_API_KEY is not set on this computer.")
+    project_root = database_path.parent.parent
+    profile = load_profile(project_root / "private" / "candidate_profile.json")
+    if not profile:
+        raise DraftingError("Private candidate profile is not ready.")
+    evidence = _load_evidence(project_root / "private" / "candidate_evidence.json")
+    job = _read_job(database_path, external_id)
+    model_name = os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL)
+    prompt = f"""Draft one truthful response to an employer's application question. Use only the verified evidence. Do not invent achievements, dates, qualifications, tools, work rights, or other personal information. If evidence is insufficient, say so clearly.
+
+Return valid JSON only with keys: answer (maximum 170 words), unsupported_requirement (string or empty), question_to_confirm (string or empty).
+
+ROLE: {job['title']} at {job['company']}
+QUESTION: {clean_question}
+VERIFIED EVIDENCE: {json.dumps(evidence['truthful_evidence'], ensure_ascii=False)}
+WRITING RULES: {json.dumps(evidence.get('writing_rules', []), ensure_ascii=False)}
+FULL-TIME AVAILABILITY: {profile['availability']['full_time_from']}
+"""
+    response_data = _create_response(api_key, {
+        "model": model_name,
+        "store": False,
+        "input": prompt,
+        "text": {"verbosity": "low"},
+        "max_output_tokens": MAX_QUESTION_OUTPUT_TOKENS,
+    })
+    answer = _json_from_text(_response_text(response_data))
+    record = {
+        "created_at": datetime.now().isoformat(timespec="minutes"),
+        "question": clean_question,
+        "answer": str(answer.get("answer", "Needs confirmation")),
+        "unsupported_requirement": str(answer.get("unsupported_requirement", "")),
+        "question_to_confirm": str(answer.get("question_to_confirm", "")),
+        "model": model_name,
+        "api_usage": _usage_summary(response_data),
+    }
+    path = _question_draft_path(database_path, job)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    drafts = load_question_drafts(database_path, external_id)
+    drafts.insert(0, record)
+    path.write_text(json.dumps(drafts[:20], indent=2, ensure_ascii=False), encoding="utf-8")
+    return drafts
