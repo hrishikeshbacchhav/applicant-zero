@@ -23,6 +23,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
             recommendation TEXT NOT NULL,
             score INTEGER NOT NULL,
             resume_family TEXT,
+            lane TEXT,
             matched_evidence TEXT NOT NULL,
             missing_requirements TEXT NOT NULL,
             reasons TEXT NOT NULL,
@@ -153,6 +154,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     if "description" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN description TEXT NOT NULL DEFAULT ''")
     migrations = {
+        "lane": "TEXT",
         "first_seen_at": "TEXT NOT NULL DEFAULT ''",
         "last_seen_at": "TEXT NOT NULL DEFAULT ''",
         "is_active": "INTEGER NOT NULL DEFAULT 1",
@@ -186,18 +188,18 @@ def initialise_database(path: Path) -> sqlite3.Connection:
 def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) -> None:
     connection.execute(
         """
-        INSERT INTO job_matches (external_id, title, company, location, source, url, description, recommendation, score, resume_family, matched_evidence, missing_requirements, reasons)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO job_matches (external_id, title, company, location, source, url, description, recommendation, score, resume_family, lane, matched_evidence, missing_requirements, reasons)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(external_id) DO UPDATE SET
             title=excluded.title, company=excluded.company, location=excluded.location,
             source=excluded.source, url=excluded.url, description=excluded.description, recommendation=excluded.recommendation,
-            score=excluded.score, resume_family=excluded.resume_family,
+            score=excluded.score, resume_family=excluded.resume_family, lane=excluded.lane,
             matched_evidence=excluded.matched_evidence, missing_requirements=excluded.missing_requirements,
             reasons=excluded.reasons, last_seen_at=CURRENT_TIMESTAMP,
             is_active=1, updated_at=CURRENT_TIMESTAMP
         """,
         (job.external_id, job.title, job.company, job.location, job.source, job.url, job.description,
-         result.recommendation, result.score, result.resume_family,
+         result.recommendation, result.score, result.resume_family, result.lane,
          json.dumps(result.matched_evidence), json.dumps(result.missing_requirements), json.dumps(result.reasons)),
     )
     connection.commit()
@@ -213,7 +215,7 @@ def list_matches(connection: sqlite3.Connection, include_duplicates: bool = Fals
     rows = connection.execute(
         """
         SELECT external_id, title, company, location, source, url, description, recommendation, score,
-               resume_family, matched_evidence, missing_requirements, reasons
+               resume_family, lane, matched_evidence, missing_requirements, reasons
                , workflow_status, notes, first_seen_at, last_seen_at, is_active,
                applied_at, updated_at
         FROM job_matches
@@ -253,7 +255,7 @@ def get_match(connection: sqlite3.Connection, external_id: str) -> dict | None:
     row = connection.execute(
         """
         SELECT external_id, title, company, location, source, url, description, recommendation, score,
-               resume_family, matched_evidence, missing_requirements, reasons, workflow_status, notes,
+               resume_family, lane, matched_evidence, missing_requirements, reasons, workflow_status, notes,
                first_seen_at, last_seen_at, is_active, applied_at, updated_at
         FROM job_matches WHERE external_id = ?
         """,

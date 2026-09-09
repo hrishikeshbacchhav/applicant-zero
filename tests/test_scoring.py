@@ -86,3 +86,8 @@ def test_service_desk_role_is_routed_to_review_not_discarded():
 def test_data_governance_role_is_discovered_as_data_analytics():
     job = Job("13", "Data Governance Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Data quality, SQL and stakeholder engagement.")
     assert score_job(job, RISHI_PROFILE).recommendation in {"Apply", "Strong apply", "Review"}
+
+
+def test_role_lane_is_saved_with_the_result_for_queue_filtering():
+    job = Job("14", "IT Service Desk Analyst", "Example", "Sydney", "test", "https://example.invalid", "Technical support and stakeholder communication.")
+    assert score_job(job, RISHI_PROFILE).lane == "it_support"

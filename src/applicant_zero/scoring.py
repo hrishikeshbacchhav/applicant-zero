@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import re
 
 from .profile import CandidateProfile
+from .taxonomy import classify_lane
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class MatchResult:
     recommendation: str
     score: int
     resume_family: str | None
+    lane: str | None
     matched_evidence: tuple[str, ...]
     missing_requirements: tuple[str, ...]
     reasons: tuple[str, ...]
@@ -88,20 +90,21 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
     reasons: list[str] = []
 
     if not any(place in location for place in profile.locations):
-        return MatchResult("Skip", 0, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
+        return MatchResult("Skip", 0, None, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
 
     if family is None:
-        return MatchResult("Skip", 15, None, (), (), ("Title is outside the approved role families.",))
+        return MatchResult("Skip", 15, None, None, (), (), ("Title is outside the approved role families.",))
 
     if any(term in title for term in OUT_OF_SCOPE_TITLE_TERMS):
         return MatchResult(
-            "Skip", 10, None, (), (),
+            "Skip", 10, None, None, (), (),
             ("Title is outside the current analytics, BI and business-analysis search focus.",),
         )
 
     seniority_text = f"{title} {_normalise(job.seniority)}"
     if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
-        return MatchResult("Review", 25, family, (), (), ("The role title or stated seniority appears senior; check the experience requirements before applying.",))
+        lane = classify_lane(job.title, job.description)
+        return MatchResult("Review", 25, family, lane.identifier if lane else family, (), (), ("The role title or stated seniority appears senior; check the experience requirements before applying.",))
 
     required_years = _required_experience_years(description)
     if required_years is not None and required_years >= 4:
@@ -109,7 +112,7 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         return MatchResult(
             "Review",
             35,
-            family,
+            family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family),
             (),
             (requirement,),
             (f"The listing appears to require {requirement}; verify that your evidence supports it before applying.",),
@@ -117,7 +120,7 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
 
     if any(term in text for term in ("security clearance", "baseline clearance", "australian citizen", "citizen or permanent resident")):
         return MatchResult(
-            "Review", 30, family, (), ("eligibility or clearance requirement",),
+            "Review", 30, family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family), (), ("eligibility or clearance requirement",),
             ("The role states an eligibility, citizenship or clearance condition; confirm it yourself before preparing an application.",),
         )
 
@@ -162,4 +165,5 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         # than pretending that a data résumé is already tailored for it.
         resume_family = "data_bi"
         reasons.insert(0, "This is an IT-support route. Review the technical and customer-support requirements before preparing a role-specific résumé.")
-    return MatchResult(recommendation, min(score, 100), resume_family, matched, missing, tuple(reasons))
+    lane = classify_lane(job.title, job.description)
+    return MatchResult(recommendation, min(score, 100), resume_family, lane.identifier if lane else family, matched, missing, tuple(reasons))
