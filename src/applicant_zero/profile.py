@@ -14,13 +14,15 @@ RISHI_PROFILE = CandidateProfile(
         "data_bi": (
             "data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst",
             "data quality analyst", "data governance analyst", "information analyst", "insights analyst", "performance analyst",
+            "data reporting analyst", "data management analyst",
         ),
-        "power_bi": ("business intelligence", "power bi", "bi analyst"),
-        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
+        "power_bi": ("business intelligence", "power bi", "bi analyst", "bi developer"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "technology business analyst", "business process analyst"),
         "adjacent_analytics": (
             "commercial analyst", "pricing analyst", "operations analyst",
             "finance operations analyst", "crm analyst", "insights analyst",
             "workforce analyst", "product analyst", "data insights analyst",
+            "customer insights analyst", "performance analyst",
         ),
         "it_support": (
             "service desk", "help desk", "it support", "technical support", "desktop support", "application support",

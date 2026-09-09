@@ -30,6 +30,10 @@ class MatchResult:
 
 SENIORITY_BLOCKLIST = ("senior", "lead", "principal", "manager", "director", "head of", "staff")
 OUT_OF_SCOPE_TITLE_TERMS = ("data engineer", "data scientist", "machine learning", "software engineer", "software developer", "cyber security")
+MISLEADING_ANALYST_TITLE_TERMS = (
+    "talent", "recruitment", "human resources", "people and culture", "payroll", "actuarial",
+    "credit risk", "fraud", "investments", "equity research", "seo", "digital marketing", "campaign",
+)
 
 EXPERIENCE_PATTERNS = (
     r"(?:minimum(?: of)?|at least|requires?|with)\s+(\d+)\+?\s+years?(?:\s+of)?\s+(?:relevant\s+|professional\s+|commercial\s+)?experience",
@@ -99,6 +103,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         return MatchResult(
             "Skip", 10, None, None, (), (),
             ("Title is outside the current analytics, BI and business-analysis search focus.",),
+        )
+
+    if any(term in title for term in MISLEADING_ANALYST_TITLE_TERMS):
+        return MatchResult(
+            "Skip", 10, None, None, (), (),
+            ("The title uses 'analyst' but is outside the selected data, BI, business-analysis and IT-support role lanes.",),
         )
 
     seniority_text = f"{title} {_normalise(job.seniority)}"

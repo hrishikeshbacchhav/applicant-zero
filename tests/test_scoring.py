@@ -91,3 +91,17 @@ def test_data_governance_role_is_discovered_as_data_analytics():
 def test_role_lane_is_saved_with_the_result_for_queue_filtering():
     job = Job("14", "IT Service Desk Analyst", "Example", "Sydney", "test", "https://example.invalid", "Technical support and stakeholder communication.")
     assert score_job(job, RISHI_PROFILE).lane == "it_support"
+
+
+def test_bi_developer_is_kept_in_the_power_bi_route():
+    job = Job("15", "Business Intelligence Developer", "Example", "Sydney", "test", "https://example.invalid", "Power BI, DAX, SQL and Microsoft Fabric.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.resume_family == "power_bi"
+    assert result.recommendation in {"Apply", "Strong apply"}
+
+
+def test_unrelated_analyst_title_is_filtered_before_it_clutters_queue():
+    job = Job("16", "Talent Analytics Analyst", "Example", "Sydney", "test", "https://example.invalid", "Power BI and SQL.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Skip"
+    assert "outside the selected" in " ".join(result.reasons)
