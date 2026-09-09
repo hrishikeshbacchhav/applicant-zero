@@ -109,6 +109,16 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS platform_pilots (
+            platform TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'Not tested',
+            note TEXT NOT NULL DEFAULT '',
+            tested_at TEXT
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS refresh_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT NOT NULL,
@@ -487,6 +497,23 @@ def complete_followup(connection: sqlite3.Connection, external_id: str, note: st
         (note.strip()[:1000], external_id),
     )
     log_application_event(connection, external_id, "follow_up", "completed", "Candidate completed the planned application follow-up.")
+    connection.commit()
+
+
+def list_platform_pilots(connection: sqlite3.Connection) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute("SELECT platform, status, note, tested_at FROM platform_pilots ORDER BY platform").fetchall()
+    return [dict(row) for row in rows]
+
+
+def save_platform_pilot(connection: sqlite3.Connection, platform: str, status: str, note: str = "") -> None:
+    if status not in {"Passed supervised pilot", "Manual only", "Unavailable"}:
+        raise ValueError("Unknown pilot status")
+    connection.execute(
+        """INSERT INTO platform_pilots (platform, status, note, tested_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+           ON CONFLICT(platform) DO UPDATE SET status=excluded.status, note=excluded.note, tested_at=CURRENT_TIMESTAMP""",
+        (platform, status, note.strip()[:1000]),
+    )
     connection.commit()
 
 

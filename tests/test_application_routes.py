@@ -9,6 +9,8 @@ from applicant_zero.storage import (
     list_application_events,
     log_application_event,
     save_application_route,
+    save_platform_pilot,
+    list_platform_pilots,
 )
 
 
@@ -53,6 +55,12 @@ def test_route_and_application_events_are_saved(tmp_path):
     assert get_application_route(database, "job-1")["field_count"] == 5
     events = list_application_events(database, "job-1")
     assert events[0]["status"] == "completed"
+
+
+def test_platform_pilot_results_are_private_and_recorded(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_platform_pilot(database, "Lever", "Passed supervised pilot", "Safe fields worked")
+    assert list_platform_pilots(database)[0]["status"] == "Passed supervised pilot"
 
 
 def test_answer_library_uses_profile_and_preserves_confirmed_answers(tmp_path):
