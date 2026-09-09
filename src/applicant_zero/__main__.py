@@ -12,6 +12,7 @@ from .sources.adzuna import fetch_jobs, fetch_query_batch
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .system_health import health_report
+from .runtime import backup_database, database_path, prepare_state
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -25,22 +26,22 @@ def _save_jobs(database, jobs: list[Job], show_all: bool = False) -> list[tuple[
     return queue if show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
 
 
-def _board_path() -> Path:
-    private = ROOT / "data" / "company_boards.json"
+def _board_path(state: Path) -> Path:
+    private = state / "data" / "company_boards.json"
     return private if private.exists() else ROOT / "data" / "company_boards.starter.json"
 
 
-def run_daily_refresh(max_queries: int | None = None) -> tuple[int, int, str]:
+def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int, int, str]:
     """Refresh public boards and a capped query batch as one daily run."""
-    board_jobs, reports = fetch_company_boards_with_report(_board_path())
+    board_jobs, reports = fetch_company_boards_with_report(_board_path(state))
     query_file = ROOT / "data" / "search_queries.json"
     if not query_file.exists():
         query_file = ROOT / "data" / "search_queries.starter.json"
     config = json.loads(query_file.read_text(encoding="utf-8"))
     queries = config.get("queries", [])
-    query_jobs, query_errors = fetch_query_batch(ROOT, queries, config.get("location", "Sydney"), max_queries)
+    query_jobs, query_errors = fetch_query_batch(state, queries, config.get("location", "Sydney"), max_queries)
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
-    database = initialise_database(ROOT / "data" / "applicant_zero.sqlite3")
+    database = initialise_database(database_path(ROOT))
     save_board_checks(database, reports)
     visible = _save_jobs(database, jobs)
     for report in reports:
@@ -74,35 +75,39 @@ def main() -> None:
     parser.add_argument("--profile-check", action="store_true")
     parser.add_argument("--tailoring-check", action="store_true")
     args = parser.parse_args()
+    state = prepare_state(ROOT)
+    database = database_path(ROOT)
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check)
     if args.profile_check:
         if source_count or args.dashboard: parser.error("Use --profile-check on its own.")
-        issues = check_profile(ROOT / "private" / "candidate_profile.json")
+        issues = check_profile(state / "private" / "candidate_profile.json")
         print("Your private profile still needs:" if issues else "Your private candidate profile is ready for application preparation.")
         for issue in issues: print(f"- {issue}")
         return
     if args.tailoring_check:
         if source_count or args.dashboard: parser.error("Use --tailoring-check on its own.")
-        issues = check_tailoring_setup(ROOT)
+        issues = check_tailoring_setup(state)
         print("AI tailoring still needs:" if issues else "AI tailoring files are ready and an API key value is present. The key is verified only when you generate the first review draft.")
         for issue in issues: print(f"- {issue}")
         return
     if args.dashboard:
         if source_count: parser.error("Use --dashboard on its own.")
-        serve(ROOT / "data" / "applicant_zero.sqlite3", args.port)
+        backup_database(ROOT, "dashboard")
+        serve(database, args.port)
         return
     if args.daily_digest:
         if source_count != 1: parser.error("Use --daily-digest on its own.")
-        print(f"Daily priority digest created: {create_daily_digest(ROOT / 'data' / 'applicant_zero.sqlite3')}")
+        print(f"Daily priority digest created: {create_daily_digest(database)}")
         return
     if args.health_check:
         if source_count != 1: parser.error("Use --health-check on its own.")
-        for label, healthy, detail in health_report(ROOT):
+        for label, healthy, detail in health_report(state):
             print(f"{'OK' if healthy else 'CHECK'} · {label}: {detail}")
         return
     if args.daily_refresh:
         if source_count != 1: parser.error("Use --daily-refresh on its own.")
-        collected, relevant, detail = run_daily_refresh(args.max_queries)
+        backup_database(ROOT, "refresh")
+        collected, relevant, detail = run_daily_refresh(state, args.max_queries)
         print(f"Daily refresh complete: {collected} roles collected; {relevant} worth reviewing. {detail}.")
         return
     if source_count != 1: parser.error("Choose exactly one source: --demo, --adzuna, --company-boards, --daily-refresh, --daily-digest or --dashboard.")
@@ -110,11 +115,12 @@ def main() -> None:
     if args.demo:
         jobs = [Job(**record) for record in json.loads((ROOT / "data" / "demo_jobs.json").read_text(encoding="utf-8"))]
     elif args.adzuna:
-        jobs = fetch_jobs(ROOT, args.query, args.where, args.page)
+        jobs = fetch_jobs(state, args.query, args.where, args.page)
     else:
         jobs, reports = fetch_company_boards_with_report(args.company_boards)
         print(f"Career boards checked: {sum(report.status == 'checked' for report in reports)}. Unavailable boards skipped: {sum(report.status == 'unavailable' for report in reports)}.")
-    database = initialise_database(ROOT / "data" / "applicant_zero.sqlite3")
+    backup_database(ROOT, "collection")
+    database = initialise_database(database)
     if args.company_boards: save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, args.show_all)
     if args.company_boards:
