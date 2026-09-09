@@ -28,7 +28,7 @@ def create_resume_review(database_path: Path, external_id: str) -> Path:
     if not draft_record:
         raise ValueError("Generate the AI tailoring draft first, then create the resume review.")
     draft = draft_record.get("draft", {})
-    resume_path = profile.get("resumes", {}).get(row["resume_family"], "")
+    resume_path = profile.get("editable_resume_masters", {}).get(row["resume_family"], "") or profile.get("resumes", {}).get(row["resume_family"], "")
     bullets = "".join(f"<li>{html.escape(str(item))}</li>" for item in draft.get("resume_bullet_suggestions", [])) or "<li>No bullet suggestions were returned.</li>"
     applications = draft.get("application_answer_drafts", {})
     answer_drafts = "".join(

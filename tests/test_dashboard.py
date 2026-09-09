@@ -146,7 +146,9 @@ def test_private_answers_page_can_be_opened_without_showing_contact_values(tmp_p
         "availability": {"full_time_from": "2026-11-15"},
         "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
         "resumes": resumes,
+        "editable_resume_masters": {"data_bi": str(private / "data_bi_master.docx")},
     }), encoding="utf-8")
+    (private / "data_bi_master.docx").write_text("master", encoding="utf-8")
     page = build_answers_page(project / "data" / "jobs.sqlite3")
     assert "Reusable application answers" in page
     assert "Salary expectations" in page
@@ -184,7 +186,9 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
         "availability": {"full_time_from": "2026-11-15"},
         "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
         "resumes": resumes,
+        "editable_resume_masters": {"data_bi": str(private / "data_bi_master.docx")},
     }), encoding="utf-8")
+    (private / "data_bi_master.docx").write_text("master", encoding="utf-8")
     database = initialise_database(project / "data" / "jobs.sqlite3")
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
     save_match(database, job, score_job(job, RISHI_PROFILE))
@@ -198,6 +202,7 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
     review = load_resume_review(project / "data" / "jobs.sqlite3", "job-1")
     assert "Tailored résumé editing pack" in review
     assert "Truthful summary" in review
+    assert "data_bi_master.docx" in review
     assert "Quality check before use" in review
 
 
