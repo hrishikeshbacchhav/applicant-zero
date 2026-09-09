@@ -44,3 +44,12 @@ def test_employer_coverage_map_keeps_priority_sector_and_route():
     assert plenti["route"] == "Public ATS refresh"
     assert plenti["ats"] == "Lever"
     assert canva["route"] == "Research queue"
+
+
+def test_employer_coverage_map_includes_latest_private_board_health():
+    rows = employer_coverage_rows(
+        ROOT / "data" / "target_companies.starter.json",
+        ROOT / "data" / "company_boards.starter.json",
+        [{"company": "Plenti", "status": "checked"}],
+    )
+    assert next(row for row in rows if row["company"] == "Plenti")["health"] == "checked"
