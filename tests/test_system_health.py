@@ -50,3 +50,15 @@ def test_health_report_detects_a_real_snapshot(tmp_path):
 
     assert backups[1] is True
     assert "Latest snapshot" in backups[2]
+
+
+def test_health_report_reads_private_discovery_log(tmp_path):
+    project = tmp_path / "project"
+    logs = project / "logs"
+    logs.mkdir(parents=True)
+    (logs / "refresh_2026-09-09_08-00-00.log").write_text(
+        "Applicant Zero discovery refresh finished successfully: now", encoding="utf-8"
+    )
+    status = next(item for item in health_report(project) if item[0] == "Scheduled discovery log")
+    assert status[1] is True
+    assert "completed successfully" in status[2]

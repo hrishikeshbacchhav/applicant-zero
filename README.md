@@ -208,7 +208,7 @@ The check reports only what is still missing; it does not print your personal in
 
 ## Daily local refresh
 
-Applicant Zero can refresh its permitted public career-board sources every morning on this computer. It updates the existing local database and saves a local run log. It does not apply for jobs.
+Applicant Zero can refresh permitted public career-board sources three times a day on this computer. It updates the existing local database and saves a private run log. It does not apply for jobs or create paid AI drafts during a scheduled refresh.
 
 To test one refresh manually:
 
@@ -216,11 +216,25 @@ To test one refresh manually:
 .\scripts\refresh_company_boards.ps1
 ```
 
-To schedule it for 8:00 AM each day while this computer is on and you are signed in:
+To create the default 8:00 AM, 1:00 PM and 6:00 PM local schedule while this computer is on and you are signed in:
 
 ```powershell
 .\scripts\create_daily_refresh_task.ps1
 ```
+
+The default schedule checks public company boards only. If you have chosen to configure the optional Adzuna broad job-feed API, create the schedule with up to three controlled queries per run:
+
+```powershell
+.\scripts\create_daily_refresh_task.ps1 -MaxQueries 3
+```
+
+Check the local schedule at any time:
+
+```powershell
+.\scripts\show_discovery_tasks.ps1
+```
+
+The **System health** page shows whether the newest private refresh log completed successfully. Remove the schedule later with `scripts\remove_daily_refresh_tasks.ps1`.
 
 Open the dashboard after a refresh to review new jobs. The future hosted version will run independently of this computer; this local schedule is the safe first automation step.
 

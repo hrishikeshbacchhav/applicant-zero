@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .private_profile import check_profile
 from .storage import initialise_database, latest_refresh_run
+from .discovery_health import discovery_log_status
 
 
 def health_report(project_root: Path) -> list[tuple[str, bool, str]]:
@@ -29,11 +30,13 @@ def health_report(project_root: Path) -> list[tuple[str, bool, str]]:
     backup_dir = database_path.parent / "backups"
     backups = sorted(backup_dir.glob("*.sqlite3"), key=lambda item: item.stat().st_mtime, reverse=True) if backup_dir.exists() else []
     backup_detail = f"Latest snapshot: {backups[0].name}." if backups else "No snapshot exists yet; one is created before dashboard and refresh runs."
+    discovery_log_ok, discovery_log_detail = discovery_log_status(project_root)
     return [
         ("Private candidate profile", not profile_issues, "Ready." if not profile_issues else " ".join(profile_issues)),
         ("Local database", database_ok, "Ready." if database_ok else refresh_detail),
         ("Discovery refresh", database_ok, refresh_detail),
         ("Private backups", bool(backups), backup_detail),
+        ("Scheduled discovery log", discovery_log_ok, discovery_log_detail),
     ]
 
 
