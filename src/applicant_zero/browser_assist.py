@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .application_answers import ensure_answer_library
 from .form_answers import field_answer, select_value
+from .session_trace import append_trace, capture_handoff_screenshot, start_trace
 from .application_routes import classify_application_url, supports_supervised_browser_handoff
 from .private_profile import load_profile
 from .storage import get_match, log_application_event, save_manual_action, update_workflow
@@ -276,6 +277,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
         if not supports_supervised_browser_handoff(route):
             _log(database_path, external_id, "manual_review", route.detail)
             return
+        start_trace(database_path, external_id, route.platform, route.apply_url)
 
         from playwright.sync_api import Error as PlaywrightError
         from playwright.sync_api import sync_playwright
@@ -295,6 +297,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             page = context.pages[0] if context.pages else context.new_page()
             page.goto(route.apply_url, wait_until="domcontentloaded", timeout=45_000)
             page.wait_for_timeout(2_000)
+            append_trace(database_path, external_id, "page_loaded", "Application browser page opened.", page.url)
             if route.support_level in {"login_required", "complex"}:
                 with sqlite3.connect(database_path) as connection:
                     save_manual_action(
@@ -310,6 +313,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                     "waiting_for_candidate",
                     "Sign in or complete the employer's account steps yourself. Applicant Zero will wait for an application form and will not enter credentials.",
                 )
+                append_trace(database_path, external_id, "account_handoff", "Candidate sign-in or account step required.", page.url)
                 if not _wait_for_candidate_handoff(page):
                     _log(database_path, external_id, "candidate_action_required", "No supported application form appeared during the supervised handoff. Continue manually on the employer site.")
                     while context.pages:
@@ -344,6 +348,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                         "Final submission was not clicked."
                     )
                     _log(database_path, external_id, "ready_for_review", detail)
+                    append_trace(database_path, external_id, "form_page", detail, page.url)
                     last_signature = signature
                 next_button = _next_step_button(page)
                 if _captcha_present(page):
@@ -357,6 +362,8 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                                 "The application page requires a human CAPTCHA check. Complete it in the open browser; Applicant Zero will continue with recognised fields after the page changes.",
                             )
                         _log(database_path, external_id, "candidate_action_required", "A CAPTCHA was detected and added to the manual action queue.")
+                        screenshot = capture_handoff_screenshot(database_path, external_id, page, "captcha")
+                        append_trace(database_path, external_id, "captcha_handoff", "Human CAPTCHA completion required.", page.url, screenshot)
                         captcha_handoff_recorded = True
                     page.wait_for_timeout(1_000)
                     continue
@@ -375,10 +382,13 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                                 detail,
                             )
                         _log(database_path, external_id, "candidate_action_required", detail)
+                        screenshot = capture_handoff_screenshot(database_path, external_id, page, "required-question")
+                        append_trace(database_path, external_id, "required_question", detail, page.url, screenshot)
                         question_handoff_signature = signature
                     page.wait_for_timeout(1_000)
                     continue
                 if unresolved == 0 and next_button is not None:
+                    append_trace(database_path, external_id, "advance_step", "Moving through a non-final form step.", page.url)
                     next_button.click()
                     page.wait_for_timeout(1_000)
                     continue
@@ -392,6 +402,8 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                             "All recognised required fields are complete. Review the application in the employer browser and choose the final Submit button yourself only when satisfied.",
                         )
                     _log(database_path, external_id, "ready_for_final_review", "The employer's final submit control is visible; Applicant Zero did not click it.")
+                    screenshot = capture_handoff_screenshot(database_path, external_id, page, "final-review")
+                    append_trace(database_path, external_id, "final_review", "Final submission is waiting for the candidate.", page.url, screenshot)
                     final_handoff_recorded = True
                 page.wait_for_timeout(1_000)
             _log(database_path, external_id, "closed", "The assisted browser was closed without Applicant Zero clicking submit.")
