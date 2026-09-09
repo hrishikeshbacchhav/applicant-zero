@@ -1,4 +1,5 @@
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import urlopen
@@ -15,7 +16,7 @@ class BoardReport:
 
 
 def _get_json(url: str) -> dict | list:
-    with urlopen(url, timeout=20) as response:
+    with urlopen(url, timeout=12) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -85,9 +86,7 @@ def fetch_company_boards(path: Path) -> list[Job]:
 
 def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
     boards = json.loads(path.read_text(encoding="utf-8"))
-    jobs: list[Job] = []
-    reports: list[BoardReport] = []
-    for board in boards:
+    def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
         company = board["company"]
         token = board["token"]
         ats = board["ats"].lower()
@@ -101,8 +100,18 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
             else:
                 raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever or ashby.")
         except (OSError, ValueError, KeyError, TypeError) as error:
-            reports.append(BoardReport(company, "unavailable", 0, str(error)))
-            continue
+            return [], BoardReport(company, "unavailable", 0, str(error))
+        return board_jobs, BoardReport(company, "checked", len(board_jobs))
+
+    # Board APIs are independent. Parallel requests keep one slow employer
+    # endpoint from holding up every other source during scheduled refreshes.
+    if not boards:
+        return [], []
+    with ThreadPoolExecutor(max_workers=min(8, len(boards)), thread_name_prefix="applicant-zero-board") as executor:
+        results = list(executor.map(fetch_one, boards))
+    jobs: list[Job] = []
+    reports: list[BoardReport] = []
+    for board_jobs, report in results:
         jobs.extend(board_jobs)
-        reports.append(BoardReport(company, "checked", len(board_jobs)))
+        reports.append(report)
     return jobs, reports

@@ -46,6 +46,17 @@ def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
     assert [report.status for report in reports] == ["checked", "unavailable"]
 
 
+def test_parallel_board_collection_keeps_configured_order(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([
+        {"company": "First", "ats": "lever", "token": "first"},
+        {"company": "Second", "ats": "lever", "token": "second"},
+    ]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._lever_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert [report.company for report in reports] == ["First", "Second"]
+
+
 def test_board_health_is_saved_locally(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     save_board_checks(database, [type("Report", (), {"company": "Example", "status": "checked", "job_count": 3, "message": ""})()])
