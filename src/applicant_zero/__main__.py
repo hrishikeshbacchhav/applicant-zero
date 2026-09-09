@@ -57,7 +57,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
     checked = sum(report.status == "checked" for report in reports)
     unavailable = sum(report.status == "unavailable" for report in reports)
-    query_total = min(len(queries), max_queries or len(queries))
+    query_total = len(queries) if max_queries is None else min(len(queries), max(0, max_queries))
     detail = f"{checked} company boards checked; {query_total} Sydney search queries run"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"

@@ -26,3 +26,9 @@ def test_query_batch_collapses_repeated_listings_and_keeps_going_after_one_error
         jobs, errors = fetch_query_batch(tmp_path, ["data", "broken", "bi"])
     assert [job.external_id for job in jobs] == ["adzuna:1", "adzuna:2"]
     assert errors == ["broken: unavailable"]
+
+
+def test_query_batch_accepts_zero_as_an_intentional_no_query_run(tmp_path):
+    jobs, errors = fetch_query_batch(tmp_path, ["data analyst", "business analyst"], max_queries=0)
+    assert jobs == []
+    assert errors == []
