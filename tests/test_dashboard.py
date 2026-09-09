@@ -158,10 +158,13 @@ def test_browser_trace_page_is_private_and_linked_from_brief(tmp_path):
     from applicant_zero.session_trace import append_trace, start_trace
     start_trace(path, job.external_id, "Lever", "https://jobs.lever.co/example/1/apply")
     append_trace(path, job.external_id, "required_question", "Review a required question.")
+    from applicant_zero.session_trace import record_form_inventory
+    record_form_inventory(path, job.external_id, "https://jobs.lever.co/example/1/apply", [{"label": "Email", "control": "email", "required": True, "handling": "recognised"}])
     assert "View browser session trace" in build_brief_page(path, job.external_id)
     trace_page = build_session_trace_page(path, job.external_id)
     assert "Browser session trace" in trace_page
     assert "Review a required question." in trace_page
+    assert "Form page inventory" in trace_page
 
 
 def test_login_required_route_offers_supervised_handoff(tmp_path):

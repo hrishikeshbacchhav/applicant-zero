@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .application_answers import ensure_answer_library
 from .form_answers import field_answer, option_matches, select_value
-from .session_trace import append_trace, capture_handoff_screenshot, start_trace
+from .session_trace import append_trace, capture_handoff_screenshot, record_form_inventory, start_trace
 from .application_routes import classify_application_url, supports_supervised_browser_handoff
 from .private_profile import load_profile
 from .storage import get_match, log_application_event, save_manual_action, update_workflow
@@ -206,6 +206,32 @@ def _wait_for_candidate_handoff(page, timeout_seconds: int = 480) -> bool:
     return False
 
 
+def _form_inventory(page, answers: dict, job: dict) -> list[dict]:
+    """Describe visible form controls without recording typed candidate data."""
+    inventory: list[dict] = []
+    controls = page.locator("input, textarea, select")
+    for index in range(min(controls.count(), 80)):
+        element = controls.nth(index)
+        try:
+            if not element.is_visible():
+                continue
+            input_type = (element.get_attribute("type") or "text").lower()
+            if input_type in {"hidden", "password"}:
+                continue
+            descriptor = re.sub(r"\s+", " ", _descriptor(element)).strip()[:220]
+            required = bool(element.get_attribute("required") is not None or element.get_attribute("aria-required") == "true")
+            answer = field_answer(descriptor, input_type, answers, job) if input_type != "file" else "resume"
+            inventory.append({
+                "label": descriptor or f"unnamed {input_type} field",
+                "control": input_type,
+                "required": required,
+                "handling": "recognised" if answer else "candidate review",
+            })
+        except Exception:
+            continue
+    return inventory
+
+
 def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, int]:
     verified = answers["verified_answers"]
     full_name = str(verified.get("full_name", "")).strip()
@@ -391,6 +417,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                     )
                     _log(database_path, external_id, "ready_for_review", detail)
                     append_trace(database_path, external_id, "form_page", detail, page.url)
+                    record_form_inventory(database_path, external_id, page.url, _form_inventory(page, answers, job))
                     last_signature = signature
                 next_button = _next_step_button(page)
                 if _captcha_present(page):

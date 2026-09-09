@@ -50,6 +50,27 @@ def append_trace(database_path: Path, external_id: str, event: str, detail: str 
     return path
 
 
+def record_form_inventory(database_path: Path, external_id: str, page_url: str, fields: list[dict]) -> Path:
+    """Store non-sensitive form structure for future platform compatibility work.
+
+    Inventories intentionally contain labels, control types and completion
+    categories only. They never include what the candidate typed, credentials,
+    or uploaded document contents.
+    """
+    path = _trace_path(database_path, external_id)
+    if not path.exists():
+        raise ValueError("Application trace has not started.")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    pages = payload.setdefault("form_pages", [])
+    pages.append({
+        "at": datetime.now().isoformat(timespec="seconds"),
+        "page_url": page_url,
+        "fields": fields[:80],
+    })
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
 def capture_handoff_screenshot(database_path: Path, external_id: str, page, label: str) -> str:
     """Save a private screenshot when Playwright can capture one; never fail a session for it."""
     folder = database_path.parent.parent / "private" / "application_sessions" / "screenshots"

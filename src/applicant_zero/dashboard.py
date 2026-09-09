@@ -404,7 +404,18 @@ def build_session_trace_page(database_path: Path, external_id: str) -> str:
         url = f"<p><a href='{html.escape(page_url, quote=True)}' target='_blank' rel='noreferrer'>Open recorded page</a></p>" if page_url else ""
         events.append(f"<article><strong>{html.escape(str(item.get('event', '')).replace('_', ' ').title())}</strong><span>{html.escape(str(item.get('at', '')))}</span><p>{html.escape(str(item.get('detail', '')))}</p>{url}{evidence}</article>")
     event_html = "".join(events) or "<p>No events were recorded before the browser closed.</p>"
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Browser trace</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:860px;margin:0 auto;padding:36px 24px}}a{{color:#1261a0;font-weight:bold}}h1{{color:#163b67}}article{{background:#fff;border-radius:9px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 4px #dce3ee}}article strong{{color:#163b67;display:block}}article span,.muted{{font-size:13px;color:#667085}}article p{{line-height:1.5}}</style></head><body><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Browser session trace</h1><p>{html.escape(str(trace.get('job', {}).get('title', 'Application')))} · {html.escape(str(trace.get('job', {}).get('company', '')))} · {html.escape(str(trace.get('platform', '')))}</p><p class='muted'>This local trace records browser-assistance events. It does not record passwords and it never records a submitted application unless you save the employer confirmation separately.</p>{event_html}</main></body></html>"""
+    form_pages = []
+    for page in trace.get("form_pages", []):
+        fields = page.get("fields", [])
+        recognised = sum(field.get("handling") == "recognised" for field in fields)
+        review = len(fields) - recognised
+        rows = "".join(
+            f"<li><strong>{html.escape(str(field.get('control', 'field')).title())}</strong> · {html.escape(str(field.get('handling', 'candidate review')).title())} · {html.escape(str(field.get('label', '')))}</li>"
+            for field in fields
+        )
+        form_pages.append(f"<article><strong>Form page inventory</strong><span>{html.escape(str(page.get('at', '')))}</span><p>{recognised} recognised field(s) · {review} field(s) for candidate review.</p><ul>{rows}</ul></article>")
+    inventory_html = "".join(form_pages)
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Browser trace</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:860px;margin:0 auto;padding:36px 24px}}a{{color:#1261a0;font-weight:bold}}h1{{color:#163b67}}article{{background:#fff;border-radius:9px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 4px #dce3ee}}article strong{{color:#163b67;display:block}}article span,.muted{{font-size:13px;color:#667085}}article p{{line-height:1.5}}li{{margin:7px 0}}</style></head><body><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Browser session trace</h1><p>{html.escape(str(trace.get('job', {}).get('title', 'Application')))} · {html.escape(str(trace.get('job', {}).get('company', '')))} · {html.escape(str(trace.get('platform', '')))}</p><p class='muted'>This local trace records browser-assistance events. It does not record passwords and it never records a submitted application unless you save the employer confirmation separately.</p>{inventory_html}{event_html}</main></body></html>"""
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
