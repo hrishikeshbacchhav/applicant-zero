@@ -35,6 +35,48 @@ def database_path(repository_root: Path) -> Path:
     return prepare_state(repository_root) / "data" / "applicant_zero.sqlite3"
 
 
+def _integrity_ok(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    try:
+        connection = sqlite3.connect(path)
+        try:
+            return connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return False
+
+
+def recover_database(repository_root: Path) -> str:
+    """Protect a corrupt private database and restore the newest valid snapshot.
+
+    A damaged file is retained with a timestamp for forensic recovery.  The
+    current database is replaced only with a SQLite-verified backup; otherwise
+    the next normal initialise step creates an empty database and the caller is
+    told explicitly that historical listings need refreshing.
+    """
+    database = database_path(repository_root)
+    if not database.exists() or _integrity_ok(database):
+        return ""
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    quarantine = database.with_name(f"applicant_zero.corrupt-{stamp}.sqlite3")
+    database.replace(quarantine)
+    backup_dir = database.parent / "backups"
+    backups = sorted(backup_dir.glob("*.sqlite3"), key=lambda item: item.stat().st_mtime, reverse=True) if backup_dir.exists() else []
+    for backup in backups:
+        if not _integrity_ok(backup):
+            continue
+        try:
+            with sqlite3.connect(backup) as source, sqlite3.connect(database) as destination:
+                source.backup(destination)
+            if _integrity_ok(database):
+                return f"Recovered your local tracker from verified snapshot {backup.name}. The damaged copy was preserved as {quarantine.name}."
+        except sqlite3.Error:
+            database.unlink(missing_ok=True)
+    return f"Your local tracker database was damaged and preserved as {quarantine.name}. No verified snapshot was available, so discovery will rebuild the job queue."
+
+
 def synchronise_board_registry(repository_root: Path) -> Path:
     """Merge newly verified starter boards into a candidate's private registry.
 

@@ -2,7 +2,7 @@ import sqlite3
 
 import json
 
-from applicant_zero.runtime import backup_database, database_path, prepare_state, synchronise_board_registry
+from applicant_zero.runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
 
 
 def test_prepare_state_copies_legacy_private_state_once(tmp_path, monkeypatch):
@@ -30,6 +30,29 @@ def test_backup_database_uses_a_valid_sqlite_snapshot(tmp_path, monkeypatch):
     assert backup is not None and backup.exists()
     with sqlite3.connect(backup) as connection:
         assert connection.execute("SELECT value FROM example").fetchone()[0] == "kept"
+
+
+def test_corrupt_database_is_preserved_and_restored_from_valid_snapshot(tmp_path, monkeypatch):
+    repository = tmp_path / "repository"
+    monkeypatch.setenv("APPLICANT_ZERO_STATE_DIR", str(tmp_path / "runtime"))
+    database = database_path(repository)
+    connection = sqlite3.connect(database)
+    try:
+        connection.execute("CREATE TABLE example (value TEXT)")
+        connection.execute("INSERT INTO example VALUES ('restored')")
+        connection.commit()
+    finally:
+        connection.close()
+    backup = backup_database(repository, "test")
+    assert backup is not None
+    database.write_bytes(b"not a sqlite database")
+
+    message = recover_database(repository)
+
+    assert "Recovered your local tracker" in message
+    assert list(database.parent.glob("applicant_zero.corrupt-*.sqlite3"))
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT value FROM example").fetchone()[0] == "restored"
 
 
 def test_board_registry_merges_new_starters_without_losing_custom_board(tmp_path, monkeypatch):

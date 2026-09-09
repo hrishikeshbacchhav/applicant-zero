@@ -15,7 +15,7 @@ from .sources.adzuna import fetch_jobs, fetch_query_batch
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .system_health import health_report
-from .runtime import backup_database, database_path, prepare_state, synchronise_board_registry
+from .runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -86,6 +86,9 @@ def main() -> None:
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
+    recovery_message = recover_database(ROOT)
+    if recovery_message:
+        print(recovery_message)
     _sync_private_facts(state)
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup)
     if args.profile_check:
