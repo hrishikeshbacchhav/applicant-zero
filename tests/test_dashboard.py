@@ -30,6 +30,7 @@ def test_empty_dashboard_has_guidance(tmp_path):
     page = build_page(tmp_path / "missing.sqlite3")
     assert "No jobs collected yet" in page
     assert "Add a job from another website" in page
+    assert "Focus for today" in page
 
 
 def test_dashboard_includes_local_workflow_tracker(tmp_path):
@@ -43,6 +44,7 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker" in page
     assert "Insights" in page
+    assert "Start with the actions most likely" in page
     assert "Current listings" in page
     assert "Live sources" in page
     assert "Search role, company or location" in page

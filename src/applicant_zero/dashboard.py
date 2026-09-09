@@ -81,6 +81,29 @@ def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | No
     return f"<section class='insights'><h2>Insights</h2><div class='insight-grid'>{card_html}</div><p class='workflow-summary'>{html.escape(refresh_summary)}</p><p class='workflow-summary'>Your tracker: {html.escape(workflow_summary or 'No jobs collected yet')}</p></section>"
 
 
+def _focus_panel(rows: list[dict], followups: list[dict]) -> str:
+    """Show the few actions that deserve attention before the full job table."""
+    current_rows = [row for row in rows if row["is_active"] and row["source"].lower() != "demo"]
+    priority_rows = [row for row in current_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
+    priority_rows.sort(key=lambda row: (-row["score"], row["first_seen_at"]), reverse=False)
+    due = [item for item in followups if item["due_date"] <= datetime.now().date().isoformat() and item["status"] != "Completed"]
+    actions: list[str] = []
+    if priority_rows:
+        top_roles = priority_rows[:3]
+        links = " · ".join(
+            f"<a href='/brief?{urlencode({'external_id': row['external_id']})}'>{html.escape(row['title'])}</a>"
+            for row in top_roles
+        )
+        actions.append(f"<li><strong>Review your best current roles:</strong> {links}</li>")
+    if due:
+        actions.append(f"<li><strong>Follow-ups due:</strong> {len(due)} application{'s' if len(due) != 1 else ''} need a personal check-in.</li>")
+    if not current_rows:
+        actions.append("<li><strong>Refresh discovery:</strong> no current live listings are saved yet.</li>")
+    if not actions:
+        actions.append("<li>Your queue is clear. Use the filters below to review past listings or import a role you find elsewhere.</li>")
+    return f"<section class='focus-panel'><div><p class='eyebrow'>Focus for today</p><h2>Start with the actions most likely to move your search forward.</h2></div><ul>{''.join(actions)}</ul></section>"
+
+
 def build_page(database_path: Path) -> str:
     if not database_path.exists():
         rows: list[dict] = []
@@ -134,20 +157,23 @@ def build_page(database_path: Path) -> str:
 
     body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
     insights = _insights(rows, board_checks, refresh_run, followups)
+    focus_panel = _focus_panel(rows, followups)
     source_select = "".join(f"<option value='{html.escape(source)}'>{html.escape(source)}</option>" for source in source_options)
     company_select = "".join(f"<option value='{html.escape(company)}'>{html.escape(company)}</option>" for company in company_options)
     return f"""<!doctype html>
 <html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'>
 <title>Applicant Zero - Review queue</title>
 <style>
-:root{{--navy:#163b67;--blue:#1261a0;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1440px;margin:0 auto;padding:32px}}
-h1{{margin:0;color:var(--navy)}} .subtitle{{color:#5e6c84;margin:7px 0 24px}} .filters,.controls{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}} input[type=search],input[name=notes],select{{border:1px solid #c7d2e3;border-radius:6px;padding:9px;background:#fff}} input[type=search]{{min-width:270px;flex:1;max-width:420px}}
+:root{{--navy:#163b67;--blue:#1261a0;--border:#dce3ee;--muted:#667085;--surface:#fff}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:1440px;margin:0 auto;padding:32px}}
+h1{{margin:0;color:var(--navy);letter-spacing:-.4px}} .subtitle{{color:#5e6c84;margin:7px 0 24px;line-height:1.55}} .subtitle a{{display:inline-block;margin:2px 8px 2px 0}} .filters,.controls{{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}} input[type=search],input[name=notes],select{{border:1px solid #c7d2e3;border-radius:6px;padding:9px;background:#fff}} input[type=search]{{min-width:270px;flex:1;max-width:420px}}
 button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}} button:hover{{border-color:#7f98b9}} button.active{{background:var(--navy);color:#fff;border-color:var(--navy)}}
 .import-card{{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:18px 0;box-shadow:0 1px 4px var(--border)}}.import-card summary{{font-weight:bold;color:var(--navy);cursor:pointer}}.import-card p{{color:var(--muted);font-size:14px}}.import-form{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:900px}}.import-form label{{font-size:13px;font-weight:bold;color:var(--navy)}}.import-form input,.import-form textarea{{display:block;width:100%;margin-top:4px;border:1px solid #c7d2e3;border-radius:6px;padding:9px;font:inherit}}.import-form .description{{grid-column:1 / -1}}.import-form textarea{{min-height:110px;resize:vertical}}.import-form button{{width:max-content}}
 .insights{{margin:22px 0}} .insights h2{{font-size:18px;color:var(--navy);margin:0 0 10px}} .insight-grid{{display:grid;grid-template-columns:repeat(6,minmax(130px,1fr));gap:12px}} .insight{{background:#fff;padding:14px;box-shadow:0 1px 4px var(--border);border-radius:8px}} .insight strong{{display:block;font-size:24px;color:var(--navy)}} .insight span,.workflow-summary{{color:#5e6c84;font-size:13px}} .workflow-summary{{margin:12px 0 0}}
+.focus-panel{{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:22px;align-items:start;background:linear-gradient(135deg,#163b67,#1c4d85);color:#fff;border-radius:12px;padding:22px 24px;margin:22px 0;box-shadow:0 4px 14px #ced8e6}}.focus-panel h2{{font-size:19px;line-height:1.35;margin:0}}.focus-panel .eyebrow{{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.09em;margin:0 0 8px;color:#bcd6f4}}.focus-panel ul{{padding-left:20px;margin:4px 0;line-height:1.55}}.focus-panel li{{margin:7px 0}}.focus-panel a{{color:#fff;text-decoration:underline;text-underline-offset:3px}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
-@media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}}}
+@media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}.focus-panel{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:16px}}.insight-grid{{grid-template-columns:1fr 1fr;gap:8px}}.insight{{padding:12px}}.focus-panel{{padding:18px}}.import-form{{grid-template-columns:1fr}}}}
 </style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a> · <a href='/daily-digest'>Daily priorities</a> · <a href='/platform-pilots'>Platform pilots</a> · <a href='/export-tracker'>Export tracker</a> · <a href='/health'>System health</a></p>{insights}
+{focus_panel}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
 <div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button><button id='new-toggle' onclick='toggleNew(this)'>New this week</button></div>
