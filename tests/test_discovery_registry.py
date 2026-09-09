@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from applicant_zero.discovery_registry import board_coverage, load_sources, load_targets
+from applicant_zero.discovery_registry import board_coverage, discovery_overview, load_sources, load_targets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,3 +20,14 @@ def test_target_universe_is_deduplicated_and_prioritised():
     coverage = board_coverage(targets, ROOT / "data" / "company_boards.starter.json")
     assert "Plenti" in coverage["configured"]
     assert "Canva" in coverage["research_needed"]
+
+
+def test_discovery_overview_labels_automated_and_manual_coverage():
+    overview = discovery_overview(
+        ROOT / "data" / "discovery_sources.starter.json",
+        ROOT / "data" / "target_companies.starter.json",
+        ROOT / "data" / "company_boards.starter.json",
+    )
+    assert overview["target_count"] >= 80
+    assert "Lever career boards" in overview["automated_sources"]
+    assert overview["configured_count"] >= 6

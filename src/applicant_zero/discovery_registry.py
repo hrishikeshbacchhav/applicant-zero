@@ -45,3 +45,19 @@ def board_coverage(targets: list[TargetCompany], board_path: Path) -> dict[str, 
     covered = [target.company for target in targets if target.company.casefold() in configured]
     pending = [target.company for target in targets if target.company.casefold() not in configured]
     return {"configured": covered, "research_needed": pending}
+
+
+def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path) -> dict[str, object]:
+    """Report discovery coverage without implying every target has a live vacancy."""
+    sources = load_sources(sources_path)
+    targets = load_targets(targets_path)
+    coverage = board_coverage(targets, board_path)
+    return {
+        "source_count": len(sources),
+        "automated_sources": [source.label for source in sources if source.mode == "public_ats_api"],
+        "manual_sources": [source.label for source in sources if source.mode != "public_ats_api"],
+        "target_count": len(targets),
+        "configured_count": len(coverage["configured"]),
+        "configured": coverage["configured"],
+        "research_needed": coverage["research_needed"],
+    }

@@ -58,5 +58,20 @@
     "company": "Prezzee",
     "ats": "greenhouse",
     "token": "prezzee"
+  },
+  {
+    "company": "Xero",
+    "ats": "ashby",
+    "token": "xero"
+  },
+  {
+    "company": "Heidi Health",
+    "ats": "ashby",
+    "token": "heidihealth.com.au"
+  },
+  {
+    "company": "Binance",
+    "ats": "lever",
+    "token": "binance"
   }
 ]
