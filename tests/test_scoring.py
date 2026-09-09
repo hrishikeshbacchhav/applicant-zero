@@ -58,3 +58,18 @@ def test_clearance_condition_stays_visible_for_candidate_review():
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Review"
     assert "eligibility or clearance requirement" in result.missing_requirements
+
+
+def test_unmatched_direct_role_is_kept_for_review_not_auto_apply():
+    job = Job("10", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Lead pricing governance and commercial policy work.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert "No direct skills from your verified evidence" in " ".join(result.reasons)
+
+
+def test_named_gap_prevents_a_strong_apply_label():
+    job = Job("11", "Graduate Power BI Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Power BI, DAX, SQL, Power Query, Microsoft Fabric and Azure are essential.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.score >= 78
+    assert result.recommendation == "Apply"
+    assert "azure" in result.missing_requirements

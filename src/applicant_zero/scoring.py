@@ -46,6 +46,18 @@ WORK_RIGHTS_TERMS = (
     "baseline clearance",
 )
 
+ENTRY_LEVEL_TERMS = ("graduate", "junior", "entry level", "entry-level", "early career", "0-2 years")
+
+
+def _direct_title_alignment(title: str, family: str) -> bool:
+    """Return whether the title itself names one of the core search targets."""
+    core_titles = {
+        "data_bi": ("data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst"),
+        "power_bi": ("power bi", "business intelligence", "bi analyst"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
+    }
+    return any(term in title for term in core_titles.get(family, ()))
+
 
 def _normalise(value: str) -> str:
     return value.lower().strip()
@@ -115,8 +127,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         missing_list.append("work-rights eligibility")
     missing = tuple(missing_list)
 
+    title_alignment = _direct_title_alignment(title, family)
     score = 55 + min(len(matched) * 4, 32) - min(len(missing) * 5, 15)
-    if "graduate" in text or "junior" in text or "entry level" in text:
+    if title_alignment:
+        score += 8
+        reasons.append("The title directly aligns with your selected data, BI or business-analysis search focus.")
+    if any(term in text for term in ENTRY_LEVEL_TERMS):
         score += 8
         reasons.append("The role is explicitly graduate, junior or entry-level.")
     if matched:
@@ -127,6 +143,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         reasons.append("Role family and location match; review the detailed requirements.")
 
     recommendation = "Strong apply" if score >= 78 else "Apply" if score >= 62 else "Review"
+    if not matched:
+        recommendation = "Review"
+        reasons.append("No direct skills from your verified evidence were detected; check the original description before preparing an application.")
+    elif missing and recommendation == "Strong apply":
+        recommendation = "Apply"
+        reasons.append("A named requirement still needs checking, so this is kept as Apply rather than Strong apply.")
     resume_family = family
     if family == "adjacent_analytics":
         recommendation = "Review"
