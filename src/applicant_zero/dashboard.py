@@ -22,6 +22,7 @@ from .daily_digest import create_daily_digest
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
+    get_followup,
     get_material_review,
     get_match,
     get_submission_proof,
@@ -29,11 +30,13 @@ from .storage import (
     latest_refresh_run,
     list_application_events,
     list_board_checks,
+    list_followups,
     list_matches,
     log_application_event,
     save_application_route,
     save_material_review,
     save_submission_proof,
+    complete_followup,
     update_workflow,
 )
 
@@ -43,7 +46,7 @@ def _badge(recommendation: str) -> str:
     return f'<span class="badge {css_class}">{html.escape(recommendation)}</span>'
 
 
-def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | None) -> str:
+def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | None, followups: list[dict]) -> str:
     live_rows = [row for row in rows if row["source"].lower() != "demo"]
     current_rows = [row for row in live_rows if row["is_active"]]
     relevant = [row for row in current_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
@@ -58,6 +61,7 @@ def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | No
         ("Strong matches", str(sum(row["recommendation"] == "Strong apply" for row in current_rows))),
         ("Applications submitted", str(sum(row["workflow_status"] == "Applied" for row in live_rows))),
         ("Interviews", str(sum(row["workflow_status"] == "Interview" for row in live_rows))),
+        ("Follow-ups due", str(sum(item["due_date"] <= datetime.now().date().isoformat() for item in followups))),
         ("Company boards checked", str(available_boards)),
         ("New this week", str(new_this_week)),
     )
@@ -77,11 +81,13 @@ def build_page(database_path: Path) -> str:
         rows: list[dict] = []
         board_checks: list[dict] = []
         refresh_run: dict | None = None
+        followups: list[dict] = []
     else:
         with sqlite3.connect(database_path) as connection:
             rows = list_matches(connection)
             board_checks = list_board_checks(connection)
             refresh_run = latest_refresh_run(connection)
+            followups = list_followups(connection)
 
     source_options = sorted({row["source"] for row in rows})
     company_options = sorted({row["company"] for row in rows if row["source"].lower() != "demo"})
@@ -122,7 +128,7 @@ def build_page(database_path: Path) -> str:
         )
 
     body = "".join(table_rows) or "<tr><td colspan='6'>No jobs collected yet. Run a discovery source first.</td></tr>"
-    insights = _insights(rows, board_checks, refresh_run)
+    insights = _insights(rows, board_checks, refresh_run, followups)
     source_select = "".join(f"<option value='{html.escape(source)}'>{html.escape(source)}</option>" for source in source_options)
     company_select = "".join(f"<option value='{html.escape(company)}'>{html.escape(company)}</option>" for company in company_options)
     return f"""<!doctype html>
@@ -172,6 +178,7 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         events = list_application_events(connection, external_id)
         material_review = get_material_review(connection, external_id)
         submission_proof = get_submission_proof(connection, external_id)
+        followup = get_followup(connection, external_id)
     if row is None:
         return "<h1>Job not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
     profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
@@ -247,7 +254,13 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
     readiness_status = "Ready for your final employer-site review." if ready_to_submit else "Complete the remaining items before treating this as ready to submit."
     proof_html = ""
     if submission_proof:
-        proof_html = f"<p class='ready'><strong>Employer confirmation recorded:</strong> {html.escape(submission_proof['submitted_at'])}</p>"
+        followup_html = ""
+        if followup:
+            if followup["status"] == "Completed":
+                followup_html = f"<p class='ready'>Follow-up completed: {html.escape(str(followup.get('completed_at', '')))}</p>"
+            else:
+                followup_html = f"<p class='notice'>Planned follow-up date: <strong>{html.escape(followup['due_date'])}</strong>. Applicant Zero will not send anything automatically.</p><form method='post' action='/complete-followup'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><input name='followup_note' placeholder='Optional follow-up note'><button type='submit'>Mark follow-up completed</button></form>"
+        proof_html = f"<p class='ready'><strong>Employer confirmation recorded:</strong> {html.escape(submission_proof['submitted_at'])}</p>{followup_html}"
     else:
         proof_html = f"<form method='post' action='/submission-proof' class='stacked'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><label>Confirmation reference or email subject<input name='confirmation_reference' placeholder='Optional reference'></label><label>Confirmation-page link<input name='confirmation_url' type='url' placeholder='Optional https://... link'></label><label>Submission note<input name='submission_note' placeholder='At least one confirmation detail is required'></label><button type='submit'>Record employer confirmation and mark Applied</button></form>"
     question_items = "".join(
@@ -300,12 +313,19 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/review-materials", "/submission-proof", "/question-draft"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/complete-followup":
+                with sqlite3.connect(database_path) as connection:
+                    complete_followup(connection, external_id, values.get("followup_note", [""])[0])
+                self.send_response(303)
+                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
             if self.path == "/question-draft":
                 try:
                     create_question_draft(database_path, external_id, values.get("question", [""])[0])

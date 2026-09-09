@@ -12,6 +12,7 @@ from applicant_zero.storage import (
     get_match,
     get_material_review,
     get_submission_proof,
+    get_followup,
     initialise_database,
     list_application_events,
     list_matches,
@@ -19,6 +20,7 @@ from applicant_zero.storage import (
     save_match,
     save_material_review,
     save_submission_proof,
+    complete_followup,
     record_refresh_run,
     update_workflow,
 )
@@ -208,6 +210,9 @@ def test_review_and_employer_confirmation_are_recorded_in_the_tracker(tmp_path):
     update_workflow(database, job.external_id, "Applied", "Submitted through employer site")
     assert get_material_review(database, job.external_id)["materials_reviewed"] == 1
     assert get_submission_proof(database, job.external_id)["confirmation_reference"] == "Thank you email"
+    assert get_followup(database, job.external_id)["status"] == "Due"
+    complete_followup(database, job.external_id, "Checked in")
+    assert get_followup(database, job.external_id)["status"] == "Completed"
     assert get_match(database, job.external_id)["workflow_status"] == "Applied"
 
 

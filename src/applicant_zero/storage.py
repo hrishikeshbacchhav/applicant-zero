@@ -1,6 +1,7 @@
 import json
 import re
 import sqlite3
+from datetime import date, timedelta
 from pathlib import Path
 
 from .scoring import Job, MatchResult
@@ -92,6 +93,17 @@ def initialise_database(path: Path) -> sqlite3.Connection:
             confirmation_url TEXT NOT NULL DEFAULT '',
             submission_note TEXT NOT NULL DEFAULT '',
             submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS application_followups (
+            external_id TEXT PRIMARY KEY,
+            due_date TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Due',
+            note TEXT NOT NULL DEFAULT '',
+            completed_at TEXT
         )
         """
     )
@@ -427,6 +439,54 @@ def save_submission_proof(
         (external_id, reference[:300], url[:1000], note[:1000]),
     )
     log_application_event(connection, external_id, "submission_proof", "recorded", "Employer submission confirmation was recorded by the candidate.")
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO application_followups (external_id, due_date)
+        VALUES (?, ?)
+        """,
+        (external_id, _business_days_from_today(8)),
+    )
+    connection.commit()
+
+
+def _business_days_from_today(days: int) -> str:
+    current = date.today()
+    added = 0
+    while added < days:
+        current += timedelta(days=1)
+        if current.weekday() < 5:
+            added += 1
+    return current.isoformat()
+
+
+def get_followup(connection: sqlite3.Connection, external_id: str) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        "SELECT external_id, due_date, status, note, completed_at FROM application_followups WHERE external_id = ?",
+        (external_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def list_followups(connection: sqlite3.Connection, include_completed: bool = False) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    where = "" if include_completed else "WHERE f.status = 'Due'"
+    rows = connection.execute(
+        f"""SELECT f.external_id, f.due_date, f.status, f.note, f.completed_at,
+                   j.title, j.company, j.url, j.workflow_status
+            FROM application_followups f JOIN job_matches j ON j.external_id = f.external_id
+            {where} ORDER BY f.due_date, j.company"""
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def complete_followup(connection: sqlite3.Connection, external_id: str, note: str = "") -> None:
+    connection.execute(
+        """UPDATE application_followups SET status = 'Completed', note = ?, completed_at = CURRENT_TIMESTAMP
+           WHERE external_id = ?""",
+        (note.strip()[:1000], external_id),
+    )
+    log_application_event(connection, external_id, "follow_up", "completed", "Candidate completed the planned application follow-up.")
     connection.commit()
 
 
