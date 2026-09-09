@@ -108,6 +108,17 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "SQL and Power BI" in brief
 
 
+def test_actionable_dashboard_counters_exclude_hard_skipped_discovery_rows(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    relevant = Job("relevant", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid/relevant", "SQL and Power BI")
+    skipped = Job("skipped", "Talent Analytics Analyst", "Example", "Sydney", "Lever", "https://example.invalid/skipped", "Power BI and SQL")
+    save_match(database, relevant, score_job(relevant, RISHI_PROFILE))
+    save_match(database, skipped, score_job(skipped, RISHI_PROFILE))
+    page = build_page(tmp_path / "jobs.sqlite3")
+    assert "Your tracker: New: 1" in page
+    assert ">1</strong><span>New this week" in page
+
+
 def test_existing_database_is_upgraded_for_the_tracker(tmp_path):
     path = tmp_path / "old.sqlite3"
     with sqlite3.connect(path) as connection:

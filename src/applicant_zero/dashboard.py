@@ -65,10 +65,13 @@ def _insights(rows: list[dict], board_checks: list[dict], refresh_run: dict | No
     current_rows = [row for row in live_rows if row["is_active"]]
     relevant = [row for row in current_rows if row["recommendation"] in {"Strong apply", "Apply", "Review"}]
     available_boards = sum(board["status"] == "checked" for board in board_checks)
-    workflow = {status: sum(row["workflow_status"] == status for row in live_rows) for status in WORKFLOW_STATUSES}
+    # The main dashboard is an action queue.  Keep hard-skipped discovery
+    # records available under the separate filter, but do not let them inflate
+    # application and weekly-priority counters.
+    workflow = {status: sum(row["workflow_status"] == status for row in relevant) for status in WORKFLOW_STATUSES}
     workflow_summary = " · ".join(f"{status}: {count}" for status, count in workflow.items() if count)
     recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
-    new_this_week = sum(row["first_seen_at"] >= recent_cutoff for row in current_rows)
+    new_this_week = sum(row["first_seen_at"] >= recent_cutoff for row in relevant)
     cards = (
         ("Current relevant listings", str(len(relevant))),
         ("Worth reviewing", str(len(relevant))),
