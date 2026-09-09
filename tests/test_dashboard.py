@@ -53,6 +53,7 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "Before applying" in brief
     assert "Application compatibility" in brief
     assert "Application readiness" in brief
+    assert "Create editable role copy" in brief
     assert "Record employer confirmation and mark Applied" in brief
     assert "Scan application form" in brief
     assert "Application activity" in brief

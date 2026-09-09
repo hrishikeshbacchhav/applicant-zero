@@ -7,6 +7,7 @@ from .ai_drafting import load_ai_draft
 from .application_answers import ensure_answer_library
 from .private_profile import load_profile
 from .resume_review import load_resume_review
+from .resume_output import editable_resume_copy_exists
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ def evaluate_application_readiness(database_path: Path, job: dict, materials_rev
         ReadinessItem(bool(resume_path and Path(resume_path).exists()), "Approved resume", "Selected resume file is available." if resume_path and Path(resume_path).exists() else "Check the selected resume file path."),
         ReadinessItem(load_ai_draft(database_path, job["external_id"]) is not None, "AI tailoring draft", "A truthful review draft is saved."),
         ReadinessItem(load_resume_review(database_path, job["external_id"]) is not None, "Tailored resume review", "A private role-specific review page is saved."),
+        ReadinessItem(editable_resume_copy_exists(database_path, job["external_id"]), "Editable role copy", "A job-specific Word copy is ready for your final edits."),
         ReadinessItem(not missing_answers, "Reusable answers", "Core answers are ready." if not missing_answers else "Still needed: " + ", ".join(missing_answers) + "."),
         ReadinessItem(materials_reviewed, "Final candidate review", "You marked the materials reviewed." if materials_reviewed else "Review the draft and mark it complete before submission."),
     ]
