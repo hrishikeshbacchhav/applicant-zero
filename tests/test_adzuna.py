@@ -1,4 +1,6 @@
-from applicant_zero.sources.adzuna import _job_from_result, build_search_url
+from unittest.mock import patch
+
+from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch
 
 
 def test_search_url_targets_australia():
@@ -15,3 +17,12 @@ def test_adzuna_result_maps_to_job():
     })
     assert job.external_id == "adzuna:123"
     assert job.company == "Example"
+
+
+def test_query_batch_collapses_repeated_listings_and_keeps_going_after_one_error(tmp_path):
+    first = _job_from_result({"id": "1", "title": "Data Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})
+    second = _job_from_result({"id": "2", "title": "BI Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})
+    with patch("applicant_zero.sources.adzuna.fetch_jobs", side_effect=[[first], RuntimeError("unavailable"), [first, second]]):
+        jobs, errors = fetch_query_batch(tmp_path, ["data", "broken", "bi"])
+    assert [job.external_id for job in jobs] == ["adzuna:1", "adzuna:2"]
+    assert errors == ["broken: unavailable"]

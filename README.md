@@ -85,6 +85,18 @@ Applicant Zero records when each role was first and last seen. Repeated copies w
 
 The dashboard also records the last completed discovery refresh and provides a **New this week** filter. Use it after the daily refresh to focus on newly collected current listings instead of scanning the entire queue again.
 
+## Daily operations
+
+The existing refresh script now runs the complete daily discovery bundle: it checks your company boards, runs seven focused Sydney search queries when Adzuna is configured, records source health, and creates a private `daily_priority_digest.html` file. If Adzuna has not been configured, the company-board refresh still completes and the dashboard records that the query source was skipped.
+
+Run it manually with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\refresh_company_boards.ps1"
+```
+
+Open **Daily priorities** in the dashboard whenever you want a short ordered list of new roles, roles already being prepared, and follow-ups. It is generated locally and uses no OpenAI API credits.
+
 The matcher also checks explicit experience requirements. A role that asks for four or more years is held for review even when its title does not say senior. Listings that mention unrestricted work rights or no sponsorship show a work-rights requirement to verify before application preparation.
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.

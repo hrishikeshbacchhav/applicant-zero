@@ -104,6 +104,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
             relevant_count INTEGER NOT NULL,
             checked_count INTEGER NOT NULL DEFAULT 0,
             unavailable_count INTEGER NOT NULL DEFAULT 0,
+            detail TEXT NOT NULL DEFAULT '',
             completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -139,6 +140,9 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_job_matches_company_active ON job_matches(company, is_active)"
         )
+    refresh_columns = {row[1] for row in connection.execute("PRAGMA table_info(refresh_runs)")}
+    if "detail" not in refresh_columns:
+        connection.execute("ALTER TABLE refresh_runs ADD COLUMN detail TEXT NOT NULL DEFAULT ''")
     connection.commit()
     return connection
 
@@ -276,13 +280,14 @@ def record_refresh_run(
     relevant_count: int,
     checked_count: int = 0,
     unavailable_count: int = 0,
+    detail: str = "",
 ) -> None:
     connection.execute(
         """
-        INSERT INTO refresh_runs (source, collected_count, relevant_count, checked_count, unavailable_count)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO refresh_runs (source, collected_count, relevant_count, checked_count, unavailable_count, detail)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (source, collected_count, relevant_count, checked_count, unavailable_count),
+        (source, collected_count, relevant_count, checked_count, unavailable_count, detail),
     )
     connection.commit()
 
@@ -291,7 +296,7 @@ def latest_refresh_run(connection: sqlite3.Connection) -> dict | None:
     connection.row_factory = sqlite3.Row
     row = connection.execute(
         """
-        SELECT source, collected_count, relevant_count, checked_count, unavailable_count, completed_at
+        SELECT source, collected_count, relevant_count, checked_count, unavailable_count, detail, completed_at
         FROM refresh_runs ORDER BY id DESC LIMIT 1
         """
     ).fetchone()

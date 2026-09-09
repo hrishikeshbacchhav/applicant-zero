@@ -56,3 +56,21 @@ def fetch_jobs(project_root: Path, query: str, where: str, page: int = 1) -> lis
     with urlopen(url, timeout=20) as response:
         payload = json.loads(response.read().decode("utf-8"))
     return [_job_from_result(result) for result in payload.get("results", [])]
+
+
+def fetch_query_batch(
+    project_root: Path, queries: list[str], where: str = "Sydney", max_queries: int | None = None
+) -> tuple[list[Job], list[str]]:
+    """Run a small, controlled set of search queries and collapse repeated listings."""
+    selected = [query.strip() for query in queries if query.strip()]
+    if max_queries is not None:
+        selected = selected[:max_queries]
+    jobs_by_id: dict[str, Job] = {}
+    errors: list[str] = []
+    for query in selected:
+        try:
+            for job in fetch_jobs(project_root, query, where):
+                jobs_by_id[job.external_id] = job
+        except (OSError, RuntimeError, ValueError) as error:
+            errors.append(f"{query}: {error}")
+    return list(jobs_by_id.values()), errors

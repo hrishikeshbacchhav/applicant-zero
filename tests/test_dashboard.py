@@ -223,8 +223,10 @@ def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_pat
     database = initialise_database(tmp_path / "jobs.sqlite3")
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid", "SQL")
     save_match(database, job, score_job(job, RISHI_PROFILE))
-    record_refresh_run(database, "Company career boards", 12, 3, checked_count=4, unavailable_count=1)
+    record_refresh_run(database, "Company career boards", 12, 3, checked_count=4, unavailable_count=1, detail="4 boards checked")
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Last discovery refresh" in page
     assert "New this week" in page
     assert "source(s) unavailable" in page
+    assert "Daily priorities" in page
+    assert "4 boards checked" in page
