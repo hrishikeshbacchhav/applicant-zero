@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page
+from applicant_zero.dashboard import build_answers_page, build_brief_page, build_page, build_resume_copy_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -190,7 +190,8 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
         "editable_resume_masters": {"data_bi": str(private / "data_bi_master.docx")},
     }), encoding="utf-8")
     (private / "data_bi_master.docx").write_text("master", encoding="utf-8")
-    database = initialise_database(project / "data" / "jobs.sqlite3")
+    database_path = project / "data" / "jobs.sqlite3"
+    database = initialise_database(database_path)
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
     save_match(database, job, score_job(job, RISHI_PROFILE))
     packet_dir = private / "application_packets"
@@ -205,6 +206,36 @@ def test_resume_review_stays_private_and_uses_the_saved_ai_draft(tmp_path):
     assert "Truthful summary" in review
     assert "data_bi_master.docx" in review
     assert "Quality check before use" in review
+
+
+def test_editable_resume_copy_page_identifies_the_private_word_file(tmp_path):
+    project = tmp_path / "project"
+    private = project / "private"
+    private.mkdir(parents=True)
+    master = private / "data_bi_master.docx"
+    master.write_text("master", encoding="utf-8")
+    resumes = {}
+    for family in ("data_bi", "power_bi", "business_analysis"):
+        resume = private / f"{family}.pdf"
+        resume.write_text("resume", encoding="utf-8")
+        resumes[family] = str(resume)
+    (private / "candidate_profile.json").write_text(json.dumps({
+        "contact": {"legal_name": "Rishi", "email": "private@example.com", "phone": "0400000000", "current_location": "Sydney"},
+        "availability": {"full_time_from": "2026-11-15"},
+        "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
+        "resumes": resumes,
+        "editable_resume_masters": {"data_bi": str(master)},
+    }), encoding="utf-8")
+    database_path = project / "data" / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    from applicant_zero.resume_output import create_editable_resume_copy
+    output = create_editable_resume_copy(database_path, job.external_id)
+    page = build_resume_copy_page(database_path, job.external_id)
+    assert "Editable role copy ready" in page
+    assert output.name in page
+    assert "Open or download Word copy" in page
 
 
 def test_review_and_employer_confirmation_are_recorded_in_the_tracker(tmp_path):

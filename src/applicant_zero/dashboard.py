@@ -17,7 +17,7 @@ from .browser_assist import browser_setup_issue, start_browser_assistant
 from .manual_import import import_listing
 from .profile import RISHI_PROFILE
 from .resume_review import create_resume_review, load_resume_review
-from .resume_output import create_editable_resume_copy
+from .resume_output import create_editable_resume_copy, editable_resume_copy_path
 from .application_readiness import evaluate_application_readiness
 from .daily_digest import create_daily_digest
 from .system_health import health_page
@@ -176,6 +176,14 @@ def build_answers_page(database_path: Path) -> str:
 *{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:800px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}.card{{background:#fff;padding:20px;margin:16px 0;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a{{color:#1261a0;font-weight:bold}}form{{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:14px 0}}label{{font-weight:bold}}input{{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #c7d2e3;border-radius:6px}}button{{padding:10px 16px;border:0;border-radius:6px;background:#163b67;color:#fff;cursor:pointer}}li{{margin:7px 0}}.help{{color:#667085}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Reusable application answers</h1><p class='help'>These values stay in your private folder. Empty answers will never be guessed or filled automatically.</p><section class='card'><h2>Verified from your candidate profile</h2><ul>{verified_items}</ul></section><section class='card'><h2>Confirm once, reuse later</h2>{fields}</section></main></body></html>"""
 
 
+def build_resume_copy_page(database_path: Path, external_id: str) -> str:
+    path = editable_resume_copy_path(database_path, external_id)
+    if not path:
+        return "<h1>Editable role copy not found</h1><p><a href='/'>Return to Applicant Zero</a></p>"
+    query = urlencode({"external_id": external_id})
+    return f"""<!doctype html><html><head><meta charset='utf-8'><title>Editable role copy ready</title><style>body{{font-family:Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;background:#f5f7fb;color:#182230}}h1{{color:#163b67}}section{{background:#fff;padding:22px;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a.button{{display:inline-block;background:#163b67;color:#fff;padding:11px 16px;border-radius:6px;text-decoration:none;font-weight:bold}}code{{word-break:break-all}}</style></head><body><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Editable role copy ready</h1><section><p>Your private Word copy has been created. Edit this copy for the role; your master résumé remains unchanged.</p><p><strong>File:</strong> {html.escape(path.name)}</p><p><a class='button' href='/download-resume-copy?{query}'>Open or download Word copy</a></p><p><small>Private location: <code>{html.escape(str(path))}</code></small></p></section></body></html>"""
+
+
 def build_brief_page(database_path: Path, external_id: str) -> str:
     with sqlite3.connect(database_path) as connection:
         row = get_match(connection, external_id)
@@ -238,6 +246,11 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
     question_drafts = load_question_drafts(database_path, external_id)
     resume_review_button = f"<form method='post' action='/resume-review'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create tailored resume review</button></form>"
     resume_copy_button = f"<form method='post' action='/resume-copy'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create editable role copy</button></form>"
+    editable_copy = editable_resume_copy_path(database_path, external_id)
+    resume_copy_status = ""
+    if editable_copy:
+        copy_query = urlencode({"external_id": external_id})
+        resume_copy_status = f"<p class='ready'>An editable role copy is ready. <a href='/resume-copy?{copy_query}'>Open or download it</a></p>"
     draft_section = ""
     if saved_draft:
         draft = saved_draft.get("draft", {})
@@ -283,7 +296,7 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
 <section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p></section>
 <section class='card'><h2>Application readiness</h2><p class='{'ready' if ready_to_submit else 'notice'}'>{html.escape(readiness_status)}</p><ol>{readiness_rows}</ol><form method='post' action='/review-materials'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><input name='review_note' placeholder='Optional review note'><button type='submit'>Mark materials reviewed</button></form></section>
 <section class='card'><h2>Application question workspace</h2><p>Paste an unfamiliar role-specific application question to produce a private review draft from your verified evidence. Visa, work-rights, identity and health questions remain for you to answer directly.</p><form method='post' action='/question-draft' class='stacked'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><label>Application question<textarea name='question' required placeholder='Paste the employer question here'></textarea></label><button type='submit'>Draft truthful response</button></form>{question_items}</section>
-<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}{resume_copy_button}</section>
+<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol><form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}{resume_copy_button}{resume_copy_status}</section>
 <section class='card'><h2>After you submit</h2><p>Applicant Zero never submits for you. After the employer site confirms your submission, save one confirmation detail here to update the tracker.</p>{proof_html}</section>
 {draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
@@ -304,6 +317,23 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 review = load_resume_review(database_path, external_id)
                 content = (review or "<h1>Resume review not created</h1><p><a href='/'>Return to Applicant Zero</a></p>").encode("utf-8")
+            elif parsed.path == "/resume-copy":
+                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
+                content = build_resume_copy_page(database_path, external_id).encode("utf-8")
+            elif parsed.path == "/download-resume-copy":
+                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
+                path = editable_resume_copy_path(database_path, external_id)
+                if not path:
+                    self.send_error(404)
+                    return
+                content = path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                self.send_header("Content-Disposition", f'attachment; filename="{path.name}"')
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
             elif parsed.path == "/daily-digest":
@@ -345,7 +375,7 @@ def serve(database_path: Path, port: int = 8765) -> None:
                     self.send_error(400)
                     return
                 self.send_response(303)
-                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.send_header("Location", "/resume-copy?" + urlencode({"external_id": external_id}))
                 self.end_headers()
                 return
             if self.path == "/platform-pilot":

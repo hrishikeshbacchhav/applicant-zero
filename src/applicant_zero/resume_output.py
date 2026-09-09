@@ -35,3 +35,12 @@ def editable_resume_copy_exists(database_path: Path, external_id: str) -> bool:
     with sqlite3.connect(database_path) as connection:
         row = get_match(connection, external_id)
     return bool(row and _output_path(database_path, row).exists())
+
+
+def editable_resume_copy_path(database_path: Path, external_id: str) -> Path | None:
+    with sqlite3.connect(database_path) as connection:
+        row = get_match(connection, external_id)
+    if row is None:
+        return None
+    path = _output_path(database_path, row)
+    return path if path.exists() else None
