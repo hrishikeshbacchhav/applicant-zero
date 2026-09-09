@@ -123,6 +123,16 @@ def test_form_answers_use_saved_work_rights_and_numeric_salary():
     assert option_matches("No", "true", "Yes") is False
 
 
+def test_form_answers_use_saved_structured_address_parts_when_available():
+    answers = {
+        "verified_answers": {"address": "Unit 1, Example Road", "state": "NSW", "postcode": "2145", "country": "Australia"},
+        "answers_requiring_confirmation": {},
+    }
+    assert field_answer("Postcode", "text", answers, {}) == "2145"
+    assert field_answer("State / province", "select", answers, {}) == "NSW"
+    assert field_answer("Country", "select", answers, {}) == "Australia"
+
+
 def test_prefill_handles_date_and_recognised_radio_without_guessing(tmp_path):
     available = FakeElement({"name": "start_date", "type": "date", "required": ""})
     sponsorship_no = FakeElement({"name": "sponsorship", "type": "radio", "value": "no", "label": "Do you require sponsorship? No", "required": ""})

@@ -27,6 +27,12 @@ def field_answer(descriptor: str, input_type: str, answers: dict, job: dict) -> 
         return str(verified.get("email", ""))
     if re.search(r"phone|mobile|telephone|tel", text):
         return str(verified.get("phone", ""))
+    if re.search(r"post.?code|zip(?:.?code)?", text):
+        return str(verified.get("postcode", ""))
+    if re.search(r"state|province|territory", text):
+        return str(verified.get("state", ""))
+    if re.search(r"country|nation", text):
+        return str(verified.get("country", ""))
     if re.search(r"street.?address|home.?address|address", text):
         return str(verified.get("address", ""))
     if re.search(r"location|city|suburb", text):
