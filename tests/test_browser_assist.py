@@ -1,4 +1,4 @@
-from applicant_zero.browser_assist import _prefill_page
+from applicant_zero.browser_assist import _next_step_button, _prefill_page, _submit_button_present
 from applicant_zero.form_answers import field_answer, option_matches, select_value
 
 
@@ -65,6 +65,32 @@ class FakePage:
                 if "required" in element.attrs or element.attrs.get("aria-required") == "true"
             ])
         return FakeLocator(self.elements)
+
+
+class FakeButton:
+    def __init__(self, label, *, enabled=True):
+        self.label = label
+        self.enabled = enabled
+
+    def is_visible(self):
+        return True
+
+    def is_enabled(self):
+        return self.enabled
+
+    def inner_text(self):
+        return self.label
+
+    def get_attribute(self, name):
+        return self.label if name in {"value", "aria-label"} else None
+
+
+class FakeButtonPage:
+    def __init__(self, buttons):
+        self.buttons = buttons
+
+    def locator(self, _selector):
+        return FakeLocator(self.buttons)
 
 
 def test_prefill_uses_confirmed_answers_and_leaves_work_rights_unanswered(tmp_path):
@@ -148,3 +174,15 @@ def test_prefill_handles_date_and_recognised_radio_without_guessing(tmp_path):
     assert sponsorship_no.is_checked() is True
     assert sponsorship_yes.is_checked() is False
     assert unresolved == 0
+
+
+def test_multi_step_controls_allow_next_but_never_treat_submit_as_progression():
+    page = FakeButtonPage([FakeButton("Continue"), FakeButton("Submit application")])
+    assert _next_step_button(page).inner_text() == "Continue"
+    assert _submit_button_present(page) is True
+
+
+def test_final_submission_only_page_has_no_safe_next_step():
+    page = FakeButtonPage([FakeButton("Submit application")])
+    assert _next_step_button(page) is None
+    assert _submit_button_present(page) is True
