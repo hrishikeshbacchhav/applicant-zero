@@ -75,6 +75,8 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "All companies" in page
     assert "All tracker stages" in page
     assert "All role lanes" in page
+    assert "All relevant" in page
+    assert "Current relevant listings" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
     assert "Before applying" in brief
