@@ -73,6 +73,7 @@ def main() -> None:
     parser.add_argument("--daily-refresh", action="store_true")
     parser.add_argument("--daily-digest", action="store_true")
     parser.add_argument("--health-check", action="store_true")
+    parser.add_argument("--backup", action="store_true")
     parser.add_argument("--max-queries", type=int)
     parser.add_argument("--query", default="data analyst")
     parser.add_argument("--where", default="Sydney")
@@ -86,7 +87,7 @@ def main() -> None:
     state = prepare_state(ROOT)
     database = database_path(ROOT)
     _sync_private_facts(state)
-    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check)
+    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup)
     if args.profile_check:
         if source_count or args.dashboard: parser.error("Use --profile-check on its own.")
         issues = check_profile(state / "private" / "candidate_profile.json")
@@ -112,6 +113,11 @@ def main() -> None:
         if source_count != 1: parser.error("Use --health-check on its own.")
         for label, healthy, detail in health_report(state):
             print(f"{'OK' if healthy else 'CHECK'} · {label}: {detail}")
+        return
+    if args.backup:
+        if source_count != 1: parser.error("Use --backup on its own.")
+        backup = backup_database(ROOT, "manual")
+        print(f"Private database snapshot created: {backup}" if backup else "No database snapshot was needed yet.")
         return
     if args.daily_refresh:
         if source_count != 1: parser.error("Use --daily-refresh on its own.")
