@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from applicant_zero.discovery_registry import board_coverage, discovery_overview, load_sources, load_targets
@@ -31,3 +32,6 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert overview["target_count"] >= 80
     assert "Lever career boards" in overview["automated_sources"]
     assert overview["configured_count"] >= 6
+    boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
+    assert len(boards) >= 18
+    assert {"Omni", "Lime", "Qualtrics"} <= {board["company"] for board in boards}

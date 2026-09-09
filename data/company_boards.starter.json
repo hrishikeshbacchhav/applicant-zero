@@ -73,5 +73,20 @@
     "company": "Binance",
     "ats": "lever",
     "token": "binance"
+  },
+  {
+    "company": "Omni",
+    "ats": "ashby",
+    "token": "omni"
+  },
+  {
+    "company": "Lime",
+    "ats": "ashby",
+    "token": "Lime"
+  },
+  {
+    "company": "Qualtrics",
+    "ats": "greenhouse",
+    "token": "Qualtrics"
   }
 ]

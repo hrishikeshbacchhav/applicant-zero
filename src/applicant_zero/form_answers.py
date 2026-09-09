@@ -79,3 +79,13 @@ def select_value(options: list[tuple[str, str]], answer: str) -> str:
         if normalized in no and candidate in no:
             return value
     return ""
+
+
+def option_matches(answer: str, value: str, label: str = "") -> bool:
+    """Return whether a radio-style option is an exact safe match for an answer.
+
+    Hosted forms frequently use radio inputs instead of ``select`` controls.
+    Their HTML value is often ``yes``/``no`` while the visible wording sits in
+    a nearby label, so normalise both representations through ``select_value``.
+    """
+    return bool(select_value([(value, label or value)], answer))

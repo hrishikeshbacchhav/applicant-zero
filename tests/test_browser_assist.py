@@ -1,5 +1,5 @@
 from applicant_zero.browser_assist import _prefill_page
-from applicant_zero.form_answers import field_answer, select_value
+from applicant_zero.form_answers import field_answer, option_matches, select_value
 
 
 class FakeElement:
@@ -20,7 +20,10 @@ class FakeElement:
         return True
 
     def is_checked(self):
-        return False
+        return bool(self.attrs.get("checked", False))
+
+    def check(self):
+        self.attrs["checked"] = True
 
     def input_value(self):
         return self.value
@@ -116,3 +119,22 @@ def test_form_answers_use_saved_work_rights_and_numeric_salary():
     assert field_answer("Visa type", "text", answers, {}) == "Student visa (subclass 500)"
     assert field_answer("Base salary", "number", answers, {}) == "85000"
     assert select_value([("false", "No"), ("true", "Yes")], "No") == "false"
+    assert option_matches("No", "false", "No") is True
+    assert option_matches("No", "true", "Yes") is False
+
+
+def test_prefill_handles_date_and_recognised_radio_without_guessing(tmp_path):
+    available = FakeElement({"name": "start_date", "type": "date", "required": ""})
+    sponsorship_no = FakeElement({"name": "sponsorship", "type": "radio", "value": "no", "label": "Do you require sponsorship? No", "required": ""})
+    sponsorship_yes = FakeElement({"name": "sponsorship", "type": "radio", "value": "yes", "label": "Do you require sponsorship? Yes", "required": ""})
+    page = FakePage([available, sponsorship_no, sponsorship_yes])
+    answers = {
+        "verified_answers": {"available_from": "2026-11-15", "requires_sponsorship": "No"},
+        "answers_requiring_confirmation": {},
+    }
+    filled, unresolved = _prefill_page(page, {"resume_family": "data_bi"}, {"resumes": {}}, answers)
+    assert filled == 2
+    assert available.value == "2026-11-15"
+    assert sponsorship_no.is_checked() is True
+    assert sponsorship_yes.is_checked() is False
+    assert unresolved == 0

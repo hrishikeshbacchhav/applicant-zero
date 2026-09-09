@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from .application_answers import ensure_answer_library
-from .form_answers import field_answer, select_value
+from .form_answers import field_answer, option_matches, select_value
 from .session_trace import append_trace, capture_handoff_screenshot, start_trace
 from .application_routes import classify_application_url, supports_supervised_browser_handoff
 from .private_profile import load_profile
@@ -128,6 +128,55 @@ def _choose_select_option(element, descriptor: str, answers: dict, job: dict) ->
     return True
 
 
+def _option_label(element) -> str:
+    """Read an individual radio label without treating page wording as a fact."""
+    value = element.get_attribute("value") or ""
+    try:
+        label = element.evaluate(
+            """node => {
+                const labelled = node.id && document.querySelector(`label[for="${CSS.escape(node.id)}"]`);
+                const parent = node.closest('label');
+                return (labelled || parent)?.innerText || node.value || '';
+            }"""
+        )
+        return str(label or value)
+    except Exception:
+        return value
+
+
+def _choose_radio_option(element, descriptor: str, answers: dict, job: dict) -> bool:
+    """Check only a recognised radio value for a recognised saved answer."""
+    answer = field_answer(descriptor, "radio", answers, job)
+    if not answer:
+        return False
+    value = element.get_attribute("value") or ""
+    if not option_matches(answer, value, _option_label(element)):
+        return False
+    element.check()
+    return True
+
+
+def _required_field_is_complete(page, element) -> bool:
+    """Treat a radio group as one required question instead of many fields."""
+    tag = element.evaluate("node => node.tagName.toLowerCase()")
+    input_type = (element.get_attribute("type") or "").lower()
+    if input_type == "radio":
+        name = element.get_attribute("name") or ""
+        radios = page.locator("input[type='radio']")
+        for index in range(radios.count()):
+            option = radios.nth(index)
+            if (option.get_attribute("type") or "").lower() != "radio":
+                continue
+            if (option.get_attribute("name") or "") == name and option.is_checked():
+                return True
+        return False
+    if input_type == "checkbox":
+        return element.is_checked()
+    if tag == "select":
+        return bool(element.input_value())
+    return bool(element.input_value().strip())
+
+
 def _application_form_is_ready(page) -> bool:
     """Avoid credential pages; wait until the candidate has navigated to an application form."""
     try:
@@ -183,7 +232,11 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
             # Some application platforms represent a requested base salary as a
             # numeric input.  It is still safe to fill only when its label is
             # recognised as salary or compensation below.
-            if input_type not in {"text", "email", "tel", "url", "search", "number"} and element.evaluate("node => node.tagName.toLowerCase()") != "textarea":
+            if input_type == "radio":
+                if _choose_radio_option(element, descriptor, answers, job):
+                    filled += 1
+                continue
+            if input_type not in {"text", "email", "tel", "url", "search", "number", "date"} and element.evaluate("node => node.tagName.toLowerCase()") != "textarea":
                 continue
             if "password" in descriptor:
                 continue
@@ -216,15 +269,7 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
         try:
             if not element.is_visible():
                 continue
-            tag = element.evaluate("node => node.tagName.toLowerCase()")
-            input_type = (element.get_attribute("type") or "").lower()
-            if input_type in {"checkbox", "radio"}:
-                complete = element.is_checked()
-            elif tag == "select":
-                complete = bool(element.input_value())
-            else:
-                complete = bool(element.input_value().strip())
-            if not complete:
+            if not _required_field_is_complete(page, element):
                 unresolved += 1
                 element.evaluate("node => { node.style.outline = '3px solid #d97706'; node.style.outlineOffset = '2px'; }")
         except Exception:
@@ -241,10 +286,7 @@ def _unresolved_labels(page, limit: int = 5) -> list[str]:
         try:
             if not element.is_visible():
                 continue
-            tag = element.evaluate("node => node.tagName.toLowerCase()")
-            input_type = (element.get_attribute("type") or "").lower()
-            complete = element.is_checked() if input_type in {"checkbox", "radio"} else bool(element.input_value().strip())
-            if complete:
+            if _required_field_is_complete(page, element):
                 continue
             label = re.sub(r"\s+", " ", _descriptor(element)).strip()
             if label and label not in labels:
