@@ -4,10 +4,11 @@ import threading
 import time
 from pathlib import Path
 
-from .application_answers import ensure_answer_library, salary_expectation_for_job
+from .application_answers import ensure_answer_library
+from .form_answers import field_answer, select_value
 from .application_routes import classify_application_url, supports_supervised_browser_handoff
 from .private_profile import load_profile
-from .storage import get_match, log_application_event, update_workflow
+from .storage import get_match, log_application_event, save_manual_action, update_workflow
 
 
 _running: set[str] = set()
@@ -93,42 +94,21 @@ def _descriptor(element) -> str:
     return " ".join(values).lower()
 
 
-def _choose_select_option(element, descriptor: str, salary_expectation: str, referral_source: str) -> bool:
-    """Choose only the two reusable dropdown answers we can identify safely."""
-    if re.search(r"visa|sponsor|work.?rights|citizen|gender|race|ethnic|disab|medical|injury|birth|veteran", descriptor):
+def _choose_select_option(element, descriptor: str, answers: dict, job: dict) -> bool:
+    """Select only a recognised option equivalent to the candidate's saved fact."""
+    answer = field_answer(descriptor, "select", answers, job)
+    if not answer:
         return False
-    if re.search(r"salary|compensation|remuneration", descriptor):
-        target_match = re.search(r"(\d{2,3}(?:,\d{3})?)", salary_expectation)
-        target = int(target_match.group(1).replace(",", "")) if target_match else 0
-        if not target:
-            return False
-        best: tuple[int, str] | None = None
-        options = element.locator("option")
-        for index in range(options.count()):
-            option = options.nth(index)
-            label = option.inner_text().strip()
-            value = option.get_attribute("value")
-            figures = [int(number.replace(",", "")) * (1_000 if "k" in label.lower() else 1) for number in re.findall(r"\d{2,3}(?:,\d{3})?", label)]
-            if not value or not figures:
-                continue
-            midpoint = sum(figures[:2]) // len(figures[:2])
-            candidate = (abs(midpoint - target), value)
-            if best is None or candidate < best:
-                best = candidate
-        if best:
-            element.select_option(best[1])
-            return True
-    if re.search(r"hear.*role|hear.*job|referral.?source|how.*hear", descriptor) and referral_source:
-        preferred = referral_source.lower()
-        options = element.locator("option")
-        for index in range(options.count()):
-            option = options.nth(index)
-            label = option.inner_text().strip().lower()
-            value = option.get_attribute("value")
-            if value and (preferred in label or label in preferred or "company" in label and "website" in label):
-                element.select_option(value)
-                return True
-    return False
+    options = element.locator("option")
+    choices = [
+        (option.get_attribute("value") or "", option.inner_text().strip())
+        for option in (options.nth(index) for index in range(options.count()))
+    ]
+    selected = select_value(choices, answer)
+    if not selected:
+        return False
+    element.select_option(selected)
+    return True
 
 
 def _application_form_is_ready(page) -> bool:
@@ -167,10 +147,6 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
     first_name = name_parts[0] if name_parts else ""
     last_name = name_parts[-1] if len(name_parts) > 1 else ""
     resume_path = profile.get("resumes", {}).get(job.get("resume_family"), "")
-    salary_expectation = salary_expectation_for_job(job, answers)
-    protected_or_uncertain = re.compile(
-        r"visa|sponsor|work.?rights|citizen|gender|race|ethnic|disab|medical|injury|birth|veteran|password"
-    )
     fields = page.locator("input, textarea")
     filled = 0
     resume_attached = False
@@ -192,36 +168,9 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
             # recognised as salary or compensation below.
             if input_type not in {"text", "email", "tel", "url", "search", "number"} and element.evaluate("node => node.tagName.toLowerCase()") != "textarea":
                 continue
-            if protected_or_uncertain.search(descriptor):
+            if "password" in descriptor:
                 continue
-            value = ""
-            if re.search(r"first.?name|given.?name", descriptor):
-                value = first_name
-            elif re.search(r"last.?name|family.?name|surname", descriptor):
-                value = last_name
-            elif re.search(r"full.?name|candidate.?name", descriptor) or descriptor.strip() == "name":
-                value = full_name
-            elif "email" in descriptor:
-                value = str(verified.get("email", ""))
-            elif re.search(r"phone|mobile|telephone|tel", descriptor):
-                value = str(verified.get("phone", ""))
-            elif re.search(r"location|city", descriptor):
-                value = str(verified.get("current_location", ""))
-            elif re.search(r"available|start.?date", descriptor):
-                value = str(verified.get("available_from", ""))
-            elif re.search(r"salary|compensation|remuneration", descriptor):
-                value = salary_expectation
-            elif re.search(r"notice.?period", descriptor):
-                value = str(answers["answers_requiring_confirmation"].get("notice_period", ""))
-            elif "linkedin" in descriptor:
-                value = str(answers["answers_requiring_confirmation"].get("linkedin_url", ""))
-            elif re.search(r"portfolio|website", descriptor):
-                value = str(answers["answers_requiring_confirmation"].get("portfolio_url", ""))
-            elif re.search(r"hear.*role|hear.*job|referral.?source", descriptor):
-                value = str(answers["answers_requiring_confirmation"].get("referral_source", ""))
-            if value and input_type == "number" and re.search(r"salary|compensation|remuneration", descriptor):
-                numeric_salary = re.search(r"(\d{2,3}(?:,\d{3})?)", value)
-                value = numeric_salary.group(1).replace(",", "") if numeric_salary else ""
+            value = field_answer(descriptor, input_type, answers, job)
             if value and not element.input_value().strip():
                 element.fill(value)
                 filled += 1
@@ -236,8 +185,8 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
                 if _choose_select_option(
                     element,
                     _descriptor(element),
-                    salary_expectation,
-                    str(answers["answers_requiring_confirmation"].get("referral_source", "")),
+                    answers,
+                    job,
                 ):
                     filled += 1
         except Exception:
@@ -326,6 +275,7 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             # selects legal/identity answers and never clicks final submission.
             total_filled = 0
             last_signature = ""
+            captcha_handoff_recorded = False
             while context.pages:
                 page = context.pages[-1]
                 try:
@@ -345,7 +295,21 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                     _log(database_path, external_id, "ready_for_review", detail)
                     last_signature = signature
                 next_button = _next_step_button(page)
-                if unresolved == 0 and next_button is not None and not _captcha_present(page):
+                if _captcha_present(page):
+                    if not captcha_handoff_recorded:
+                        with sqlite3.connect(database_path) as connection:
+                            save_manual_action(
+                                connection,
+                                external_id,
+                                "captcha",
+                                "Complete employer CAPTCHA",
+                                "The application page requires a human CAPTCHA check. Complete it in the open browser; Applicant Zero will continue with recognised fields after the page changes.",
+                            )
+                        _log(database_path, external_id, "candidate_action_required", "A CAPTCHA was detected and added to the manual action queue.")
+                        captcha_handoff_recorded = True
+                    page.wait_for_timeout(1_000)
+                    continue
+                if unresolved == 0 and next_button is not None:
                     next_button.click()
                     page.wait_for_timeout(1_000)
                     continue

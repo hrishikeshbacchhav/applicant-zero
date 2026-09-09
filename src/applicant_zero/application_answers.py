@@ -68,9 +68,14 @@ def ensure_answer_library(project_root: Path, profile: dict) -> dict:
             "email": contact.get("email", ""),
             "phone": contact.get("phone", ""),
             "current_location": contact.get("current_location", ""),
+            "address": contact.get("address", ""),
             "available_from": availability.get("full_time_from", ""),
             "current_work_rights": eligibility.get("current_work_rights", ""),
             "requires_sponsorship": eligibility.get("requires_sponsorship_answer", ""),
+            "visa_type": eligibility.get("visa_type", ""),
+            "citizenship_status": eligibility.get("citizenship_status", ""),
+            "pronouns": profile.get("identity", {}).get("pronouns", ""),
+            "ethnicity": profile.get("identity", {}).get("ethnicity", ""),
         }
     )
     library = {
