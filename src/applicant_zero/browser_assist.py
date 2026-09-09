@@ -130,7 +130,10 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
                 continue
             if not element.is_visible() or not element.is_enabled():
                 continue
-            if input_type not in {"text", "email", "tel", "url", "search"} and element.evaluate("node => node.tagName.toLowerCase()") != "textarea":
+            # Some application platforms represent a requested base salary as a
+            # numeric input.  It is still safe to fill only when its label is
+            # recognised as salary or compensation below.
+            if input_type not in {"text", "email", "tel", "url", "search", "number"} and element.evaluate("node => node.tagName.toLowerCase()") != "textarea":
                 continue
             if protected_or_uncertain.search(descriptor):
                 continue
@@ -159,6 +162,9 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
                 value = str(answers["answers_requiring_confirmation"].get("portfolio_url", ""))
             elif re.search(r"hear.*role|hear.*job|referral.?source", descriptor):
                 value = str(answers["answers_requiring_confirmation"].get("referral_source", ""))
+            if value and input_type == "number" and re.search(r"salary|compensation|remuneration", descriptor):
+                numeric_salary = re.search(r"(\d{2,3}(?:,\d{3})?)", value)
+                value = numeric_salary.group(1).replace(",", "") if numeric_salary else ""
             if value and not element.input_value().strip():
                 element.fill(value)
                 filled += 1

@@ -66,7 +66,7 @@ def test_prefill_uses_confirmed_answers_and_leaves_work_rights_unanswered(tmp_pa
     resume.write_text("resume", encoding="utf-8")
     first_name = FakeElement({"name": "first_name", "required": ""})
     email = FakeElement({"name": "email", "type": "email", "required": ""})
-    salary = FakeElement({"name": "salary_expectations", "required": ""})
+    salary = FakeElement({"name": "salary_expectations", "type": "number", "required": ""})
     work_rights = FakeElement({"name": "work_rights_visa", "required": ""})
     resume_field = FakeElement({"name": "resume", "type": "file", "required": ""}, visible=False)
     page = FakePage([first_name, email, salary, work_rights, resume_field])
@@ -92,7 +92,7 @@ def test_prefill_uses_confirmed_answers_and_leaves_work_rights_unanswered(tmp_pa
     assert filled == 4
     assert first_name.value == "Rishi"
     assert email.value == "rishi@example.com"
-    assert salary.value == "AUD 80,000 plus super"
+    assert salary.value == "80000"
     assert resume_field.file == str(resume)
     assert work_rights.value == ""
     assert work_rights.highlighted is True
