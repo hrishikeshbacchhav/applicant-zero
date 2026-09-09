@@ -111,6 +111,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\backup_privat
 
 The backup is kept only under `private\backups` on your computer and is excluded from GitHub.
 
+The current local operating model and the conditions required before considering cloud hosting are documented in [operating-and-hosting-readiness.md](docs/operating-and-hosting-readiness.md).
+
 The matcher also checks explicit experience requirements. A role that asks for four or more years is held for review even when its title does not say senior. Listings that mention unrestricted work rights or no sponsorship show a work-rights requirement to verify before application preparation.
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.
