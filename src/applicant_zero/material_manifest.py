@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .private_profile import load_profile
+from .resume_evidence import inventory_path, load_lane_resume_evidence
 from .storage import get_match
 
 
@@ -45,6 +46,8 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
             "family": family or None,
             "approved_pdf": str(resume) if resume.exists() else "",
             "editable_master": str(master) if master.exists() else "",
+            "private_evidence_inventory": str(inventory_path(database_path.parent.parent)) if inventory_path(database_path.parent.parent).exists() else "",
+            "extracted_source_lines_available": len(load_lane_resume_evidence(database_path.parent.parent, family)),
         },
         "evidence": {
             "matched": json.loads(row["matched_evidence"]),

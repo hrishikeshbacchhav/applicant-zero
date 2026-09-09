@@ -16,6 +16,7 @@ from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .system_health import health_report
 from .runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
+from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -83,6 +84,7 @@ def main() -> None:
     parser.add_argument("--show-all", action="store_true")
     parser.add_argument("--profile-check", action="store_true")
     parser.add_argument("--tailoring-check", action="store_true")
+    parser.add_argument("--resume-inventory", action="store_true")
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
@@ -91,6 +93,13 @@ def main() -> None:
         print(recovery_message)
     _sync_private_facts(state)
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup)
+    if args.resume_inventory:
+        if source_count or args.dashboard: parser.error("Use --resume-inventory on its own.")
+        try:
+            print(f"Private résumé evidence inventory created: {create_resume_evidence_inventory(state)}")
+        except ResumeEvidenceError as error:
+            print(f"Could not create private résumé evidence inventory: {error}")
+        return
     if args.profile_check:
         if source_count or args.dashboard: parser.error("Use --profile-check on its own.")
         issues = check_profile(state / "private" / "candidate_profile.json")

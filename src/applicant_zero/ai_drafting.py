@@ -8,6 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from .private_profile import load_profile
+from .resume_evidence import load_lane_resume_evidence
 from .storage import get_match
 
 
@@ -123,6 +124,7 @@ def load_question_drafts(database_path: Path, external_id: str) -> list[dict]:
 
 def _prompt(job: dict, evidence: dict, profile: dict) -> str:
     selected_evidence = evidence_for_job(evidence, job.get("lane"))
+    resume_source = load_lane_resume_evidence(Path(profile.get("_project_root", "")), job.get("resume_family"))
     return f"""You prepare truthful job-application drafts. Use only the verified evidence provided below. Never invent a responsibility, metric, employer, date, qualification, tool, work right, or application answer. If the role asks for something unsupported, list it under unsupported_requirements.
 
 Return valid JSON only with these keys:
@@ -141,6 +143,9 @@ Description: {job['description']}
 
 VERIFIED EVIDENCE FOR THIS ROLE LANE
 {json.dumps(selected_evidence, ensure_ascii=False)}
+
+APPROVED RÉSUMÉ SOURCE WORDING (exact private source text; only reuse when it is truthful and relevant)
+{json.dumps(resume_source, ensure_ascii=False)}
 
 WRITING RULES
 {json.dumps(evidence.get('writing_rules', []), ensure_ascii=False)}
@@ -208,10 +213,12 @@ def create_ai_draft(database_path: Path, external_id: str, model: str | None = N
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise DraftingError("OPENAI_API_KEY is not set on this computer.")
-    profile = load_profile(database_path.parent.parent / "private" / "candidate_profile.json")
+    project_root = database_path.parent.parent
+    profile = load_profile(project_root / "private" / "candidate_profile.json")
     if not profile:
         raise DraftingError("Private candidate profile is not ready.")
-    evidence = _load_evidence(database_path.parent.parent / "private" / "candidate_evidence.json")
+    profile["_project_root"] = str(project_root)
+    evidence = _load_evidence(project_root / "private" / "candidate_evidence.json")
     job = _read_job(database_path, external_id)
     model_name = model or os.environ.get("APPLICANT_ZERO_MODEL", DEFAULT_DRAFT_MODEL)
     payload = {
