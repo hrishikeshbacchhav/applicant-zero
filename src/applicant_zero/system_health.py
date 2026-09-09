@@ -14,6 +14,11 @@ def health_report(project_root: Path) -> list[tuple[str, bool, str]]:
     database_ok = True
     refresh_detail = "No discovery refresh has been recorded yet."
     try:
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+        with sqlite3.connect(database_path) as integrity_connection:
+            integrity = integrity_connection.execute("PRAGMA integrity_check").fetchone()[0]
+        if integrity != "ok":
+            raise sqlite3.DatabaseError(f"Integrity check returned: {integrity}")
         with initialise_database(database_path) as connection:
             refresh = latest_refresh_run(connection)
         if refresh:
@@ -21,11 +26,14 @@ def health_report(project_root: Path) -> list[tuple[str, bool, str]]:
     except sqlite3.Error as error:
         database_ok = False
         refresh_detail = f"Database check failed: {error}"
+    backup_dir = database_path.parent / "backups"
+    backups = sorted(backup_dir.glob("*.sqlite3"), key=lambda item: item.stat().st_mtime, reverse=True) if backup_dir.exists() else []
+    backup_detail = f"Latest snapshot: {backups[0].name}." if backups else "No snapshot exists yet; one is created before dashboard and refresh runs."
     return [
         ("Private candidate profile", not profile_issues, "Ready." if not profile_issues else " ".join(profile_issues)),
         ("Local database", database_ok, "Ready." if database_ok else refresh_detail),
         ("Discovery refresh", database_ok, refresh_detail),
-        ("Private backups", True, "Use scripts\\backup_private_data.ps1 whenever you want a dated local copy."),
+        ("Private backups", bool(backups), backup_detail),
     ]
 
 
