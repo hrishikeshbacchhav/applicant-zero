@@ -11,6 +11,7 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_batch
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
+from .system_health import health_report
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -62,6 +63,7 @@ def main() -> None:
     parser.add_argument("--company-boards", type=Path)
     parser.add_argument("--daily-refresh", action="store_true")
     parser.add_argument("--daily-digest", action="store_true")
+    parser.add_argument("--health-check", action="store_true")
     parser.add_argument("--max-queries", type=int)
     parser.add_argument("--query", default="data analyst")
     parser.add_argument("--where", default="Sydney")
@@ -72,7 +74,7 @@ def main() -> None:
     parser.add_argument("--profile-check", action="store_true")
     parser.add_argument("--tailoring-check", action="store_true")
     args = parser.parse_args()
-    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest)
+    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check)
     if args.profile_check:
         if source_count or args.dashboard: parser.error("Use --profile-check on its own.")
         issues = check_profile(ROOT / "private" / "candidate_profile.json")
@@ -92,6 +94,11 @@ def main() -> None:
     if args.daily_digest:
         if source_count != 1: parser.error("Use --daily-digest on its own.")
         print(f"Daily priority digest created: {create_daily_digest(ROOT / 'data' / 'applicant_zero.sqlite3')}")
+        return
+    if args.health_check:
+        if source_count != 1: parser.error("Use --health-check on its own.")
+        for label, healthy, detail in health_report(ROOT):
+            print(f"{'OK' if healthy else 'CHECK'} · {label}: {detail}")
         return
     if args.daily_refresh:
         if source_count != 1: parser.error("Use --daily-refresh on its own.")

@@ -99,6 +99,18 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\refresh_compa
 
 Open **Daily priorities** in the dashboard whenever you want a short ordered list of new roles, roles already being prepared, and follow-ups. It is generated locally and uses no OpenAI API credits.
 
+## Reliability and private backup
+
+Use **System health** in the dashboard to confirm the profile, local database, and most recent discovery run are ready. You can also run `python -m applicant_zero --health-check` from the project terminal.
+
+Create a dated local backup of your tracker and private configuration with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\backup_private_data.ps1"
+```
+
+The backup is kept only under `private\backups` on your computer and is excluded from GitHub.
+
 The matcher also checks explicit experience requirements. A role that asks for four or more years is held for review even when its title does not say senior. Listings that mention unrestricted work rights or no sponsorship show a work-rights requirement to verify before application preparation.
 
 Select **Prepare brief** under a role title to open its private preparation page. It shows the imported job description, matching evidence, requirements to check and a truthful application checklist.

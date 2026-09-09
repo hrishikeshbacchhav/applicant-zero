@@ -46,3 +46,15 @@ def test_work_rights_condition_is_shown_as_a_requirement_to_check():
     job = Job("7", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Power BI and SQL. Applicants must have unrestricted working rights in Australia.")
     result = score_job(job, RISHI_PROFILE)
     assert "work-rights eligibility" in result.missing_requirements
+
+
+def test_data_engineering_role_is_not_mistaken_for_a_data_analyst_role():
+    job = Job("8", "Data Engineer", "Example", "Sydney, NSW", "test", "https://example.invalid", "Build pipelines in Python and SQL.")
+    assert score_job(job, RISHI_PROFILE).recommendation == "Skip"
+
+
+def test_clearance_condition_stays_visible_for_candidate_review():
+    job = Job("9", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Australian citizenship and baseline clearance are required.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert "eligibility or clearance requirement" in result.missing_requirements

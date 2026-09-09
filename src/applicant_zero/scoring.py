@@ -27,6 +27,7 @@ class MatchResult:
 
 
 SENIORITY_BLOCKLIST = ("senior", "lead", "principal", "manager", "director", "head of", "staff")
+OUT_OF_SCOPE_TITLE_TERMS = ("data engineer", "data scientist", "machine learning", "software engineer", "software developer", "cyber security")
 
 EXPERIENCE_PATTERNS = (
     r"(?:minimum(?: of)?|at least|requires?|with)\s+(\d+)\+?\s+years?(?:\s+of)?\s+(?:relevant\s+|professional\s+|commercial\s+)?experience",
@@ -40,6 +41,9 @@ WORK_RIGHTS_TERMS = (
     "no sponsorship",
     "citizen or permanent resident",
     "citizenship or permanent residency",
+    "australian citizen",
+    "security clearance",
+    "baseline clearance",
 )
 
 
@@ -76,6 +80,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
     if family is None:
         return MatchResult("Skip", 15, None, (), (), ("Title is outside the approved role families.",))
 
+    if any(term in title for term in OUT_OF_SCOPE_TITLE_TERMS):
+        return MatchResult(
+            "Skip", 10, None, (), (),
+            ("Title is outside the current analytics, BI and business-analysis search focus.",),
+        )
+
     seniority_text = f"{title} {_normalise(job.seniority)}"
     if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
         return MatchResult("Review", 25, family, (), (), ("The role title or stated seniority appears senior; check the experience requirements before applying.",))
@@ -90,6 +100,12 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
             (),
             (requirement,),
             (f"The listing appears to require {requirement}; verify that your evidence supports it before applying.",),
+        )
+
+    if any(term in text for term in ("security clearance", "baseline clearance", "australian citizen", "citizen or permanent resident")):
+        return MatchResult(
+            "Review", 30, family, (), ("eligibility or clearance requirement",),
+            ("The role states an eligibility, citizenship or clearance condition; confirm it yourself before preparing an application.",),
         )
 
     matched = tuple(skill for skill in profile.skills if skill in text)

@@ -235,4 +235,5 @@ def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_pat
     assert "New this week" in page
     assert "source(s) unavailable" in page
     assert "Daily priorities" in page
+    assert "System health" in page
     assert "4 boards checked" in page
