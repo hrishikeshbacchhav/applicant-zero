@@ -39,6 +39,25 @@ def test_empty_dashboard_has_guidance(tmp_path):
     assert "Applications submitted" in outcomes
 
 
+def test_application_answers_page_offers_private_resume_evidence_inventory(tmp_path):
+    private = tmp_path / "private"
+    private.mkdir()
+    resumes = {}
+    for family in ("data_bi", "power_bi", "business_analysis"):
+        path = private / f"{family}.pdf"
+        path.write_bytes(b"placeholder")
+        resumes[family] = str(path)
+    (private / "candidate_profile.json").write_text(json.dumps({
+        "contact": {"legal_name": "Rishi", "email": "r@example.com", "phone": "0400", "current_location": "Sydney"},
+        "availability": {"full_time_from": "2026-11-15"},
+        "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
+        "resumes": resumes,
+    }), encoding="utf-8")
+    page = build_answers_page(tmp_path / "data" / "jobs.sqlite3")
+    assert "Approved résumé evidence" in page
+    assert "Refresh résumé evidence inventory" in page
+
+
 def test_manual_action_queue_persists_and_can_be_completed(tmp_path):
     path = tmp_path / "jobs.sqlite3"
     database = initialise_database(path)

@@ -26,6 +26,7 @@ from .platform_pilots import build_platform_pilots_page
 from .discovery_registry import discovery_overview, employer_coverage_rows
 from .material_manifest import create_material_manifest, material_manifest_path
 from .session_trace import load_trace
+from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory, inventory_path
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
@@ -243,8 +244,11 @@ def build_answers_page(database_path: Path) -> str:
         f"<input type='hidden' name='key' value='{html.escape(key, quote=True)}'><button type='submit'>Save</button></form>"
         for key, label in CONFIRMATION_FIELDS.items()
     )
+    inventory = inventory_path(project_root)
+    inventory_status = "<p class='ready'>Private résumé evidence inventory is ready. AI tailoring can use exact source wording from the matching approved PDF.</p>" if inventory.exists() else "<p class='help'>Create a private evidence inventory from your approved PDFs. It reads the files locally and never changes them.</p>"
+    inventory_action = "<form method='post' action='/resume-inventory'><button type='submit'>Refresh résumé evidence inventory</button></form>"
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Application answers</title><style>
-*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:800px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}.card{{background:#fff;padding:20px;margin:16px 0;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a{{color:#1261a0;font-weight:bold}}form{{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:14px 0}}label{{font-weight:bold}}input{{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #c7d2e3;border-radius:6px}}button{{padding:10px 16px;border:0;border-radius:6px;background:#163b67;color:#fff;cursor:pointer}}li{{margin:7px 0}}.help{{color:#667085}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Reusable application answers</h1><p class='help'>These values stay in your private folder. Empty answers will never be guessed or filled automatically.</p><section class='card'><h2>Verified from your candidate profile</h2><ul>{verified_items}</ul></section><section class='card'><h2>Confirm once, reuse later</h2>{fields}</section></main></body></html>"""
+*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:800px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}.card{{background:#fff;padding:20px;margin:16px 0;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a{{color:#1261a0;font-weight:bold}}form{{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:14px 0}}label{{font-weight:bold}}input{{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #c7d2e3;border-radius:6px}}button{{padding:10px 16px;border:0;border-radius:6px;background:#163b67;color:#fff;cursor:pointer}}li{{margin:7px 0}}.help{{color:#667085}}.ready{{color:#12643b}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Reusable application answers</h1><p class='help'>These values stay in your private folder. Empty answers will never be guessed or filled automatically.</p><section class='card'><h2>Verified from your candidate profile</h2><ul>{verified_items}</ul></section><section class='card'><h2>Approved résumé evidence</h2>{inventory_status}{inventory_action}</section><section class='card'><h2>Confirm once, reuse later</h2>{fields}</section></main></body></html>"""
 
 
 def build_resume_copy_page(database_path: Path, external_id: str) -> str:
@@ -493,12 +497,27 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/resume-inventory":
+                try:
+                    create_resume_evidence_inventory(database_path.parent.parent)
+                except ResumeEvidenceError as error:
+                    content = f"<h1>Résumé evidence inventory was not created</h1><p>{html.escape(str(error))}</p><p><a href='/answers'>Return to application answers</a></p>".encode("utf-8")
+                    self.send_response(400)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                self.send_response(303)
+                self.send_header("Location", "/answers")
+                self.end_headers()
+                return
             if self.path == "/material-manifest":
                 try:
                     create_material_manifest(database_path, external_id)
