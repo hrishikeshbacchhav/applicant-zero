@@ -25,6 +25,7 @@ from .reporting import outcome_summary, tracker_csv
 from .platform_pilots import build_platform_pilots_page
 from .discovery_registry import discovery_overview
 from .material_manifest import create_material_manifest, material_manifest_path
+from .session_trace import load_trace
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
@@ -322,6 +323,10 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         button_label = "Open assisted application" if route["support_level"] in {"assisted", "pilot"} else "Open supervised login handoff"
         browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>{button_label}</button></form>"
     saved_draft = load_ai_draft(database_path, external_id)
+    session_trace = load_trace(database_path, external_id)
+    trace_link = ""
+    if session_trace:
+        trace_link = f"<p class='help'><a href='/session-trace?{urlencode({'external_id': external_id})}'>View browser session trace</a> · {len(session_trace.get('events', []))} recorded event(s)</p>"
     question_drafts = load_question_drafts(database_path, external_id)
     resume_review_button = f"<form method='post' action='/resume-review'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create tailored resume review</button></form>"
     resume_copy_button = f"<form method='post' action='/resume-copy'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create editable role copy</button></form>"
@@ -375,12 +380,29 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
 <body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
-<section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p></section>
+<section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p>{trace_link}</section>
 <section class='card'><h2>Application readiness</h2><p class='{'ready' if ready_to_submit else 'notice'}'>{html.escape(readiness_status)}</p><ol>{readiness_rows}</ol><form method='post' action='/review-materials'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><input name='review_note' placeholder='Optional review note'><button type='submit'>Mark materials reviewed</button></form></section>
 <section class='card'><h2>Application question workspace</h2><p>Paste an unfamiliar role-specific application question to produce a private review draft from your verified evidence. Visa, work-rights, identity and health questions remain for you to answer directly.</p><form method='post' action='/question-draft' class='stacked'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><label>Application question<textarea name='question' required placeholder='Paste the employer question here'></textarea></label><button type='submit'>Draft truthful response</button></form>{question_items}</section>
 <section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol>{manifest_button}{manifest_status}<form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}{resume_copy_button}{resume_copy_status}</section>
 <section class='card'><h2>After you submit</h2><p>Applicant Zero never submits for you. After the employer site confirms your submission, save one confirmation detail here to update the tracker.</p>{proof_html}</section>
 {draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
+
+
+def build_session_trace_page(database_path: Path, external_id: str) -> str:
+    """Render the candidate's private browser handoff history for one role."""
+    trace = load_trace(database_path, external_id)
+    query = urlencode({"external_id": external_id})
+    if not trace:
+        return f"<!doctype html><title>No browser trace</title><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>No browser session has been recorded</h1><p>Open browser assistance for this role to start a private session trace.</p></main>"
+    events = []
+    for item in trace.get("events", []):
+        screenshot = str(item.get("screenshot", "")).strip()
+        evidence = f"<p class='muted'>Screenshot saved privately: {html.escape(Path(screenshot).name)}</p>" if screenshot else ""
+        page_url = str(item.get("page_url", "")).strip()
+        url = f"<p><a href='{html.escape(page_url, quote=True)}' target='_blank' rel='noreferrer'>Open recorded page</a></p>" if page_url else ""
+        events.append(f"<article><strong>{html.escape(str(item.get('event', '')).replace('_', ' ').title())}</strong><span>{html.escape(str(item.get('at', '')))}</span><p>{html.escape(str(item.get('detail', '')))}</p>{url}{evidence}</article>")
+    event_html = "".join(events) or "<p>No events were recorded before the browser closed.</p>"
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Browser trace</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:860px;margin:0 auto;padding:36px 24px}}a{{color:#1261a0;font-weight:bold}}h1{{color:#163b67}}article{{background:#fff;border-radius:9px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 4px #dce3ee}}article strong{{color:#163b67;display:block}}article span,.muted{{font-size:13px;color:#667085}}article p{{line-height:1.5}}</style></head><body><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Browser session trace</h1><p>{html.escape(str(trace.get('job', {}).get('title', 'Application')))} · {html.escape(str(trace.get('job', {}).get('company', '')))} · {html.escape(str(trace.get('platform', '')))}</p><p class='muted'>This local trace records browser-assistance events. It does not record passwords and it never records a submitted application unless you save the employer confirmation separately.</p>{event_html}</main></body></html>"""
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
@@ -395,6 +417,9 @@ def serve(database_path: Path, port: int = 8765) -> None:
             if parsed.path == "/brief":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 content = build_brief_page(database_path, external_id).encode("utf-8")
+            elif parsed.path == "/session-trace":
+                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
+                content = build_session_trace_page(database_path, external_id).encode("utf-8")
             elif parsed.path == "/resume-review":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 review = load_resume_review(database_path, external_id)

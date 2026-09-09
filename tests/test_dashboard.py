@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page
+from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page, build_session_trace_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -147,6 +147,20 @@ def test_supported_route_offers_supervised_browser_assistance(tmp_path):
     assert "Lever" in brief
     assert "Browser assistance ready" in brief
     assert "Open assisted application" in brief
+
+
+def test_browser_trace_page_is_private_and_linked_from_brief(tmp_path):
+    path = tmp_path / "project" / "data" / "jobs.sqlite3"
+    database = initialise_database(path)
+    job = Job("lever:example:1", "Data Analyst", "Example", "Sydney", "Lever", "https://jobs.lever.co/example/1", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    from applicant_zero.session_trace import append_trace, start_trace
+    start_trace(path, job.external_id, "Lever", "https://jobs.lever.co/example/1/apply")
+    append_trace(path, job.external_id, "required_question", "Review a required question.")
+    assert "View browser session trace" in build_brief_page(path, job.external_id)
+    trace_page = build_session_trace_page(path, job.external_id)
+    assert "Browser session trace" in trace_page
+    assert "Review a required question." in trace_page
 
 
 def test_login_required_route_offers_supervised_handoff(tmp_path):
