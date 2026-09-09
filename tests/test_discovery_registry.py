@@ -1,0 +1,19 @@
+from pathlib import Path
+
+from applicant_zero.discovery_registry import load_sources, load_targets
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_source_register_has_public_and_manual_routes():
+    sources = load_sources(ROOT / "data" / "discovery_sources.starter.json")
+    assert {source.identifier for source in sources} >= {"lever", "greenhouse", "ashby", "seek", "linkedin"}
+    assert any(source.mode == "public_ats_api" for source in sources)
+
+
+def test_target_universe_is_deduplicated_and_prioritised():
+    targets = load_targets(ROOT / "data" / "target_companies.starter.json")
+    assert len(targets) >= 75
+    assert len({item.company.casefold() for item in targets}) == len(targets)
+    assert targets[0].priority == 1
