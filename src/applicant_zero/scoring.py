@@ -54,6 +54,17 @@ WORK_RIGHTS_TERMS = (
 
 ENTRY_LEVEL_TERMS = ("graduate", "junior", "entry level", "entry-level", "early career", "0-2 years")
 
+# These phrases signal a requirement that is substantially more specific than a
+# role title.  We do not infer that Rishi has led initiatives or worked in a
+# regulated care setting merely because the title is an otherwise suitable
+# analyst title.  Hold these roles for a human evidence check instead of
+# presenting them as ready to apply.
+EVIDENCE_CHECK_PATTERNS = (
+    (r"\blead(?:ing)?\s+(?:the\s+)?requirements\s+gathering\b", "independent requirements-gathering leadership"),
+    (r"\b(?:aged care|home care|disability care)\s+(?:sector\s+)?experience\b", "direct care-sector experience"),
+    (r"\bcontinuous improvement plan\b", "continuous-improvement delivery experience"),
+)
+
 
 def _direct_title_alignment(title: str, family: str) -> bool:
     """Return whether the title itself names one of the core search targets."""
@@ -83,6 +94,11 @@ def _required_experience_years(description: str) -> int | None:
     for pattern in EXPERIENCE_PATTERNS:
         matches.extend(int(value) for value in re.findall(pattern, description))
     return max(matches) if matches else None
+
+
+def _evidence_gaps(description: str) -> tuple[str, ...]:
+    """Return high-impact requirements that cannot safely be inferred."""
+    return tuple(label for pattern, label in EVIDENCE_CHECK_PATTERNS if re.search(pattern, description))
 
 
 def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
@@ -132,6 +148,21 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         return MatchResult(
             "Review", 30, family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family), (), ("eligibility or clearance requirement",),
             ("The role states an eligibility, citizenship or clearance condition; confirm it yourself before preparing an application.",),
+        )
+
+    evidence_gaps = _evidence_gaps(description)
+    if evidence_gaps:
+        return MatchResult(
+            "Review",
+            45,
+            family,
+            (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family),
+            (),
+            evidence_gaps,
+            (
+                "The listing has role-specific experience requirements that are not established by the current evidence; review them before preparing an application.",
+                "Requirements to verify: " + ", ".join(evidence_gaps) + ".",
+            ),
         )
 
     matched = tuple(skill for skill in profile.skills if skill in text)

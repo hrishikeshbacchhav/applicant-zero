@@ -105,3 +105,20 @@ def test_unrelated_analyst_title_is_filtered_before_it_clutters_queue():
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Skip"
     assert "outside the selected" in " ".join(result.reasons)
+
+
+def test_unverified_sector_and_leadership_requirements_hold_role_for_review():
+    job = Job(
+        "17",
+        "Business and Process Analyst",
+        "Example",
+        "Sydney, NSW",
+        "test",
+        "https://example.invalid",
+        "Lead the requirements gathering and delivery planning for initiatives from our Continuous Improvement Plan. Aged care sector experience is required.",
+    )
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation == "Review"
+    assert "independent requirements-gathering leadership" in result.missing_requirements
+    assert "direct care-sector experience" in result.missing_requirements
+    assert "continuous-improvement delivery experience" in result.missing_requirements
