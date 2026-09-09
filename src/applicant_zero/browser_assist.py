@@ -33,6 +33,26 @@ def _descriptor(element) -> str:
         value = element.get_attribute(attribute)
         if value:
             values.append(value)
+    # Lever and similar application forms sometimes keep the useful field name
+    # only in the visible label.  Use that nearby label solely for identifying
+    # a safe, known answer; never to infer an answer.
+    try:
+        label_text = element.evaluate(
+            """node => {
+                const labels = [];
+                if (node.id) {
+                    const label = document.querySelector(`label[for="${CSS.escape(node.id)}"]`);
+                    if (label) labels.push(label.innerText);
+                }
+                const wrapper = node.closest('label, [data-qa], .application-question, .field');
+                if (wrapper) labels.push(wrapper.innerText);
+                return labels.join(' ').slice(0, 500);
+            }"""
+        )
+        if label_text:
+            values.append(label_text)
+    except Exception:
+        pass
     return " ".join(values).lower()
 
 

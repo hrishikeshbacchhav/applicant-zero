@@ -34,6 +34,8 @@ class FakeElement:
     def evaluate(self, script):
         if "tagName" in script:
             return self.attrs.get("tag", "input")
+        if "CSS.escape" in script:
+            return self.attrs.get("label", "")
         self.highlighted = True
 
 
@@ -66,7 +68,7 @@ def test_prefill_uses_confirmed_answers_and_leaves_work_rights_unanswered(tmp_pa
     resume.write_text("resume", encoding="utf-8")
     first_name = FakeElement({"name": "first_name", "required": ""})
     email = FakeElement({"name": "email", "type": "email", "required": ""})
-    salary = FakeElement({"name": "salary_expectations", "type": "number", "required": ""})
+    salary = FakeElement({"name": "form_field_7", "type": "number", "label": "Base salary", "required": ""})
     work_rights = FakeElement({"name": "work_rights_visa", "required": ""})
     resume_field = FakeElement({"name": "resume", "type": "file", "required": ""}, visible=False)
     page = FakePage([first_name, email, salary, work_rights, resume_field])
