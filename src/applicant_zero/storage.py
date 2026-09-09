@@ -119,6 +119,20 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS manual_actions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            external_id TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            title TEXT NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'Open',
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            completed_at TEXT
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS refresh_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source TEXT NOT NULL,
@@ -497,6 +511,35 @@ def complete_followup(connection: sqlite3.Connection, external_id: str, note: st
         (note.strip()[:1000], external_id),
     )
     log_application_event(connection, external_id, "follow_up", "completed", "Candidate completed the planned application follow-up.")
+    connection.commit()
+
+
+def save_manual_action(connection: sqlite3.Connection, external_id: str, kind: str, title: str, detail: str = "") -> None:
+    connection.execute(
+        """INSERT INTO manual_actions (external_id, kind, title, detail)
+           VALUES (?, ?, ?, ?)""",
+        (external_id, kind.strip()[:80], title.strip()[:200], detail.strip()[:1000]),
+    )
+    connection.commit()
+
+
+def list_manual_actions(connection: sqlite3.Connection, include_completed: bool = False) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    where = "" if include_completed else "WHERE a.status = 'Open'"
+    rows = connection.execute(
+        f"""SELECT a.id, a.external_id, a.kind, a.title, a.detail, a.status, a.created_at,
+                   j.company, j.url
+            FROM manual_actions a LEFT JOIN job_matches j ON j.external_id = a.external_id
+            {where} ORDER BY a.created_at DESC"""
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def complete_manual_action(connection: sqlite3.Connection, action_id: int) -> None:
+    connection.execute(
+        "UPDATE manual_actions SET status = 'Completed', completed_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (action_id,),
+    )
     connection.commit()
 
 

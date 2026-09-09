@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page
+from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -21,8 +21,11 @@ from applicant_zero.storage import (
     save_material_review,
     save_submission_proof,
     complete_followup,
+    complete_manual_action,
+    list_manual_actions,
     record_refresh_run,
     update_workflow,
+    save_manual_action,
 )
 
 
@@ -34,6 +37,17 @@ def test_empty_dashboard_has_guidance(tmp_path):
     outcomes = build_outcomes_page(tmp_path / "missing.sqlite3")
     assert "Search progress" in outcomes
     assert "Applications submitted" in outcomes
+
+
+def test_manual_action_queue_persists_and_can_be_completed(tmp_path):
+    path = tmp_path / "jobs.sqlite3"
+    database = initialise_database(path)
+    save_manual_action(database, "job-1", "captcha", "Complete CAPTCHA", "Complete the employer CAPTCHA, then resume the application.")
+    assert len(list_manual_actions(database)) == 1
+    assert "Complete CAPTCHA" in build_actions_page(path)
+    action_id = list_manual_actions(database)[0]["id"]
+    complete_manual_action(database, action_id)
+    assert list_manual_actions(database) == []
 
 
 def test_dashboard_includes_local_workflow_tracker(tmp_path):

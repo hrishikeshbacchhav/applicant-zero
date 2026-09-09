@@ -41,6 +41,8 @@ from .storage import (
     save_material_review,
     save_submission_proof,
     complete_followup,
+    complete_manual_action,
+    list_manual_actions,
     save_platform_pilot,
     update_workflow,
 )
@@ -172,13 +174,23 @@ button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 1
 .focus-panel{{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:22px;align-items:start;background:linear-gradient(135deg,#163b67,#1c4d85);color:#fff;border-radius:12px;padding:22px 24px;margin:22px 0;box-shadow:0 4px 14px #ced8e6}}.focus-panel h2{{font-size:19px;line-height:1.35;margin:0}}.focus-panel .eyebrow{{font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.09em;margin:0 0 8px;color:#bcd6f4}}.focus-panel ul{{padding-left:20px;margin:4px 0;line-height:1.55}}.focus-panel li{{margin:7px 0}}.focus-panel a{{color:#fff;text-decoration:underline;text-underline-offset:3px}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:900px){{main{{padding:20px}}.insight-grid{{grid-template-columns:repeat(2,1fr)}}.focus-panel{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:16px}}.insight-grid{{grid-template-columns:1fr 1fr;gap:8px}}.insight{{padding:12px}}.focus-panel{{padding:18px}}.import-form{{grid-template-columns:1fr}}}}
-</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/answers'>Application answers</a> · <a href='/daily-digest'>Daily priorities</a> · <a href='/outcomes'>Search progress</a> · <a href='/platform-pilots'>Platform pilots</a> · <a href='/export-tracker'>Export tracker</a> · <a href='/health'>System health</a></p>{insights}
+</style></head><body><main><h1>Applicant Zero</h1><p class='subtitle'>Local job review queue. Opening a link does not submit an application. · <a href='/actions'>Manual actions</a> · <a href='/answers'>Application answers</a> · <a href='/daily-digest'>Daily priorities</a> · <a href='/outcomes'>Search progress</a> · <a href='/platform-pilots'>Platform pilots</a> · <a href='/export-tracker'>Export tracker</a> · <a href='/health'>System health</a></p>{insights}
 {focus_panel}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
 <div class='filters'><button class='active' onclick="filterRows('All',this)">All</button><button onclick="filterRows('Strong apply',this)">Strong apply</button><button onclick="filterRows('Apply',this)">Apply</button><button onclick="filterRows('Review',this)">Review</button><button onclick="filterRows('Skip',this)">Skip</button></div>
 <div class='controls'><input id='search' type='search' placeholder='Search role, company or location' oninput='refreshRows()'><select id='company' onchange='refreshRows()'><option value='All'>All companies</option>{company_select}</select><select id='source' onchange='refreshRows()'><option value='All'>All sources</option>{source_select}</select><select id='workflow' onchange='refreshRows()'><option value='All'>All tracker stages</option>{''.join(f"<option value='{status}'>{status}</option>" for status in WORKFLOW_STATUSES)}</select><button id='current-toggle' class='active' onclick='toggleCurrent(this)'>Current listings</button><button id='live-toggle' class='active' onclick='toggleLive(this)'>Live sources</button><button id='new-toggle' onclick='toggleNew(this)'>New this week</button></div>
 <div class='table-wrap'><table><thead><tr><th>Role</th><th>Location / source</th><th>Recommendation</th><th>Résumé</th><th>Why</th><th>Your tracker</th></tr></thead><tbody>{body}</tbody></table></div><div id='no-results'>No listings match the selected filters.</div>
 </main><script>let recommendation='All';let liveOnly=true;let currentOnly=true;let newOnly=false;function filterRows(status,button){{recommendation=status;document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));button.classList.add('active');refreshRows()}}function toggleLive(button){{liveOnly=!liveOnly;button.classList.toggle('active',liveOnly);refreshRows()}}function toggleCurrent(button){{currentOnly=!currentOnly;button.classList.toggle('active',currentOnly);refreshRows()}}function toggleNew(button){{newOnly=!newOnly;button.classList.toggle('active',newOnly);refreshRows()}}function refreshRows(){{const search=document.getElementById('search').value.toLowerCase();const source=document.getElementById('source').value;const company=document.getElementById('company').value;const workflow=document.getElementById('workflow').value;let visible=0;document.querySelectorAll('tbody tr.job-row').forEach(row=>{{const show=(recommendation==='All'||row.dataset.status===recommendation)&&(workflow==='All'||row.dataset.workflow===workflow)&&(!liveOnly||row.dataset.demo!=='true')&&(!currentOnly||row.dataset.active==='true')&&(!newOnly||row.dataset.new==='true')&&(source==='All'||row.dataset.source===source)&&(company==='All'||row.dataset.company===company)&&row.dataset.search.includes(search);row.style.display=show?'':'none';if(show)visible++}});document.getElementById('no-results').style.display=visible?'none':'block'}}refreshRows()</script></body></html>"""
+
+
+def build_actions_page(database_path: Path) -> str:
+    with sqlite3.connect(database_path) as connection:
+        actions = list_manual_actions(connection)
+    rows = "".join(
+        f"<article><h2>{html.escape(action['title'])}</h2><p><strong>{html.escape(action['kind'].replace('_', ' ').title())}</strong> · {html.escape(str(action.get('company') or 'Imported role'))}</p><p>{html.escape(action['detail'])}</p><form method='post' action='/complete-action'><input type='hidden' name='action_id' value='{action['id']}'><button>Mark completed</button></form></article>"
+        for action in actions
+    ) or "<article><h2>No manual actions</h2><p>CAPTCHA, login, verification and unfamiliar-question handoffs will appear here.</p></article>"
+    return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Manual actions</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}button{{padding:9px 13px;border:1px solid #aabbd2;border-radius:6px;background:#fff;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Manual action queue</h1><p>Only the few steps that need your attention appear here.</p>{rows}</main></body></html>"""
 
 
 def build_answers_page(database_path: Path) -> str:
@@ -378,6 +390,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 return
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
+            elif parsed.path == "/actions":
+                content = build_actions_page(database_path).encode("utf-8")
             elif parsed.path == "/outcomes":
                 content = build_outcomes_page(database_path).encode("utf-8")
             elif parsed.path == "/daily-digest":
@@ -406,7 +420,7 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/resume-copy", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/platform-pilot"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/import", "/resume-review", "/resume-copy", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
@@ -438,6 +452,18 @@ def serve(database_path: Path, port: int = 8765) -> None:
                     complete_followup(connection, external_id, values.get("followup_note", [""])[0])
                 self.send_response(303)
                 self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
+            if self.path == "/complete-action":
+                try:
+                    action_id = int(values.get("action_id", ["0"])[0])
+                except ValueError:
+                    self.send_error(400)
+                    return
+                with sqlite3.connect(database_path) as connection:
+                    complete_manual_action(connection, action_id)
+                self.send_response(303)
+                self.send_header("Location", "/actions")
                 self.end_headers()
                 return
             if self.path == "/question-draft":
