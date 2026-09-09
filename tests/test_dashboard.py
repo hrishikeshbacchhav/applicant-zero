@@ -50,6 +50,13 @@ def test_manual_action_queue_persists_and_can_be_completed(tmp_path):
     assert list_manual_actions(database) == []
 
 
+def test_manual_action_queue_deduplicates_an_open_handoff(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_manual_action(database, "job-1", "captcha", "Complete CAPTCHA", "Complete it in the browser.")
+    save_manual_action(database, "job-1", "captcha", "Complete CAPTCHA", "Same browser action repeated.")
+    assert len(list_manual_actions(database)) == 1
+
+
 def test_dashboard_includes_local_workflow_tracker(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")

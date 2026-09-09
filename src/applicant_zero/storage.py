@@ -515,6 +515,13 @@ def complete_followup(connection: sqlite3.Connection, external_id: str, note: st
 
 
 def save_manual_action(connection: sqlite3.Connection, external_id: str, kind: str, title: str, detail: str = "") -> None:
+    existing = connection.execute(
+        """SELECT id FROM manual_actions
+           WHERE external_id = ? AND kind = ? AND title = ? AND status = 'Open'""",
+        (external_id, kind.strip()[:80], title.strip()[:200]),
+    ).fetchone()
+    if existing:
+        return
     connection.execute(
         """INSERT INTO manual_actions (external_id, kind, title, detail)
            VALUES (?, ?, ?, ?)""",

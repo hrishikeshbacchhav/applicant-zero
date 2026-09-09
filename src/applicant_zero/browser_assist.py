@@ -52,6 +52,22 @@ def _next_step_button(page):
     return None
 
 
+def _submit_button_present(page) -> bool:
+    """Detect a final handoff without clicking it."""
+    try:
+        controls = page.locator("button, input[type='submit']")
+        for index in range(controls.count()):
+            control = controls.nth(index)
+            if not control.is_visible() or not control.is_enabled():
+                continue
+            label = " ".join(filter(None, [control.inner_text().strip(), control.get_attribute("value"), control.get_attribute("aria-label")])).lower()
+            if re.search(r"\b(submit|apply now|send application|finish application)\b", label):
+                return True
+    except Exception:
+        return False
+    return False
+
+
 def browser_setup_issue() -> str:
     try:
         import playwright.sync_api  # noqa: F401
@@ -215,6 +231,30 @@ def _prefill_page(page, job: dict, profile: dict, answers: dict) -> tuple[int, i
     return filled, unresolved
 
 
+def _unresolved_labels(page, limit: int = 5) -> list[str]:
+    """Return short labels for required fields that still need a human answer."""
+    labels: list[str] = []
+    required = page.locator("input[required], textarea[required], select[required], [aria-required='true']")
+    for index in range(required.count()):
+        element = required.nth(index)
+        try:
+            if not element.is_visible():
+                continue
+            tag = element.evaluate("node => node.tagName.toLowerCase()")
+            input_type = (element.get_attribute("type") or "").lower()
+            complete = element.is_checked() if input_type in {"checkbox", "radio"} else bool(element.input_value().strip())
+            if complete:
+                continue
+            label = re.sub(r"\s+", " ", _descriptor(element)).strip()
+            if label and label not in labels:
+                labels.append(label[:180])
+            if len(labels) >= limit:
+                break
+        except Exception:
+            continue
+    return labels
+
+
 def run_browser_assistant(database_path: Path, external_id: str) -> None:
     try:
         setup_issue = browser_setup_issue()
@@ -256,6 +296,14 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             page.goto(route.apply_url, wait_until="domcontentloaded", timeout=45_000)
             page.wait_for_timeout(2_000)
             if route.support_level in {"login_required", "complex"}:
+                with sqlite3.connect(database_path) as connection:
+                    save_manual_action(
+                        connection,
+                        external_id,
+                        "account",
+                        "Complete employer sign-in or account step",
+                        "Sign in or complete the employer's account step in the open browser. Applicant Zero will wait for the application form and then continue with recognised fields.",
+                    )
                 _log(
                     database_path,
                     external_id,
@@ -272,10 +320,13 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
             # page the assistant fills newly visible, verified fields.  It can
             # proceed through an ordinary "Next" step only when every required
             # field is already complete and no CAPTCHA is present.  It never
-            # selects legal/identity answers and never clicks final submission.
+            # selects only explicitly saved, recognised answers and never
+            # clicks final submission.
             total_filled = 0
             last_signature = ""
             captcha_handoff_recorded = False
+            question_handoff_signature = ""
+            final_handoff_recorded = False
             while context.pages:
                 page = context.pages[-1]
                 try:
@@ -309,10 +360,39 @@ def run_browser_assistant(database_path: Path, external_id: str) -> None:
                         captcha_handoff_recorded = True
                     page.wait_for_timeout(1_000)
                     continue
+                if unresolved:
+                    if signature != question_handoff_signature:
+                        labels = _unresolved_labels(page)
+                        detail = "Review the highlighted required field(s) in the open browser."
+                        if labels:
+                            detail += " Detected: " + "; ".join(labels)
+                        with sqlite3.connect(database_path) as connection:
+                            save_manual_action(
+                                connection,
+                                external_id,
+                                "unknown_question",
+                                "Complete required application question",
+                                detail,
+                            )
+                        _log(database_path, external_id, "candidate_action_required", detail)
+                        question_handoff_signature = signature
+                    page.wait_for_timeout(1_000)
+                    continue
                 if unresolved == 0 and next_button is not None:
                     next_button.click()
                     page.wait_for_timeout(1_000)
                     continue
+                if unresolved == 0 and _submit_button_present(page) and not final_handoff_recorded:
+                    with sqlite3.connect(database_path) as connection:
+                        save_manual_action(
+                            connection,
+                            external_id,
+                            "final_submission",
+                            "Review and submit application",
+                            "All recognised required fields are complete. Review the application in the employer browser and choose the final Submit button yourself only when satisfied.",
+                        )
+                    _log(database_path, external_id, "ready_for_final_review", "The employer's final submit control is visible; Applicant Zero did not click it.")
+                    final_handoff_recorded = True
                 page.wait_for_timeout(1_000)
             _log(database_path, external_id, "closed", "The assisted browser was closed without Applicant Zero clicking submit.")
             if job["workflow_status"] in {"New", "Saved"}:
