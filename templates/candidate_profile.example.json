@@ -3,14 +3,21 @@
     "legal_name": "REPLACE_WITH_YOUR_LEGAL_NAME",
     "email": "REPLACE_WITH_YOUR_EMAIL",
     "phone": "REPLACE_WITH_YOUR_PHONE",
-    "current_location": "Sydney, NSW"
+    "current_location": "Sydney, NSW",
+    "address": "REPLACE_WITH_YOUR_ADDRESS"
   },
   "availability": {
     "full_time_from": "REPLACE_WITH_CONFIRMED_DATE"
   },
   "eligibility": {
     "current_work_rights": "REPLACE_WITH_YOUR_TRUE_CURRENT_STATUS",
-    "requires_sponsorship_answer": "REPLACE_WITH_YOUR_TRUTHFUL_ANSWER"
+    "requires_sponsorship_answer": "REPLACE_WITH_YOUR_TRUTHFUL_ANSWER",
+    "visa_type": "REPLACE_WITH_YOUR_TRUE_CURRENT_VISA_TYPE",
+    "citizenship_status": "REPLACE_WITH_YOUR_TRUE_CITIZENSHIP_OR_RESIDENCY_STATUS"
+  },
+  "identity": {
+    "pronouns": "REPLACE_IF_YOU_WANT_THIS_PRE-FILLED",
+    "ethnicity": "REPLACE_IF_YOU_WANT_TO_PROVIDE_THIS_WHEN_ASKED"
   },
   "resumes": {
     "data_bi": "REPLACE_WITH_FULL_PATH_TO_DATA_BI_RESUME.pdf",

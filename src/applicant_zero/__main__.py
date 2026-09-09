@@ -6,6 +6,9 @@ from .ai_drafting import check_tailoring_setup
 from .daily_digest import create_daily_digest
 from .dashboard import serve
 from .private_profile import check_profile
+from .private_profile import load_profile
+from .application_answers import ensure_answer_library
+from .candidate_facts import ensure_fact_library
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_batch
@@ -15,6 +18,12 @@ from .system_health import health_report
 from .runtime import backup_database, database_path, prepare_state
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def _sync_private_facts(state: Path) -> None:
+    profile = load_profile(state / "private" / "candidate_profile.json")
+    if profile:
+        ensure_fact_library(state, profile, ensure_answer_library(state, profile))
 
 
 def _save_jobs(database, jobs: list[Job], show_all: bool = False) -> list[tuple[Job, object]]:
@@ -77,6 +86,7 @@ def main() -> None:
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
+    _sync_private_facts(state)
     source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check)
     if args.profile_check:
         if source_count or args.dashboard: parser.error("Use --profile-check on its own.")
