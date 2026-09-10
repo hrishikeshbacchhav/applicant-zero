@@ -272,6 +272,7 @@ def test_private_answers_page_can_be_opened_without_showing_contact_values(tmp_p
     page = build_answers_page(project / "data" / "jobs.sqlite3")
     assert "Reusable application answers" in page
     assert "Salary expectations" in page
+    assert "Word masters" in page
     assert "private@example.com" not in page
 
 
@@ -381,6 +382,30 @@ def test_readiness_identifies_the_private_setup_that_is_still_missing(tmp_path):
     assert readiness[0].complete is False
 
 
+def test_readiness_requires_private_source_evidence_for_the_selected_resume(tmp_path):
+    project = tmp_path / "project"
+    private = project / "private"
+    private.mkdir(parents=True)
+    resumes = {}
+    for family in ("data_bi", "power_bi", "business_analysis"):
+        resume = private / f"{family}.pdf"
+        resume.write_text("resume", encoding="utf-8")
+        resumes[family] = str(resume)
+    (private / "candidate_profile.json").write_text(json.dumps({
+        "contact": {"legal_name": "Rishi", "email": "r@example.com", "phone": "0400", "current_location": "Sydney"},
+        "availability": {"full_time_from": "2026-11-15"},
+        "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
+        "resumes": resumes,
+    }), encoding="utf-8")
+    path = project / "data" / "jobs.sqlite3"
+    database = initialise_database(path)
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    readiness = evaluate_application_readiness(path, get_match(database, job.external_id), False)
+    inventory = next(item for item in readiness if item.label == "Resume evidence inventory")
+    assert inventory.complete is False
+
+
 def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid", "SQL")
@@ -403,3 +428,4 @@ def test_discovery_coverage_shows_freshness_breakdown(tmp_path):
     page = build_discovery_page(path)
     assert "recently checked" in page
     assert "not checked yet" in page
+

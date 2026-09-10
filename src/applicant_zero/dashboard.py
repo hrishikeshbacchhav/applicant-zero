@@ -267,7 +267,19 @@ def build_answers_page(database_path: Path) -> str:
         for key, label in CONFIRMATION_FIELDS.items()
     )
     inventory = inventory_path(project_root)
-    inventory_status = "<p class='ready'>Private résumé evidence inventory is ready. AI tailoring can use exact source wording from the matching approved PDF.</p>" if inventory.exists() else "<p class='help'>Create a private evidence inventory from your approved PDFs. It reads the files locally and never changes them.</p>"
+    inventory_status = "<p class='help'>Create a private evidence inventory from your approved PDFs and any linked Word masters. It reads the files locally and never changes them.</p>"
+    if inventory.exists():
+        try:
+            payload = json.loads(inventory.read_text(encoding="utf-8"))
+            pdf_count = len(payload.get("resumes", {}))
+            master_count = len(payload.get("editable_masters", {}))
+            inventory_status = (
+                "<p class='ready'>Private résumé evidence inventory is ready. "
+                f"{pdf_count} approved PDF family{'ies' if pdf_count != 1 else ''} and "
+                f"{master_count} editable Word master{'s' if master_count != 1 else ''} are available as source wording for tailored review.</p>"
+            )
+        except (json.JSONDecodeError, AttributeError):
+            inventory_status = "<p class='help'>The private résumé evidence inventory needs to be refreshed before it can be used.</p>"
     inventory_action = "<form method='post' action='/resume-inventory'><button type='submit'>Refresh résumé evidence inventory</button></form>"
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Application answers</title><style>
 *{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:800px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}.card{{background:#fff;padding:20px;margin:16px 0;border-radius:8px;box-shadow:0 1px 4px #dce3ee}}a{{color:#1261a0;font-weight:bold}}form{{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:14px 0}}label{{font-weight:bold}}input{{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #c7d2e3;border-radius:6px}}button{{padding:10px 16px;border:0;border-radius:6px;background:#163b67;color:#fff;cursor:pointer}}li{{margin:7px 0}}.help{{color:#667085}}.ready{{color:#12643b}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Reusable application answers</h1><p class='help'>These values stay in your private folder. Empty answers will never be guessed or filled automatically.</p><section class='card'><h2>Verified from your candidate profile</h2><ul>{verified_items}</ul></section><section class='card'><h2>Approved résumé evidence</h2>{inventory_status}{inventory_action}</section><section class='card'><h2>Confirm once, reuse later</h2>{fields}</section></main></body></html>"""

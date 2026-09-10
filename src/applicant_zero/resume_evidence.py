@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -44,6 +45,24 @@ def _extract(path: Path) -> tuple[int, str]:
         raise ResumeEvidenceError(f"Could not read approved résumé PDF: {path.name}") from error
 
 
+def _extract_docx(path: Path) -> str:
+    """Read text from a Word master locally without changing the document."""
+    try:
+        from xml.etree import ElementTree
+        with zipfile.ZipFile(path) as archive:
+            document = archive.read("word/document.xml")
+        root = ElementTree.fromstring(document)
+        paragraphs = []
+        namespace = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+        for paragraph in root.iter(f"{namespace}p"):
+            text = "".join(node.text or "" for node in paragraph.iter(f"{namespace}t"))
+            if text.strip():
+                paragraphs.append(text)
+        return "\n".join(paragraphs)
+    except Exception as error:
+        raise ResumeEvidenceError(f"Could not read editable Word master: {path.name}") from error
+
+
 def inventory_path(project_root: Path) -> Path:
     return project_root / "private" / "resume_evidence_inventory.json"
 
@@ -58,6 +77,7 @@ def create_resume_evidence_inventory(project_root: Path) -> Path:
     if not profile:
         raise ResumeEvidenceError("Private candidate profile is not ready.")
     resumes: dict[str, dict] = {}
+    masters: dict[str, dict] = {}
     for family, raw_path in profile.get("resumes", {}).items():
         path = Path(str(raw_path)).expanduser()
         if not path.exists() or path.suffix.casefold() != ".pdf":
@@ -69,10 +89,20 @@ def create_resume_evidence_inventory(project_root: Path) -> Path:
             "pages": pages,
             "source_lines": _candidate_lines(text),
         }
+    for family, raw_path in profile.get("editable_resume_masters", {}).items():
+        path = Path(str(raw_path)).expanduser()
+        if not path.exists() or path.suffix.casefold() != ".docx":
+            continue
+        text = _extract_docx(path)
+        masters[str(family)] = {
+            "filename": path.name,
+            "sha256": _fingerprint(path),
+            "source_lines": _candidate_lines(text),
+        }
     if not resumes:
         raise ResumeEvidenceError("No approved résumé PDFs could be read from the private profile.")
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "created_at": datetime.now().isoformat(timespec="minutes"),
         "rules": [
             "This inventory is private and generated from approved résumé PDFs.",
@@ -80,6 +110,7 @@ def create_resume_evidence_inventory(project_root: Path) -> Path:
             "The approved PDFs and editable masters are never modified by this inventory.",
         ],
         "resumes": resumes,
+        "editable_masters": masters,
     }
     output = inventory_path(project_root)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -94,6 +125,10 @@ def load_lane_resume_evidence(project_root: Path, family: str | None) -> list[st
         return []
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-        return [str(line) for line in payload.get("resumes", {}).get(family, {}).get("source_lines", [])]
+        sources = [
+            *payload.get("resumes", {}).get(family, {}).get("source_lines", []),
+            *payload.get("editable_masters", {}).get(family, {}).get("source_lines", []),
+        ]
+        return _candidate_lines("\n".join(str(line) for line in sources))
     except (json.JSONDecodeError, AttributeError):
         return []

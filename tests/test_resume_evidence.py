@@ -31,3 +31,26 @@ def test_inventory_is_private_and_read_only(monkeypatch, tmp_path):
     assert payload["resumes"]["data_bi"]["filename"] == "resume.pdf"
     assert resume_evidence.load_lane_resume_evidence(tmp_path, "data_bi")
     assert pdf.read_bytes() == b"unchanged"
+
+
+def test_editable_word_master_is_inventoried_and_combined_with_pdf_evidence(monkeypatch, tmp_path):
+    private = tmp_path / "private"
+    private.mkdir()
+    pdf = private / "resume.pdf"
+    pdf.write_bytes(b"unchanged")
+    master = private / "master.docx"
+    master.write_bytes(b"unchanged-word-master")
+    _profile(private, pdf)
+    profile_path = private / "candidate_profile.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    profile["editable_resume_masters"] = {"data_bi": str(master)}
+    profile_path.write_text(json.dumps(profile), encoding="utf-8")
+    monkeypatch.setattr(resume_evidence, "_extract", lambda _: (1, "Built Power BI reporting for internal stakeholders and improved data quality."))
+    monkeypatch.setattr(resume_evidence, "_extract_docx", lambda _: "Mapped requirements and supported data migration planning with stakeholders.")
+
+    path = resume_evidence.create_resume_evidence_inventory(tmp_path)
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["editable_masters"]["data_bi"]["filename"] == "master.docx"
+    assert "Mapped requirements" in " ".join(resume_evidence.load_lane_resume_evidence(tmp_path, "data_bi"))
+    assert master.read_bytes() == b"unchanged-word-master"

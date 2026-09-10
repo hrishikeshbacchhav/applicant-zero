@@ -161,6 +161,8 @@ Copy-Item templates\candidate_evidence.example.json private\candidate_evidence.j
 
 Replace the example sentence with verified facts from your employment, projects and education. Do not add passwords, visa documents, or claims you cannot support.
 
+The **Approved résumé evidence** action also builds a private inventory from each approved PDF and any linked editable Word master. It extracts original wording locally, records file fingerprints, and never edits either source. The readiness checklist requires evidence for the selected résumé family before treating a role as ready for final review.
+
 To enable the drafting button, create an OpenAI API key, then set it for the current terminal session without saving it in Git:
 
 ```powershell

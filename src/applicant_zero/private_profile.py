@@ -42,6 +42,16 @@ def check_profile(path: Path) -> list[str]:
         value = _read_value(profile, key)
         if value and not value.startswith("REPLACE_") and not Path(value).expanduser().exists():
             issues.append(f"Check the file path for {_read_value(profile, key)}.")
+    masters = profile.get("editable_resume_masters", {})
+    if masters and not isinstance(masters, dict):
+        issues.append("Editable resume masters must be a family-to-Word-file mapping.")
+    elif isinstance(masters, dict):
+        for family, value in masters.items():
+            path = Path(str(value)).expanduser()
+            if not str(value).strip() or not path.exists():
+                issues.append(f"Check the editable Word master for {family}.")
+            elif path.suffix.casefold() != ".docx":
+                issues.append(f"Editable resume master for {family} must be a .docx file.")
     return issues
 
 
