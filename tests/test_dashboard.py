@@ -16,6 +16,8 @@ from applicant_zero.storage import (
     list_application_events,
     list_matches,
     mark_company_jobs_inactive,
+    deactivate_stale_broad_feed_jobs,
+    prune_inactive_discovery_records,
     save_match,
     save_board_checks,
     save_material_review,
@@ -211,6 +213,34 @@ def test_refresh_preserves_first_seen_and_marks_missing_jobs_inactive(tmp_path):
     assert refreshed["last_seen_at"] != "2026-01-01 00:00:00"
     mark_company_jobs_inactive(database, "Example", [])
     assert get_match(database, "job-1")["is_active"] == 0
+
+
+def test_discovery_retention_removes_only_old_inactive_untouched_records(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    stale = Job("stale", "Data Analyst", "Example", "Sydney", "Adzuna", "https://example.invalid/stale", "SQL")
+    tracked = Job("tracked", "Data Analyst", "Example", "Sydney", "Adzuna", "https://example.invalid/tracked", "SQL")
+    imported = Job("imported", "Data Analyst", "Example", "Sydney", "Imported · SEEK", "https://example.invalid/imported", "SQL")
+    for job in (stale, tracked, imported):
+        save_match(database, job, score_job(job, RISHI_PROFILE))
+    update_workflow(database, "tracked", "Applied", "Submitted personally")
+    database.execute("UPDATE job_matches SET is_active = 0, last_seen_at = datetime('now', '-61 days')")
+    database.commit()
+
+    assert prune_inactive_discovery_records(database) == 1
+    assert get_match(database, "stale") is None
+    assert get_match(database, "tracked") is not None
+    assert get_match(database, "imported") is not None
+
+
+def test_old_untouched_broad_feed_listing_is_hidden_before_retention(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = Job("broad", "Data Analyst", "Example", "Sydney", "Adzuna", "https://example.invalid/broad", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    database.execute("UPDATE job_matches SET last_seen_at = datetime('now', '-22 days')")
+    database.commit()
+
+    assert deactivate_stale_broad_feed_jobs(database) == 1
+    assert get_match(database, "broad")["is_active"] == 0
 
 
 def test_repeated_listing_is_collapsed_and_reported(tmp_path):

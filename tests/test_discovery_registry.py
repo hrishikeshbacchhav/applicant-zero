@@ -12,6 +12,7 @@ def test_source_register_has_public_and_manual_routes():
     sources = load_sources(ROOT / "data" / "discovery_sources.starter.json")
     assert {source.identifier for source in sources} >= {"lever", "greenhouse", "ashby", "seek", "linkedin"}
     assert any(source.mode == "public_ats_api" for source in sources)
+    assert all({"data_bi", "it_support", "it_general", "administration"} <= set(source.role_lanes) for source in sources)
 
 
 def test_target_universe_is_deduplicated_and_prioritised():

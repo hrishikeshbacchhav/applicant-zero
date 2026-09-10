@@ -1,14 +1,182 @@
 [
-  {"id":"lever","label":"Lever career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"greenhouse","label":"Greenhouse career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"ashby","label":"Ashby career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"smartrecruiters","label":"SmartRecruiters career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support","it_general","administration"]},
-  {"id":"adzuna","label":"Permitted broad job feed","mode":"configured_api","cadence":"daily","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"seek","label":"SEEK","mode":"manual_link","cadence":"candidate_initiated","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"linkedin","label":"LinkedIn Jobs","mode":"manual_link","cadence":"candidate_initiated","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"indeed","label":"Indeed","mode":"manual_link","cadence":"candidate_initiated","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
-  {"id":"gradconnection","label":"GradConnection","mode":"manual_link","cadence":"weekday","role_lanes":["data_bi","business_analysis","it_support"]},
-  {"id":"prosple","label":"Prosple","mode":"manual_link","cadence":"weekday","role_lanes":["data_bi","business_analysis","it_support"]},
-  {"id":"iworkfornsw","label":"I Work for NSW","mode":"manual_link","cadence":"weekday","role_lanes":["data_bi","business_analysis","data_operations","it_support"]},
-  {"id":"apsjobs","label":"APS Jobs","mode":"manual_link","cadence":"weekday","role_lanes":["data_bi","business_analysis","data_operations","it_support"]}
+  {
+    "id": "lever",
+    "label": "Lever career boards",
+    "mode": "public_ats_api",
+    "cadence": "weekday_4h",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "greenhouse",
+    "label": "Greenhouse career boards",
+    "mode": "public_ats_api",
+    "cadence": "weekday_4h",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "ashby",
+    "label": "Ashby career boards",
+    "mode": "public_ats_api",
+    "cadence": "weekday_4h",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "smartrecruiters",
+    "label": "SmartRecruiters career boards",
+    "mode": "public_ats_api",
+    "cadence": "weekday_4h",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "adzuna",
+    "label": "Permitted broad job feed",
+    "mode": "configured_api",
+    "cadence": "daily",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "seek",
+    "label": "SEEK",
+    "mode": "manual_link",
+    "cadence": "candidate_initiated",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "linkedin",
+    "label": "LinkedIn Jobs",
+    "mode": "manual_link",
+    "cadence": "candidate_initiated",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "indeed",
+    "label": "Indeed",
+    "mode": "manual_link",
+    "cadence": "candidate_initiated",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "gradconnection",
+    "label": "GradConnection",
+    "mode": "manual_link",
+    "cadence": "weekday",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "prosple",
+    "label": "Prosple",
+    "mode": "manual_link",
+    "cadence": "weekday",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "iworkfornsw",
+    "label": "I Work for NSW",
+    "mode": "manual_link",
+    "cadence": "weekday",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
+    "id": "apsjobs",
+    "label": "APS Jobs",
+    "mode": "manual_link",
+    "cadence": "weekday",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  }
 ]

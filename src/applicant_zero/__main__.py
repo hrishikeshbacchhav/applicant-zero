@@ -14,7 +14,15 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan
 from .campaigns import active_lanes, discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
-from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
+from .storage import (
+    deactivate_stale_broad_feed_jobs,
+    initialise_database,
+    mark_company_jobs_inactive,
+    prune_inactive_discovery_records,
+    record_refresh_run,
+    save_board_checks,
+    save_match,
+)
 from .system_health import health_report
 from .runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
@@ -29,11 +37,18 @@ def _sync_private_facts(state: Path) -> None:
         ensure_fact_library(state, profile, ensure_answer_library(state, profile))
 
 
-def _save_jobs(database, jobs: list[Job], show_all: bool = False, enabled_lanes: set[str] | None = None) -> list[tuple[Job, object]]:
+def _save_jobs(
+    database,
+    jobs: list[Job],
+    show_all: bool = False,
+    enabled_lanes: set[str] | None = None,
+    persist_skips: bool = True,
+) -> list[tuple[Job, object]]:
     queue = []
     for job in jobs:
         result = score_job(job, RISHI_PROFILE, enabled_lanes)
-        save_match(database, job, result)
+        if persist_skips or result.recommendation != "Skip":
+            save_match(database, job, result)
         queue.append((job, result))
     return queue if show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
 
@@ -50,13 +65,20 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_board_checks(database, reports)
-    visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state))
+    visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state), persist_skips=False)
     for report in reports:
         if report.status == "checked":
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
     checked = sum(report.status == "checked" for report in reports)
     unavailable = sum(report.status == "unavailable" for report in reports)
-    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries run"
+    stale_broad = deactivate_stale_broad_feed_jobs(database)
+    pruned = prune_inactive_discovery_records(database)
+    skipped = len(jobs) - len(visible)
+    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries run; {skipped} hard skips not stored"
+    if stale_broad:
+        detail += f"; {stale_broad} old broad-feed listing(s) marked inactive"
+    if pruned:
+        detail += f"; {pruned} old inactive discovery record(s) removed"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
     record_refresh_run(database, "Daily discovery refresh", len(jobs), len(visible), checked, unavailable, detail)

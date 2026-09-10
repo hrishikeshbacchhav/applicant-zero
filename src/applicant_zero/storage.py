@@ -316,6 +316,50 @@ def mark_company_jobs_inactive(
     return cursor.rowcount
 
 
+def deactivate_stale_broad_feed_jobs(connection: sqlite3.Connection, days: int = 21) -> int:
+    """Hide broad-feed results that have not been seen recently.
+
+    Company boards have an authoritative snapshot on each successful refresh.
+    A broad feed is query-based, so it cannot safely make that claim each run.
+    After a conservative window, untouched Adzuna listings are marked inactive
+    until a later query sees them again. Candidate tracker stages are never
+    changed by this maintenance step.
+    """
+    cursor = connection.execute(
+        """
+        UPDATE job_matches
+        SET is_active = 0, updated_at = CURRENT_TIMESTAMP
+        WHERE lower(source) = 'adzuna'
+          AND is_active = 1
+          AND workflow_status = 'New'
+          AND last_seen_at < datetime('now', ?)
+        """,
+        (f"-{max(1, int(days))} days",),
+    )
+    connection.commit()
+    return cursor.rowcount
+
+
+def prune_inactive_discovery_records(connection: sqlite3.Connection, days: int = 60) -> int:
+    """Remove only old, inactive, untouched discovery noise.
+
+    The candidate's notes, preparation work, submitted applications and all
+    non-New tracker stages stay intact. Imported listings are also retained.
+    """
+    cursor = connection.execute(
+        """
+        DELETE FROM job_matches
+        WHERE is_active = 0
+          AND workflow_status = 'New'
+          AND lower(source) NOT LIKE 'imported%'
+          AND last_seen_at < datetime('now', ?)
+        """,
+        (f"-{max(1, int(days))} days",),
+    )
+    connection.commit()
+    return cursor.rowcount
+
+
 def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> None:
     for report in reports:
         connection.execute(
