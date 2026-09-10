@@ -31,6 +31,7 @@ from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
 from .campaigns import load_campaigns, save_enabled_campaigns
 from .job_intelligence import inspect_job
+from .gmail_sync import gmail_setup_status
 from .storage import (
     WORKFLOW_STATUSES,
     get_followup,
@@ -42,6 +43,8 @@ from .storage import (
     list_board_checks,
     list_followups,
     list_matches,
+    latest_email_sync_run,
+    list_email_events,
     save_material_review,
     save_submission_proof,
     complete_followup,
@@ -190,7 +193,7 @@ button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 1
 .campaign-summary{{display:grid;grid-template-columns:220px minmax(0,1fr) auto;gap:20px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin:18px 0;box-shadow:0 4px 16px rgba(15,48,82,.04)}}.campaign-summary h2{{font-size:18px;color:var(--navy);margin:0}}.campaign-summary p{{color:var(--muted);font-size:13px;line-height:1.45;margin:6px 0 0}}.campaign-summary .eyebrow{{color:var(--blue)}}.campaign-summary ul{{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:8px 16px;list-style:none;padding:0;margin:0}}.campaign-summary li{{border-left:3px solid #c9ddf4;padding-left:9px}}.campaign-summary li strong,.campaign-summary li span{{display:block;font-size:13px}}.campaign-summary li strong{{color:var(--navy)}}.campaign-summary li span{{color:var(--muted);margin-top:2px}}.campaign-summary a{{white-space:nowrap}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:1080px){{body{{grid-template-columns:1fr}}.sidebar{{display:none}}main{{padding:26px}}.insight-grid{{grid-template-columns:repeat(3,1fr)}}.priority-panel,.campaign-summary{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:18px 14px}}.insight-grid{{grid-template-columns:1fr 1fr;gap:8px}}.insight{{padding:12px}}.priority-panel,.campaign-summary{{padding:18px}}.campaign-summary ul{{grid-template-columns:1fr}}.import-form{{grid-template-columns:1fr}}h1{{font-size:26px}}}}
-</style></head><body><aside class='sidebar'><div><div class='brand'>Applicant Zero<span>Job search workspace</span></div><nav><a class='active' href='/'>Review queue</a><a href='/campaigns'>Search campaigns</a><a href='/operations'>Preparation queue</a><a href='/discovery'>Discovery coverage</a><a href='/answers'>Application answers</a><a href='/outcomes'>Search progress</a><a href='/health'>System health</a><a href='/guide'>How to use this</a></nav></div><p class='privacy'>Your candidate profile, answers, résumés and tracker stay in the private local runtime.</p></aside><main><header class='page-header'><div><p class='header-kicker'>Sydney job search</p><h1>Review queue</h1><p class='subtitle'>Find relevant roles, prepare truthful materials, track your personal applications and keep the whole search organised.</p></div></header>{insights}
+</style></head><body><aside class='sidebar'><div><div class='brand'>Applicant Zero<span>Job search workspace</span></div><nav><a class='active' href='/'>Review queue</a><a href='/campaigns'>Search campaigns</a><a href='/operations'>Preparation queue</a><a href='/discovery'>Discovery coverage</a><a href='/answers'>Application answers</a><a href='/email-updates'>Email updates</a><a href='/outcomes'>Search progress</a><a href='/health'>System health</a><a href='/guide'>How to use this</a></nav></div><p class='privacy'>Your candidate profile, answers, résumés and tracker stay in the private local runtime.</p></aside><main><header class='page-header'><div><p class='header-kicker'>Sydney job search</p><h1>Review queue</h1><p class='subtitle'>Find relevant roles, prepare truthful materials, track your personal applications and keep the whole search organised.</p></div></header>{insights}
 {priority_panel}
 {campaign_summary}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
@@ -208,6 +211,28 @@ def build_actions_page(database_path: Path) -> str:
         for action in actions
     ) or "<article><h2>No manual actions</h2><p>CAPTCHA, login, verification and unfamiliar-question handoffs will appear here.</p></article>"
     return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Manual actions</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}button{{padding:9px 13px;border:1px solid #aabbd2;border-radius:6px;background:#fff;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Manual action queue</h1><p>Only the few steps that need your attention appear here.</p>{rows}</main></body></html>"""
+
+
+def build_email_page(database_path: Path) -> str:
+    """Show local, read-only Gmail matching results without exposing mail bodies."""
+    project_root = database_path.parent.parent
+    connected, setup_message = gmail_setup_status(project_root)
+    if database_path.exists():
+        with sqlite3.connect(database_path) as connection:
+            latest = latest_email_sync_run(connection)
+            events = list_email_events(connection)
+    else:
+        latest = None
+        events = []
+    status = "Connected" if connected else "Setup needed"
+    latest_text = "No Gmail sync has run yet."
+    if latest:
+        latest_text = f"Last sync: {latest['completed_at']} · {latest['fetched_count']} new messages recorded · {latest['matched_count']} matched · {latest['updated_count']} tracker updates."
+    rows = "".join(
+        f"<tr><td>{html.escape(event['category'].title())}</td><td>{html.escape(event['company'] or 'No confident match')}</td><td>{html.escape(event['title'] or '')}</td><td>{html.escape(event['subject'] or 'No subject')}</td><td>{html.escape(event['confidence'])}</td><td>{'Yes' if event['tracker_updated'] else 'No'}</td></tr>"
+        for event in events
+    ) or "<tr><td colspan='6'>No job-related email metadata has been recorded yet.</td></tr>"
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Email updates</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:1120px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}section{{background:#fff;border-radius:10px;padding:20px;margin:16px 0;box-shadow:0 1px 4px var(--border);line-height:1.55}}.status{{display:inline-block;padding:5px 9px;border-radius:12px;background:#eaf2fd;color:#15588a;font-weight:bold;font-size:13px}}.note{{background:#eaf2fd;border-left:4px solid #1468b3}}code{{display:block;background:#f4f7fb;padding:10px;border-radius:6px;white-space:pre-wrap}}table{{width:100%;border-collapse:collapse}}th,td{{padding:10px;text-align:left;border-top:1px solid var(--border);vertical-align:top}}th{{color:var(--navy)}}.muted{{color:var(--muted)}}.table-wrap{{overflow:auto}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>Email updates</h1><p>Optional read-only matching for a dedicated job-search Gmail inbox. Applicant Zero never sends, deletes, archives, labels or changes Gmail messages.</p><section><p><span class='status'>{status}</span></p><p>{html.escape(setup_message)}</p><p class='muted'>{html.escape(latest_text)}</p></section><section class='note'><h2>One-time setup</h2><ol><li>Create a separate Gmail address for job applications when ready.</li><li>In Google Cloud, create a Desktop OAuth client, enable Gmail API, then save its downloaded JSON as <code>private/gmail_client_secret.json</code>.</li><li>Install the optional local connector once:</li></ol><code>python -m pip install -e ".[gmail]"</code><p>Then run this in the project terminal:</p><code>$env:PYTHONPATH = "src"\npython -m applicant_zero --gmail-connect</code><p>Google opens its own sign-in and consent window. Applicant Zero requests only <code>gmail.readonly</code>. The private token stays on this computer.</p><p>After that, run a two-day read-only check whenever you want:</p><code>python -m applicant_zero --gmail-sync</code></section><section><h2>Recorded job email updates</h2><p class='muted'>Only sender, subject, message id and the matching outcome are saved locally. Message bodies are used only in memory to classify the current sync and are not stored.</p><div class='table-wrap'><table><thead><tr><th>Type</th><th>Company</th><th>Role</th><th>Subject</th><th>Match</th><th>Tracker updated</th></tr></thead><tbody>{rows}</tbody></table></div></section></main></body></html>"""
 
 
 def build_guide_page() -> str:
@@ -477,6 +502,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 return
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
+            elif parsed.path == "/email-updates":
+                content = build_email_page(database_path).encode("utf-8")
             elif parsed.path == "/actions":
                 content = build_actions_page(database_path).encode("utf-8")
             elif parsed.path == "/campaigns":

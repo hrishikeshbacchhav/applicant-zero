@@ -146,6 +146,33 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS email_sync_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fetched_count INTEGER NOT NULL,
+            matched_count INTEGER NOT NULL,
+            updated_count INTEGER NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS email_events (
+            message_id TEXT PRIMARY KEY,
+            received_at TEXT NOT NULL DEFAULT '',
+            sender TEXT NOT NULL DEFAULT '',
+            subject TEXT NOT NULL DEFAULT '',
+            category TEXT NOT NULL,
+            external_id TEXT,
+            confidence TEXT NOT NULL DEFAULT 'unmatched',
+            tracker_updated INTEGER NOT NULL DEFAULT 0,
+            recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     columns = {row[1] for row in connection.execute("PRAGMA table_info(job_matches)")}
     if "workflow_status" not in columns:
         connection.execute("ALTER TABLE job_matches ADD COLUMN workflow_status TEXT NOT NULL DEFAULT 'New'")
@@ -339,6 +366,70 @@ def latest_refresh_run(connection: sqlite3.Connection) -> dict | None:
         """
     ).fetchone()
     return dict(row) if row else None
+
+
+def save_email_event(
+    connection: sqlite3.Connection,
+    message_id: str,
+    received_at: str,
+    sender: str,
+    subject: str,
+    category: str,
+    external_id: str | None,
+    confidence: str,
+    tracker_updated: bool,
+) -> bool:
+    """Record minimal mail metadata; never retain a Gmail message body locally."""
+    cursor = connection.execute(
+        """
+        INSERT OR IGNORE INTO email_events (
+            message_id, received_at, sender, subject, category, external_id,
+            confidence, tracker_updated
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (message_id, received_at[:80], sender[:300], subject[:500], category[:80], external_id, confidence[:40], int(tracker_updated)),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
+def record_email_sync_run(
+    connection: sqlite3.Connection,
+    fetched_count: int,
+    matched_count: int,
+    updated_count: int,
+    detail: str = "",
+) -> None:
+    connection.execute(
+        """
+        INSERT INTO email_sync_runs (fetched_count, matched_count, updated_count, detail)
+        VALUES (?, ?, ?, ?)
+        """,
+        (fetched_count, matched_count, updated_count, detail[:1000]),
+    )
+    connection.commit()
+
+
+def latest_email_sync_run(connection: sqlite3.Connection) -> dict | None:
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        """SELECT fetched_count, matched_count, updated_count, detail, completed_at
+           FROM email_sync_runs ORDER BY id DESC LIMIT 1"""
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def list_email_events(connection: sqlite3.Connection, limit: int = 40) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """SELECT e.message_id, e.received_at, e.sender, e.subject, e.category,
+                  e.external_id, e.confidence, e.tracker_updated, e.recorded_at,
+                  j.title, j.company
+           FROM email_events e LEFT JOIN job_matches j ON j.external_id = e.external_id
+           ORDER BY e.recorded_at DESC LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def save_application_route(connection: sqlite3.Connection, external_id: str, route: object) -> None:

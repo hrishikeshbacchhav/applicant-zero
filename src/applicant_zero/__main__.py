@@ -18,6 +18,7 @@ from .storage import initialise_database, mark_company_jobs_inactive, record_ref
 from .system_health import health_report
 from .runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
+from .gmail_sync import GmailSetupError, connect_gmail, sync_gmail
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -81,6 +82,9 @@ def main() -> None:
     parser.add_argument("--profile-check", action="store_true")
     parser.add_argument("--tailoring-check", action="store_true")
     parser.add_argument("--resume-inventory", action="store_true")
+    parser.add_argument("--gmail-connect", action="store_true")
+    parser.add_argument("--gmail-sync", action="store_true")
+    parser.add_argument("--gmail-days", type=int, default=2)
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
@@ -88,7 +92,24 @@ def main() -> None:
     if recovery_message:
         print(recovery_message)
     _sync_private_facts(state)
-    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup)
+    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup) + int(args.gmail_connect) + int(args.gmail_sync)
+    if args.gmail_connect:
+        if source_count != 1 or args.dashboard:
+            parser.error("Use --gmail-connect on its own.")
+        try:
+            print(connect_gmail(state))
+        except GmailSetupError as error:
+            print(f"Gmail connection was not created: {error}")
+        return
+    if args.gmail_sync:
+        if source_count != 1 or args.dashboard:
+            parser.error("Use --gmail-sync on its own.")
+        try:
+            result = sync_gmail(state, database, args.gmail_days)
+            print(f"Gmail sync complete: {result['fetched']} new message(s) recorded; {result['matched']} matched; {result['updated']} tracker update(s).")
+        except GmailSetupError as error:
+            print(f"Gmail sync did not run: {error}")
+        return
     if args.resume_inventory:
         if source_count or args.dashboard: parser.error("Use --resume-inventory on its own.")
         try:

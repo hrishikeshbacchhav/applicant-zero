@@ -238,6 +238,33 @@ The **System health** page shows whether the newest private refresh log complete
 
 Open the dashboard after a refresh to review new jobs. The future hosted version will run independently of this computer; this local schedule is the safe first automation step.
 
+## Optional read-only Gmail updates
+
+When you create a separate Gmail address for job applications, Applicant Zero can optionally scan its most recent two days of mail and match clear application confirmations, interview invitations, offers and rejections to your tracker. It uses Google OAuth with only the `gmail.readonly` permission. It never sends, deletes, archives, labels or changes Gmail messages, and it does not save message bodies locally.
+
+1. In Google Cloud, create a **Desktop** OAuth client and enable the Gmail API.
+2. Save its downloaded client JSON as `private/gmail_client_secret.json`.
+3. Install the optional connector once:
+
+```powershell
+python -m pip install -e ".[gmail]"
+```
+
+4. Connect the intended job-search Gmail account once. Google opens its own sign-in and consent window:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m applicant_zero --gmail-connect
+```
+
+5. Run a local read-only check whenever you want:
+
+```powershell
+python -m applicant_zero --gmail-sync
+```
+
+Only a high-confidence company-and-role match changes the tracker automatically. Other likely messages remain visible on the dashboard’s **Email updates** page for review.
+
 ## Running the prototype
 
 After Python is installed locally, open the VS Code terminal in this folder and run:
