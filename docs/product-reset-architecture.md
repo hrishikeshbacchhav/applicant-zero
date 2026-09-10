@@ -24,7 +24,7 @@ The dependable free sources are public career-board interfaces, rather than broa
 Applicant Zero should therefore collect from:
 
 1. A maintained target-company list for Sydney employers and consulting firms.
-2. Direct Lever, Greenhouse and Ashby public-board connectors.
+2. Direct Lever, Greenhouse, Ashby and SmartRecruiters public-board connectors.
 3. The existing permitted job data source for broader discovery.
 4. A manual import route for roles found through SEEK, LinkedIn, recruiter messages and referrals.
 

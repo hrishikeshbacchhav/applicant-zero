@@ -2,6 +2,7 @@
   {"id":"lever","label":"Lever career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
   {"id":"greenhouse","label":"Greenhouse career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
   {"id":"ashby","label":"Ashby career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
+  {"id":"smartrecruiters","label":"SmartRecruiters career boards","mode":"public_ats_api","cadence":"weekday_4h","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support","it_general","administration"]},
   {"id":"adzuna","label":"Permitted broad job feed","mode":"configured_api","cadence":"daily","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
   {"id":"seek","label":"SEEK","mode":"manual_link","cadence":"candidate_initiated","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},
   {"id":"linkedin","label":"LinkedIn Jobs","mode":"manual_link","cadence":"candidate_initiated","role_lanes":["data_bi","business_analysis","commercial_analytics","data_operations","it_support"]},

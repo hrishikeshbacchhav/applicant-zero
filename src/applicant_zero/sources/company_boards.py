@@ -1,4 +1,5 @@
 import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -79,6 +80,50 @@ def _ashby_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _plain_text(value: object) -> str:
+    """Flatten public job-detail content without depending on its HTML layout."""
+    if isinstance(value, str):
+        return re.sub(r"<[^>]+>", " ", value)
+    if isinstance(value, dict):
+        return " ".join(_plain_text(item) for item in value.values())
+    if isinstance(value, list):
+        return " ".join(_plain_text(item) for item in value)
+    return ""
+
+
+def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
+    """Read an employer's public SmartRecruiters board and its detail records."""
+    payload = _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings?limit=100&offset=0")
+    postings = payload.get("content", []) if isinstance(payload, dict) else []
+    jobs: list[Job] = []
+    for item in postings:
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        posting_id = str(item["id"])
+        detail: dict | list = {}
+        try:
+            detail = _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings/{posting_id}")
+        except (OSError, ValueError, KeyError, TypeError):
+            # The public listing is still useful for title and location review
+            # when a single detail record is unavailable.
+            detail = {}
+        location = item.get("location", {}) if isinstance(item.get("location"), dict) else {}
+        location_text = ", ".join(str(location.get(key, "")).strip() for key in ("city", "region", "country") if str(location.get(key, "")).strip()) or "Unknown location"
+        detail_dict = detail if isinstance(detail, dict) else {}
+        description = _plain_text(detail_dict.get("jobAd", detail_dict)) or _plain_text(item)
+        url = str(detail_dict.get("jobAdUrl") or detail_dict.get("applyUrl") or item.get("jobAdUrl") or f"https://jobs.smartrecruiters.com/{token}/{posting_id}")
+        jobs.append(Job(
+            external_id=f"smartrecruiters:{token}:{posting_id}",
+            title=str(item.get("name", "Untitled role")),
+            company=company,
+            location=location_text,
+            source="SmartRecruiters",
+            url=url,
+            description=description,
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -106,7 +151,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -131,8 +176,10 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
                 board_jobs = _lever_jobs(company, token)
             elif ats == "ashby":
                 board_jobs = _ashby_jobs(company, token)
+            elif ats == "smartrecruiters":
+                board_jobs = _smartrecruiters_jobs(company, token)
             else:
-                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever or ashby.")
+                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever, ashby or smartrecruiters.")
         except (OSError, ValueError, KeyError, TypeError) as error:
             return [], BoardReport(company, "unavailable", 0, str(error))
         return board_jobs, BoardReport(company, "checked", len(board_jobs))
