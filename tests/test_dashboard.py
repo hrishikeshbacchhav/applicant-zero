@@ -102,10 +102,41 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "Application compatibility" in brief
     assert "Application readiness" in brief
     assert "Create editable role copy" in brief
+    assert "Prepare role materials" in brief
     assert "Record employer confirmation and mark Applied" in brief
     assert "Scan application form" in brief
     assert "Application activity" in brief
     assert "SQL and Power BI" in brief
+
+
+def test_preparation_bundle_creates_local_materials_without_an_ai_call(tmp_path):
+    project = tmp_path / "project"
+    private = project / "private"
+    private.mkdir(parents=True)
+    master = private / "data_bi_master.docx"
+    master.write_text("master", encoding="utf-8")
+    resumes = {}
+    for family in ("data_bi", "power_bi", "business_analysis"):
+        resume = private / f"{family}.pdf"
+        resume.write_text("resume", encoding="utf-8")
+        resumes[family] = str(resume)
+    (private / "candidate_profile.json").write_text(json.dumps({
+        "contact": {"legal_name": "Rishi", "email": "r@example.com", "phone": "0400", "current_location": "Sydney"},
+        "availability": {"full_time_from": "2026-11-15"},
+        "eligibility": {"current_work_rights": "Verified", "requires_sponsorship_answer": "No"},
+        "resumes": resumes,
+        "editable_resume_masters": {"data_bi": str(master)},
+    }), encoding="utf-8")
+    database_path = project / "data" / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    from applicant_zero.preparation_bundle import create_preparation_bundle
+    bundle = create_preparation_bundle(database_path, job.external_id)
+    assert bundle.manifest.exists()
+    assert bundle.packet.exists()
+    assert bundle.session_plan.exists()
+    assert bundle.editable_resume_copy and bundle.editable_resume_copy.exists()
 
 
 def test_actionable_dashboard_counters_exclude_hard_skipped_discovery_rows(tmp_path):
