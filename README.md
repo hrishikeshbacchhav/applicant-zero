@@ -264,3 +264,7 @@ The assisted workflow recognises Lever, Greenhouse, Ashby, Workable, SmartRecrui
 ### Lifecycle reporting and recovery
 
 The tracker separates Applied, Interview, Offer, Rejected and Closed outcomes. Search progress reports application, interview and response rates from only the facts you record. The private runtime already creates verified SQLite snapshots before dashboard, refresh and collection operations; a damaged tracker is quarantined and restored only from a verified snapshot when available.
+
+## Everyday workflow
+
+The dashboard’s **How to use this** page gives the normal six-step routine: refresh, review, prepare, verify, use browser assistance where available, then record the outcome. It is also the quickest place to see which actions Applicant Zero can perform locally and which employer-facing actions remain yours.

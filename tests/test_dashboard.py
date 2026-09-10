@@ -97,6 +97,7 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "All role lanes" in page
     assert "All relevant" in page
     assert "Application operations" in page
+    assert "How to use this" in page
     assert "Current relevant listings" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
@@ -109,6 +110,14 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "Scan application form" in brief
     assert "Application activity" in brief
     assert "SQL and Power BI" in brief
+
+
+def test_dashboard_operating_guide_uses_plain_language_and_keeps_final_submission_manual():
+    from applicant_zero.dashboard import build_guide_page
+    page = build_guide_page()
+    assert "How to use Applicant Zero" in page
+    assert "final Submit button" in page
+    assert "Record the outcome" in page
 
 
 def test_preparation_bundle_creates_local_materials_without_an_ai_call(tmp_path):
