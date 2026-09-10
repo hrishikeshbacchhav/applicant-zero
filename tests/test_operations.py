@@ -4,6 +4,7 @@ from applicant_zero.operations import operational_queue, prepare_eligible_roles
 from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 from applicant_zero.storage import get_match, initialise_database, save_match
+from applicant_zero.role_priority import role_priority
 
 
 def _profile(project):
@@ -39,3 +40,10 @@ def test_bulk_preparation_only_uses_eligible_current_roles(tmp_path):
     assert [role.external_id for role in prepared] == ["ready"]
     assert get_match(database, "ready")["workflow_status"] == "Preparing"
     assert get_match(database, "review")["workflow_status"] == "New"
+
+
+def test_priority_makes_form_effort_and_evidence_gaps_visible():
+    easy = role_priority({"score": 70, "recommendation": "Apply", "url": "https://jobs.lever.co/example/1", "missing_requirements": "[]"})
+    hard = role_priority({"score": 70, "recommendation": "Apply", "url": "https://example.wd3.myworkdayjobs.com/job/1", "missing_requirements": "[\"clearance\"]"})
+    assert easy.effort == "low"
+    assert easy.score > hard.score

@@ -227,7 +227,7 @@ def build_operations_page(database_path: Path, prepared_count: int = 0) -> str:
     roles = operational_queue(database_path)
     eligible = [role for role in roles if role.eligible_for_bulk_prepare]
     rows = "".join(
-        f"<article><h2>{html.escape(role.title)}</h2><p>{html.escape(role.company)} · {html.escape(role.recommendation)} · score {role.score} · {html.escape(role.workflow_status)}</p><p>{html.escape(role.next_action)}</p><p class='{'ready' if role.eligible_for_bulk_prepare else 'blocked'}'>{'Ready for local preparation' if role.eligible_for_bulk_prepare else 'Evidence to check: ' + (', '.join(role.blockers) or 'role-specific fit')}</p><a href='/brief?{urlencode({'external_id': role.external_id})}'>Open preparation brief</a></article>"
+        f"<article><h2>{html.escape(role.title)}</h2><p>{html.escape(role.company)} · {html.escape(role.recommendation)} · fit {role.score} · daily priority {role.daily_priority} · {html.escape(role.application_effort)} effort · {html.escape(role.workflow_status)}</p><p>{html.escape(role.next_action)}</p><p class='{'ready' if role.eligible_for_bulk_prepare else 'blocked'}'>{'Ready for local preparation' if role.eligible_for_bulk_prepare else 'Evidence to check: ' + (', '.join(role.blockers) or 'role-specific fit')}</p><a href='/brief?{urlencode({'external_id': role.external_id})}'>Open preparation brief</a></article>"
         for role in roles
     ) or "<article><h2>No current roles need action.</h2><p>Run discovery or import a suitable listing.</p></article>"
     success = f"<p class='success'>{prepared_count} role{'s' if prepared_count != 1 else ''} moved to Preparing with local materials created.</p>" if prepared_count else ""
@@ -830,3 +830,4 @@ def serve(database_path: Path, port: int = 8765) -> None:
     print("Keep this terminal open while reviewing jobs. Press Ctrl+C here when finished.")
     webbrowser.open(url)
     server.serve_forever()
+
