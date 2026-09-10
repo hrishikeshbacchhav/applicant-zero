@@ -101,6 +101,10 @@ Open **Daily priorities** in the dashboard whenever you want a short ordered lis
 
 Use **Application operations** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files and browser plans; it does not open an employer site, use AI credits or submit anything.
 
+### Search campaigns
+
+Use **Search campaigns** to choose the role groups included in future discovery refreshes: Data/BI and business analysis, IT support and service desk, broader entry-level IT, and full-time administration. The selection is stored privately in `private/search_campaigns.json`. Sydney and NSW are searched separately; an advertisement labelled only “NSW” is kept for location review rather than automatically treated as a Sydney job.
+
 ## Reliability and private backup
 
 Use **System health** in the dashboard to confirm the profile, local database, and most recent discovery run are ready. You can also run `python -m applicant_zero --health-check` from the project terminal.

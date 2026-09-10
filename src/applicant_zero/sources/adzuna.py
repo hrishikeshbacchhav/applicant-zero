@@ -74,3 +74,19 @@ def fetch_query_batch(
         except (OSError, RuntimeError, ValueError) as error:
             errors.append(f"{query}: {error}")
     return list(jobs_by_id.values()), errors
+
+
+def fetch_query_plan(
+    project_root: Path, query_plan: list[tuple[str, str]], max_queries: int | None = None
+) -> tuple[list[Job], list[str]]:
+    """Run an ordered multi-location campaign plan without duplicating jobs."""
+    selected = query_plan if max_queries is None else query_plan[:max(0, max_queries)]
+    jobs_by_id: dict[str, Job] = {}
+    errors: list[str] = []
+    for query, where in selected:
+        try:
+            for job in fetch_jobs(project_root, query, where):
+                jobs_by_id[job.external_id] = job
+        except (OSError, RuntimeError, ValueError) as error:
+            errors.append(f"{query} ({where}): {error}")
+    return list(jobs_by_id.values()), errors

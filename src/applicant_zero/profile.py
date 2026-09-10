@@ -28,6 +28,15 @@ RISHI_PROFILE = CandidateProfile(
             "service desk", "help desk", "it support", "technical support", "desktop support", "application support",
             "support analyst", "it operations", "technology support",
         ),
+        "it_general": (
+            "junior systems administrator", "systems administrator", "cloud support", "cyber security analyst", "cybersecurity analyst",
+            "security operations", "qa analyst", "test analyst", "software tester", "network support", "implementation support",
+            "junior developer", "graduate developer",
+        ),
+        "administration": (
+            "administration officer", "administration coordinator", "project administrator", "customer service administrator",
+            "office administrator", "administrative assistant", "data entry", "clerical officer", "program administrator",
+        ),
     },
     skills=(
         "power bi", "dax", "power query", "microsoft fabric", "semantic model",

@@ -79,8 +79,22 @@ def test_service_desk_role_is_routed_to_review_not_discarded():
     job = Job("12", "IT Service Desk Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Provide technical support, resolve incidents and communicate with stakeholders.")
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Review"
-    assert result.resume_family == "data_bi"
+    assert result.resume_family == "it_support"
     assert "IT-support route" in " ".join(result.reasons)
+
+
+def test_nsw_only_location_is_held_for_location_review_not_discarded():
+    job = Job("nsw", "Data Analyst", "Example", "NSW", "test", "https://example.invalid", "SQL and Power BI")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "labelled NSW" in " ".join(result.reasons)
+
+
+def test_inactive_campaign_lane_does_not_clutter_the_active_queue():
+    job = Job("admin", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid", "Administration and customer service")
+    result = score_job(job, RISHI_PROFILE, {"data_bi"})
+    assert result.recommendation == "Skip"
+    assert result.lane == "administration"
 
 
 def test_data_governance_role_is_discovered_as_data_analytics():

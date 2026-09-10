@@ -11,7 +11,8 @@ from .application_answers import ensure_answer_library
 from .candidate_facts import ensure_fact_library
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
-from .sources.adzuna import fetch_jobs, fetch_query_batch
+from .sources.adzuna import fetch_jobs, fetch_query_plan
+from .campaigns import active_lanes, discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import initialise_database, mark_company_jobs_inactive, record_refresh_run, save_board_checks, save_match
 from .system_health import health_report
@@ -27,10 +28,10 @@ def _sync_private_facts(state: Path) -> None:
         ensure_fact_library(state, profile, ensure_answer_library(state, profile))
 
 
-def _save_jobs(database, jobs: list[Job], show_all: bool = False) -> list[tuple[Job, object]]:
+def _save_jobs(database, jobs: list[Job], show_all: bool = False, enabled_lanes: set[str] | None = None) -> list[tuple[Job, object]]:
     queue = []
     for job in jobs:
-        result = score_job(job, RISHI_PROFILE)
+        result = score_job(job, RISHI_PROFILE, enabled_lanes)
         save_match(database, job, result)
         queue.append((job, result))
     return queue if show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
@@ -43,23 +44,18 @@ def _board_path(state: Path) -> Path:
 def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int, int, str]:
     """Refresh public boards and a capped query batch as one daily run."""
     board_jobs, reports = fetch_company_boards_with_report(_board_path(state))
-    query_file = ROOT / "data" / "search_queries.json"
-    if not query_file.exists():
-        query_file = ROOT / "data" / "search_queries.starter.json"
-    config = json.loads(query_file.read_text(encoding="utf-8"))
-    queries = config.get("queries", [])
-    query_jobs, query_errors = fetch_query_batch(state, queries, config.get("location", "Sydney"), max_queries)
+    query_plan = discovery_query_plan(state, max_queries)
+    query_jobs, query_errors = fetch_query_plan(state, query_plan)
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_board_checks(database, reports)
-    visible = _save_jobs(database, jobs)
+    visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state))
     for report in reports:
         if report.status == "checked":
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
     checked = sum(report.status == "checked" for report in reports)
     unavailable = sum(report.status == "unavailable" for report in reports)
-    query_total = len(queries) if max_queries is None else min(len(queries), max(0, max_queries))
-    detail = f"{checked} company boards checked; {query_total} Sydney search queries run"
+    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries run"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
     record_refresh_run(database, "Daily discovery refresh", len(jobs), len(visible), checked, unavailable, detail)

@@ -1,0 +1,38 @@
+{
+  "locations": ["Sydney", "NSW"],
+  "max_queries_per_refresh": 14,
+  "campaigns": [
+    {
+      "id": "data_business",
+      "label": "Data, BI and business analysis",
+      "description": "Primary search: data, reporting, Power BI, BI and business/process analysis roles.",
+      "role_lanes": ["data_bi", "business_analysis", "commercial_analytics", "data_operations"],
+      "queries": ["data analyst", "business intelligence analyst", "power bi analyst", "reporting analyst", "business analyst", "operations analyst", "data administrator"],
+      "active": true
+    },
+    {
+      "id": "it_support",
+      "label": "IT support and service desk",
+      "description": "Entry-level technical support, service desk, desktop and application support roles.",
+      "role_lanes": ["it_support"],
+      "queries": ["service desk analyst", "IT support officer", "technical support analyst", "desktop support"],
+      "active": true
+    },
+    {
+      "id": "broader_it",
+      "label": "Broader entry-level IT",
+      "description": "Junior cloud, cybersecurity, QA, systems and implementation-support roles.",
+      "role_lanes": ["it_general"],
+      "queries": ["junior systems administrator", "cloud support", "junior cyber security analyst", "test analyst", "application implementation support"],
+      "active": false
+    },
+    {
+      "id": "administration",
+      "label": "Full-time administration",
+      "description": "General administration, coordination, clerical and customer-administration roles.",
+      "role_lanes": ["administration"],
+      "queries": ["administration officer", "project administrator", "customer service administrator", "administration coordinator", "data entry administrator"],
+      "active": false
+    }
+  ]
+}

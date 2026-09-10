@@ -30,7 +30,7 @@ class MatchResult:
 
 
 SENIORITY_BLOCKLIST = ("senior", "lead", "principal", "manager", "director", "head of", "staff")
-OUT_OF_SCOPE_TITLE_TERMS = ("data engineer", "data scientist", "machine learning", "software engineer", "software developer", "cyber security")
+OUT_OF_SCOPE_TITLE_TERMS = ("data scientist", "machine learning")
 MISLEADING_ANALYST_TITLE_TERMS = (
     "talent", "recruitment", "human resources", "people and culture", "payroll", "actuarial",
     "credit risk", "fraud", "investments", "equity research", "seo", "digital marketing", "campaign",
@@ -102,19 +102,27 @@ def _evidence_gaps(description: str) -> tuple[str, ...]:
     return tuple(label for pattern, label in EVIDENCE_CHECK_PATTERNS if re.search(pattern, description))
 
 
-def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
+def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None = None) -> MatchResult:
     title = _normalise(job.title)
     description = _normalise(job.description)
     location = _normalise(job.location)
     text = f"{title} {description}"
+    lane = classify_lane(job.title, job.description)
     family = _role_family(title, profile)
+    if family is None and lane is not None:
+        family = lane.resume_family
     reasons: list[str] = []
 
-    if not any(place in location for place in profile.locations):
+    exact_location = any(place in location for place in profile.locations)
+    nsw_only = "nsw" in location or "new south wales" in location
+    if not exact_location and not nsw_only:
         return MatchResult("Skip", 0, None, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
 
     if family is None:
         return MatchResult("Skip", 15, None, None, (), (), ("Title is outside the approved role families.",))
+
+    if lane and active_lanes is not None and lane.identifier not in active_lanes:
+        return MatchResult("Skip", 5, None, lane.identifier, (), (), ("This role lane is currently inactive in your discovery campaigns.",))
 
     if any(term in title for term in OUT_OF_SCOPE_TITLE_TERMS):
         return MatchResult(
@@ -130,7 +138,6 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
 
     seniority_text = f"{title} {_normalise(job.seniority)}"
     if any(term in seniority_text for term in SENIORITY_BLOCKLIST):
-        lane = classify_lane(job.title, job.description)
         return MatchResult("Review", 25, family, lane.identifier if lane else family, (), (), ("The role title or stated seniority appears senior; check the experience requirements before applying.",))
 
     required_years = _required_experience_years(description)
@@ -139,7 +146,7 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         return MatchResult(
             "Review",
             35,
-            family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family),
+            family, (lane.identifier if lane else family),
             (),
             (requirement,),
             (f"The listing appears to require {requirement}; verify that your evidence supports it before applying.",),
@@ -148,7 +155,7 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
     eligibility_requirements = listing_eligibility_requirements(description)
     if eligibility_requirements:
         return MatchResult(
-            "Review", 30, family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family), (), tuple(label for label, _ in eligibility_requirements),
+            "Review", 30, family, (lane.identifier if lane else family), (), tuple(label for label, _ in eligibility_requirements),
             ("The role states an eligibility, citizenship or clearance condition; confirm it yourself before preparing an application.",),
         )
 
@@ -158,7 +165,7 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
             "Review",
             45,
             family,
-            (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family),
+            (lane.identifier if lane else family),
             (),
             evidence_gaps,
             (
@@ -188,6 +195,8 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         reasons.append("Requirements to review: " + ", ".join(missing) + ".")
     if not reasons:
         reasons.append("Role family and location match; review the detailed requirements.")
+    if not exact_location and nsw_only:
+        reasons.insert(0, "The listing is labelled NSW rather than a specific Sydney location; confirm the actual workplace before applying.")
 
     recommendation = "Strong apply" if score >= 78 else "Apply" if score >= 62 else "Review"
     if not matched:
@@ -203,10 +212,8 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
         reasons.insert(0, "This is an adjacent analytics role; review its domain requirements before preparing an application.")
     if family == "it_support":
         recommendation = "Review"
-        # An IT-support résumé will be added as a separate supported master.
-        # Until then, surface the role with the closest current master rather
-        # than pretending that a data résumé is already tailored for it.
-        resume_family = "data_bi"
-        reasons.insert(0, "This is an IT-support route. Review the technical and customer-support requirements before preparing a role-specific résumé.")
-    lane = classify_lane(job.title, job.description)
+        reasons.insert(0, "This is an IT-support route. Add an approved IT-support résumé master before generating final materials.")
+    if family in {"it_general", "administration"}:
+        recommendation = "Review"
+        reasons.insert(0, f"This is a {family.replace('_', ' ')} route. Add an approved résumé master for this lane before generating final materials.")
     return MatchResult(recommendation, min(score, 100), resume_family, lane.identifier if lane else family, matched, missing, tuple(reasons))

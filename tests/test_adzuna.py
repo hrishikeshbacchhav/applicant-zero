@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch
+from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch, fetch_query_plan
 
 
 def test_search_url_targets_australia():
@@ -32,3 +32,12 @@ def test_query_batch_accepts_zero_as_an_intentional_no_query_run(tmp_path):
     jobs, errors = fetch_query_batch(tmp_path, ["data analyst", "business analyst"], max_queries=0)
     assert jobs == []
     assert errors == []
+
+
+def test_query_plan_keeps_location_specific_failures_and_deduplicates(tmp_path):
+    first = _job_from_result({"id": "1", "title": "Data Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})
+    second = _job_from_result({"id": "2", "title": "BI Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "NSW"}})
+    with patch("applicant_zero.sources.adzuna.fetch_jobs", side_effect=[[first], RuntimeError("unavailable"), [first, second]]):
+        jobs, errors = fetch_query_plan(tmp_path, [("data", "Sydney"), ("data", "NSW"), ("bi", "Sydney")])
+    assert [job.external_id for job in jobs] == ["adzuna:1", "adzuna:2"]
+    assert errors == ["data (NSW): unavailable"]

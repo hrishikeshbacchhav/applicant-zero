@@ -18,6 +18,8 @@ ROLE_LANES = (
     RoleLane("commercial_analytics", "Commercial, finance and performance analytics", 3, ("commercial analyst", "pricing analyst", "finance analyst", "performance analyst", "workforce analyst", "workforce planning", "customer insights"), "data_bi"),
     RoleLane("data_operations", "Data and CRM operations", 4, ("data administrator", "data operations", "master data", "crm analyst", "data governance", "reporting support", "data management"), "data_bi"),
     RoleLane("it_support", "IT and service support", 5, ("service desk", "help desk", "it support", "application support", "technical support", "systems support", "desktop support", "it graduate"), "it_support"),
+    RoleLane("it_general", "Broader entry-level IT", 6, ("junior systems administrator", "systems administrator", "cloud support", "cyber security analyst", "cybersecurity analyst", "security operations", "qa analyst", "test analyst", "software tester", "network support", "implementation support", "junior developer", "graduate developer"), "it_general"),
+    RoleLane("administration", "Full-time administration", 7, ("administration officer", "administration coordinator", "project administrator", "customer service administrator", "office administrator", "administrative assistant", "data entry", "clerical officer", "program administrator"), "administration"),
 )
 
 
