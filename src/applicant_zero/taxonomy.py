@@ -33,12 +33,13 @@ class SourceContract:
 
 
 SOURCE_CONTRACTS = (
-    SourceContract("lever", "Lever", "public ATS job feed", "weekday, several checks", "browser-assisted pilot"),
-    SourceContract("greenhouse", "Greenhouse", "public ATS job feed", "weekday, several checks", "browser-assisted pilot"),
-    SourceContract("ashby", "Ashby", "public ATS job feed", "weekday, several checks", "browser-assisted pilot"),
-    SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "link or browser handoff"),
-    SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "manual or supported handoff"),
-    SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "manual or supported handoff"),
+    SourceContract("lever", "Lever", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
+    SourceContract("greenhouse", "Greenhouse", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
+    SourceContract("ashby", "Ashby", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
+    SourceContract("smartrecruiters", "SmartRecruiters", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
+    SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "prepare and open listing"),
+    SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "prepare and open listing"),
+    SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "prepare and open listing"),
 )
 
 

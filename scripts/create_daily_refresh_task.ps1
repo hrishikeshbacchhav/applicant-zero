@@ -1,7 +1,8 @@
 param(
     [string[]]$Times = @("08:00", "13:00", "18:00"),
     [ValidateRange(0, 7)]
-    [int]$MaxQueries = 0
+    [int]$MaxQueries = 0,
+    [switch]$SyncGmail
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,8 +13,9 @@ foreach ($time in $Times) {
         throw "Use 24-hour times such as 08:00 or 18:00."
     }
     $taskName = "Applicant Zero Discovery " + $time.Replace(":", "-")
-    $taskCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -MaxQueries $MaxQueries"
+    $gmailArgument = if ($SyncGmail) { " -SyncGmail" } else { "" }
+    $taskCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -MaxQueries $MaxQueries$gmailArgument"
     schtasks.exe /Create /TN $taskName /TR $taskCommand /SC DAILY /ST $time /F | Out-Null
     Write-Host "Created $taskName."
 }
-Write-Host "Applicant Zero will refresh while this computer is on and you are signed in. Board-only discovery is enabled by default; MaxQueries stays at 0 unless you choose to use the broad job-feed API."
+Write-Host "Applicant Zero will refresh while this computer is on and you are signed in. Board-only discovery is enabled by default; MaxQueries stays at 0 unless you choose to use the broad job-feed API. Gmail sync runs only when you opt in and a private read-only connection already exists."

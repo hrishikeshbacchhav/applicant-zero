@@ -228,6 +228,12 @@ The default schedule checks public company boards only. If you have chosen to co
 .\scripts\create_daily_refresh_task.ps1 -MaxQueries 3
 ```
 
+After you have completed the separate Gmail read-only setup, you can add that local check to the same schedule. It is skipped safely when no private Gmail token exists:
+
+```powershell
+.\scripts\create_daily_refresh_task.ps1 -MaxQueries 3 -SyncGmail
+```
+
 Check the local schedule at any time:
 
 ```powershell

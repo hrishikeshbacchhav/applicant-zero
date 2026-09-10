@@ -1,6 +1,7 @@
 param(
     [ValidateRange(0, 7)]
-    [int]$MaxQueries = 0
+    [int]$MaxQueries = 0,
+    [switch]$SyncGmail
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,6 +26,20 @@ try {
         Tee-Object -FilePath $logFile -Append
     if ($LASTEXITCODE -ne 0) {
         throw "Applicant Zero daily digest returned exit code $LASTEXITCODE."
+    }
+    if ($SyncGmail) {
+        $gmailToken = Join-Path $stateRoot "private\gmail_token.json"
+        if (Test-Path -LiteralPath $gmailToken) {
+            "Applicant Zero read-only Gmail sync started: $(Get-Date)" | Tee-Object -FilePath $logFile -Append
+            python -m applicant_zero --gmail-sync 2>&1 |
+                Tee-Object -FilePath $logFile -Append
+            if ($LASTEXITCODE -ne 0) {
+                throw "Applicant Zero Gmail sync returned exit code $LASTEXITCODE."
+            }
+        }
+        else {
+            "Applicant Zero Gmail sync skipped: no private Gmail connection is present." | Tee-Object -FilePath $logFile -Append
+        }
     }
     "Applicant Zero discovery refresh finished successfully: $(Get-Date)" | Tee-Object -FilePath $logFile -Append
     Write-Host "Refresh log saved privately: $logFile"
