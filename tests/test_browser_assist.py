@@ -159,7 +159,7 @@ def test_form_answers_use_saved_structured_address_parts_when_available():
     assert field_answer("Country", "select", answers, {}) == "Australia"
 
 
-def test_prefill_handles_date_and_recognised_radio_without_guessing(tmp_path):
+def test_prefill_keeps_sponsorship_radio_for_candidate_review(tmp_path):
     available = FakeElement({"name": "start_date", "type": "date", "required": ""})
     sponsorship_no = FakeElement({"name": "sponsorship", "type": "radio", "value": "no", "label": "Do you require sponsorship? No", "required": ""})
     sponsorship_yes = FakeElement({"name": "sponsorship", "type": "radio", "value": "yes", "label": "Do you require sponsorship? Yes", "required": ""})
@@ -169,11 +169,11 @@ def test_prefill_handles_date_and_recognised_radio_without_guessing(tmp_path):
         "answers_requiring_confirmation": {},
     }
     filled, unresolved = _prefill_page(page, {"resume_family": "data_bi"}, {"resumes": {}}, answers)
-    assert filled == 2
+    assert filled == 1
     assert available.value == "2026-11-15"
-    assert sponsorship_no.is_checked() is True
+    assert sponsorship_no.is_checked() is False
     assert sponsorship_yes.is_checked() is False
-    assert unresolved == 0
+    assert unresolved >= 1
 
 
 def test_multi_step_controls_allow_next_but_never_treat_submit_as_progression():
