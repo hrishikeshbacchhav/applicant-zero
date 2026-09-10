@@ -131,7 +131,7 @@ def test_prefill_uses_confirmed_answers_and_leaves_work_rights_unanswered(tmp_pa
     assert unresolved == 1
 
 
-def test_form_answers_use_saved_work_rights_and_numeric_salary():
+def test_form_answers_keep_protected_eligibility_fields_for_candidate_review():
     answers = {
         "verified_answers": {
             "current_work_rights": "Full work rights",
@@ -141,8 +141,8 @@ def test_form_answers_use_saved_work_rights_and_numeric_salary():
         },
         "answers_requiring_confirmation": {"salary_expectations": "AUD 85,000 base salary plus superannuation"},
     }
-    assert field_answer("Do you need sponsorship?", "select", answers, {}) == "No"
-    assert field_answer("Visa type", "text", answers, {}) == "Student visa (subclass 500)"
+    assert field_answer("Do you need sponsorship?", "select", answers, {}) == ""
+    assert field_answer("Visa type", "text", answers, {}) == ""
     assert field_answer("Base salary", "number", answers, {}) == "85000"
     assert select_value([("false", "No"), ("true", "Yes")], "No") == "false"
     assert option_matches("No", "false", "No") is True

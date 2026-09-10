@@ -53,18 +53,10 @@ def field_answer(descriptor: str, input_type: str, answers: dict, job: dict) -> 
         return str(confirmed.get("portfolio_url", ""))
     if re.search(r"hear.*role|hear.*job|referral.?source", text):
         return str(confirmed.get("referral_source", ""))
-    if re.search(r"work.?rights|right.?work|authori[sz].*work", text):
-        return str(verified.get("current_work_rights", ""))
-    if re.search(r"(?:require|need).*(?:sponsor|sponsorship)|(?:sponsor|sponsorship).*(?:require|need)", text):
-        return str(verified.get("requires_sponsorship", ""))
-    if re.search(r"visa|immigration", text):
-        return str(verified.get("visa_type", ""))
-    if re.search(r"citizen|permanent.?residen", text):
-        return str(verified.get("citizenship_status", ""))
-    if re.search(r"pronouns?", text):
-        return str(verified.get("pronouns", ""))
-    if re.search(r"race|ethnic", text):
-        return str(verified.get("ethnicity", ""))
+    # Eligibility and identity declarations need a candidate's direct review
+    # in the exact employer form. They are intentionally never prefilled.
+    if re.search(r"work.?rights|right.?work|authori[sz].*work|sponsor|visa|immigration|citizen|permanent.?residen|pronouns?|race|ethnic", text):
+        return ""
     return ""
 
 
