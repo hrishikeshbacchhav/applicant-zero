@@ -569,7 +569,9 @@ def save_platform_pilot(connection: sqlite3.Connection, platform: str, status: s
     connection.commit()
 
 
-WORKFLOW_STATUSES = ("New", "Saved", "Preparing", "Applied", "Interview", "Closed")
+# Keep outcomes separate from a generic closed state so the local tracker can
+# report the job-search funnel accurately without inferring employer feedback.
+WORKFLOW_STATUSES = ("New", "Saved", "Preparing", "Applied", "Interview", "Offer", "Rejected", "Closed")
 
 
 def update_workflow(connection: sqlite3.Connection, external_id: str, workflow_status: str, notes: str) -> None:

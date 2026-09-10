@@ -260,3 +260,7 @@ Before a role is prepared, Applicant Zero now detects explicit citizenship, resi
 ### Supervised browser coverage
 
 The assisted workflow recognises Lever, Greenhouse, Ashby, Workable, SmartRecruiters, BambooHR, Recruitee, Teamtailor and Pinpoint hosted forms, plus complex iCIMS, Oracle/Taleo, SAP SuccessFactors and Workday routes. It inventories each unique form step privately and retains browser handoffs for login, CAPTCHA, verification codes, protected questions, unknown required fields and final submission.
+
+### Lifecycle reporting and recovery
+
+The tracker separates Applied, Interview, Offer, Rejected and Closed outcomes. Search progress reports application, interview and response rates from only the facts you record. The private runtime already creates verified SQLite snapshots before dashboard, refresh and collection operations; a damaged tracker is quarantined and restored only from a verified snapshot when available.

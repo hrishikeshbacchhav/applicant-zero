@@ -31,3 +31,18 @@ def test_outcome_summary_reports_submissions_and_interviews(tmp_path):
     assert summary["submitted"] == 2
     assert summary["interviews"] == 1
     assert summary["interview_rate"] == 50.0
+
+
+def test_outcome_summary_keeps_offers_and_rejections_separate(tmp_path):
+    database_path = tmp_path / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    offer = Job("offer", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid/o", "SQL and Power BI")
+    rejected = Job("rejected", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid/r", "SQL and Power BI")
+    save_match(database, offer, score_job(offer, RISHI_PROFILE))
+    save_match(database, rejected, score_job(rejected, RISHI_PROFILE))
+    update_workflow(database, offer.external_id, "Offer", "Offer received")
+    update_workflow(database, rejected.external_id, "Rejected", "Employer decision recorded")
+    summary = outcome_summary(database_path)
+    assert summary["offers"] == 1
+    assert summary["rejected"] == 1
+    assert summary["response_rate"] == 50.0

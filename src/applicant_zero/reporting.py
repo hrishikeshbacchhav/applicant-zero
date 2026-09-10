@@ -14,14 +14,19 @@ def outcome_summary(database_path: Path) -> dict[str, int | float]:
     with initialise_database(database_path) as connection:
         jobs = list_matches(connection, include_duplicates=True)
         followups = list_followups(connection, include_completed=True)
-    submitted = [job for job in jobs if job["workflow_status"] in {"Applied", "Interview", "Closed"}]
+    submitted = [job for job in jobs if job["workflow_status"] in {"Applied", "Interview", "Offer", "Rejected", "Closed"}]
     interviews = [job for job in jobs if job["workflow_status"] == "Interview"]
+    offers = [job for job in jobs if job["workflow_status"] == "Offer"]
+    rejected = [job for job in jobs if job["workflow_status"] == "Rejected"]
     due_followups = [item for item in followups if item["status"] != "Completed" and item["due_date"] <= date.today().isoformat()]
     interview_rate = round((len(interviews) / len(submitted) * 100), 1) if submitted else 0.0
     return {
         "submitted": len(submitted),
         "interviews": len(interviews),
+        "offers": len(offers),
+        "rejected": len(rejected),
         "interview_rate": interview_rate,
+        "response_rate": round(((len(interviews) + len(offers)) / len(submitted) * 100), 1) if submitted else 0.0,
         "due_followups": len(due_followups),
         "in_progress": sum(job["workflow_status"] in {"Saved", "Preparing"} for job in jobs),
     }
