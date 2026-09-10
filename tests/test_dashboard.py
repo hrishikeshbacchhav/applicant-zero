@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_outcomes_page, build_page, build_resume_copy_page, build_session_trace_page
+from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_operations_page, build_outcomes_page, build_page, build_resume_copy_page, build_session_trace_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -148,6 +148,16 @@ def test_actionable_dashboard_counters_exclude_hard_skipped_discovery_rows(tmp_p
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker: New: 1" in page
     assert ">1</strong><span>New this week" in page
+
+
+def test_operations_page_exposes_safe_bulk_preparation(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    page = build_operations_page(tmp_path / "jobs.sqlite3")
+    assert "Application operations" in page
+    assert "Prepare up to three eligible roles" in page
+    assert "Ready for local preparation" in page
 
 
 def test_existing_database_is_upgraded_for_the_tracker(tmp_path):

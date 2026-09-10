@@ -28,6 +28,7 @@ from .material_manifest import create_material_manifest, material_manifest_path
 from .session_trace import load_trace
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory, inventory_path
 from .preparation_bundle import create_preparation_bundle
+from .operations import operational_queue, prepare_eligible_roles
 from .storage import (
     WORKFLOW_STATUSES,
     get_application_route,
@@ -204,6 +205,17 @@ def build_actions_page(database_path: Path) -> str:
         for action in actions
     ) or "<article><h2>No manual actions</h2><p>CAPTCHA, login, verification and unfamiliar-question handoffs will appear here.</p></article>"
     return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Manual actions</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}button{{padding:9px 13px;border:1px solid #aabbd2;border-radius:6px;background:#fff;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Manual action queue</h1><p>Only the few steps that need your attention appear here.</p>{rows}</main></body></html>"""
+
+
+def build_operations_page(database_path: Path, prepared_count: int = 0) -> str:
+    roles = operational_queue(database_path)
+    eligible = [role for role in roles if role.eligible_for_bulk_prepare]
+    rows = "".join(
+        f"<article><h2>{html.escape(role.title)}</h2><p>{html.escape(role.company)} · {html.escape(role.recommendation)} · score {role.score} · {html.escape(role.workflow_status)}</p><p>{html.escape(role.next_action)}</p><p class='{'ready' if role.eligible_for_bulk_prepare else 'blocked'}'>{'Ready for local preparation' if role.eligible_for_bulk_prepare else 'Evidence to check: ' + (', '.join(role.blockers) or 'role-specific fit')}</p><a href='/brief?{urlencode({'external_id': role.external_id})}'>Open preparation brief</a></article>"
+        for role in roles
+    ) or "<article><h2>No current roles need action.</h2><p>Run discovery or import a suitable listing.</p></article>"
+    success = f"<p class='success'>{prepared_count} role{'s' if prepared_count != 1 else ''} moved to Preparing with local materials created.</p>" if prepared_count else ""
+    return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Application operations</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article,section{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}.ready,.success{{background:#d9f3e6;color:#12643b;padding:9px;border-radius:6px}}.blocked{{background:#fff1cc;color:#8a5a00;padding:9px;border-radius:6px}}button{{padding:10px 15px;border:0;border-radius:6px;background:#163b67;color:#fff;font-weight:bold;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Application operations</h1><p>This separates local preparation work from roles that need an evidence decision. Bulk preparation creates files only: no AI usage, browser activity or employer contact.</p>{success}<section><h2>Ready now</h2><p><strong>{len(eligible)}</strong> role{'s' if len(eligible) != 1 else ''} can be prepared from your confirmed local materials.</p><form method='post' action='/prepare-eligible'><button type='submit'>Prepare up to three eligible roles</button></form></section><section><h2>Prioritised queue</h2>{rows}</section></main></body></html>"""
 
 
 def build_discovery_page(database_path: Path) -> str:
@@ -477,6 +489,9 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 content = build_answers_page(database_path).encode("utf-8")
             elif parsed.path == "/actions":
                 content = build_actions_page(database_path).encode("utf-8")
+            elif parsed.path == "/operations":
+                prepared_count = int(parse_qs(parsed.query).get("prepared", ["0"])[0] or "0")
+                content = build_operations_page(database_path, prepared_count).encode("utf-8")
             elif parsed.path == "/discovery":
                 content = build_discovery_page(database_path).encode("utf-8")
             elif parsed.path == "/outcomes":
@@ -507,7 +522,7 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
@@ -546,6 +561,12 @@ def serve(database_path: Path, port: int = 8765) -> None:
                     return
                 self.send_response(303)
                 self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
+                self.end_headers()
+                return
+            if self.path == "/prepare-eligible":
+                prepared = prepare_eligible_roles(database_path)
+                self.send_response(303)
+                self.send_header("Location", "/operations?" + urlencode({"prepared": len(prepared)}))
                 self.end_headers()
                 return
             if self.path == "/resume-copy":
