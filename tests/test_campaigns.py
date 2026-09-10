@@ -1,6 +1,6 @@
 import json
 
-from applicant_zero.campaigns import active_lanes, discovery_query_plan, load_campaigns, save_enabled_campaigns
+from applicant_zero.campaigns import active_lanes, campaign_query_allocation, discovery_query_plan, load_campaigns, save_enabled_campaigns
 
 
 def _write_starter(root):
@@ -26,3 +26,23 @@ def test_candidate_can_switch_campaigns_in_private_runtime(tmp_path):
     assert [campaign.identifier for campaign in campaigns if campaign.active] == ["admin"]
     assert active_lanes(tmp_path) == {"administration"}
     assert (tmp_path / "private" / "search_campaigns.json").exists()
+
+
+def test_capped_refresh_shares_queries_across_active_campaigns(tmp_path):
+    _write_starter(tmp_path)
+    save_enabled_campaigns(tmp_path, {"data", "admin"})
+
+    plan = discovery_query_plan(tmp_path)
+
+    assert plan == [
+        ("data analyst", "Sydney"), ("administration officer", "Sydney"),
+        ("data analyst", "NSW"),
+    ]
+    assert campaign_query_allocation(tmp_path) == {"data": 2, "admin": 1}
+
+
+def test_empty_campaign_selection_produces_no_broad_feed_queries(tmp_path):
+    _write_starter(tmp_path)
+    save_enabled_campaigns(tmp_path, set())
+    assert discovery_query_plan(tmp_path) == []
+    assert campaign_query_allocation(tmp_path) == {}

@@ -55,6 +55,14 @@ WORK_RIGHTS_TERMS = (
 
 ENTRY_LEVEL_TERMS = ("graduate", "junior", "entry level", "entry-level", "early career", "0-2 years")
 
+# The administration campaign is deliberately narrower than the other
+# campaigns: Rishi asked for full-time administration roles only.  A contract
+# can still be full-time, so it is not excluded here.  This only rejects a
+# listing that explicitly describes the position as part-time, casual or job
+# share.
+FULL_TIME_ONLY_LANES = {"administration"}
+NON_FULL_TIME_PATTERNS = (r"\bpart[ -]?time\b", r"\bcasual\b", r"\bjob[ -]?share\b")
+
 # These phrases signal a requirement that is substantially more specific than a
 # role title.  We do not infer that Rishi has led initiatives or worked in a
 # regulated care setting merely because the title is an otherwise suitable
@@ -123,6 +131,12 @@ def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None
 
     if lane and active_lanes is not None and lane.identifier not in active_lanes:
         return MatchResult("Skip", 5, None, lane.identifier, (), (), ("This role lane is currently inactive in your discovery campaigns.",))
+
+    if lane and lane.identifier in FULL_TIME_ONLY_LANES and any(re.search(pattern, text) for pattern in NON_FULL_TIME_PATTERNS):
+        return MatchResult(
+            "Skip", 10, None, lane.identifier, (), (),
+            ("The full-time administration campaign excludes listings explicitly described as part-time, casual or job-share.",),
+        )
 
     if any(term in title for term in OUT_OF_SCOPE_TITLE_TERMS):
         return MatchResult(

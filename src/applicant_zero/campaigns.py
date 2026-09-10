@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from collections import Counter
 
 
 @dataclass(frozen=True)
@@ -56,19 +57,40 @@ def active_lanes(project_root: Path) -> set[str]:
 
 
 def discovery_query_plan(project_root: Path, max_queries: int | None = None) -> list[tuple[str, str]]:
-    """Build a controlled query plan for enabled campaigns.
+    """Build a fair, controlled query plan for enabled campaigns.
 
-    Sydney is queried first, then NSW so ads labelled only at state level are
-    considered.  The matcher still holds state-wide or ambiguous location ads
-    for review rather than pretending that every NSW job is commutable.
+    The plan alternates campaigns rather than exhausting the first one.  This
+    makes a capped refresh useful when Data/BI, IT support and later campaigns
+    are all active. Sydney and NSW are still queried separately so state-only
+    listings are held for review instead of being silently lost.
     """
+    return [(query, location) for _, query, location in _campaign_query_plan(project_root, max_queries)]
+
+
+def campaign_query_allocation(project_root: Path, max_queries: int | None = None) -> dict[str, int]:
+    """Return the number of broad-feed calls reserved for each active campaign."""
+    return dict(Counter(identifier for identifier, _, _ in _campaign_query_plan(project_root, max_queries)))
+
+
+def _campaign_query_plan(project_root: Path, max_queries: int | None = None) -> list[tuple[str, str, str]]:
     raw = _load_raw(project_root)
     locations = [str(value).strip() for value in raw.get("locations", ["Sydney", "NSW"]) if str(value).strip()]
-    selected = [query for campaign in load_campaigns(project_root) if campaign.active for query in campaign.queries]
-    plan = [(query, location) for query in selected for location in locations]
+    selected = [campaign for campaign in load_campaigns(project_root) if campaign.active and campaign.queries]
+    if not selected or not locations:
+        return []
     if max_queries is None:
-        max_queries = int(raw.get("max_queries_per_refresh", len(plan)))
-    return plan[:max(0, max_queries)]
+        max_queries = int(raw.get("max_queries_per_refresh", sum(len(campaign.queries) for campaign in selected) * len(locations)))
+
+    # Interleave the same query position across enabled campaigns and both
+    # locations. With a cap, every active campaign gets an early turn.
+    scheduled: list[tuple[str, str, str]] = []
+    max_depth = max(len(campaign.queries) for campaign in selected)
+    for query_index in range(max_depth):
+        for location in locations:
+            for campaign in selected:
+                if query_index < len(campaign.queries):
+                    scheduled.append((campaign.identifier, campaign.queries[query_index], location))
+    return scheduled[:max(0, max_queries)]
 
 
 def save_enabled_campaigns(project_root: Path, enabled: set[str]) -> tuple[SearchCampaign, ...]:

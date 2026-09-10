@@ -103,7 +103,7 @@ Use **Preparation queue** for the ordered working queue. It separates current ro
 
 ### Search campaigns
 
-Use **Search campaigns** to choose the role groups included in future discovery refreshes: Data/BI and business analysis, IT support and service desk, broader entry-level IT, and full-time administration. The selection is stored privately in `private/search_campaigns.json`. Sydney and NSW are searched separately; an advertisement labelled only “NSW” is kept for location review rather than automatically treated as a Sydney job.
+Use **Search campaigns** to choose the role groups included in future discovery refreshes: Data/BI and business analysis, IT support and service desk, broader entry-level IT, and full-time administration. The selection is stored privately in `private/search_campaigns.json`. Sydney and NSW are searched separately; an advertisement labelled only “NSW” is kept for location review rather than automatically treated as a Sydney job. When several campaigns are on, a capped broad-feed refresh alternates between them instead of letting the first campaign consume the entire query budget. The full-time administration campaign filters only listings that explicitly say part-time, casual or job-share.
 
 ## Reliability and private backup
 

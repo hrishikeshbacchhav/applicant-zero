@@ -97,6 +97,25 @@ def test_inactive_campaign_lane_does_not_clutter_the_active_queue():
     assert result.lane == "administration"
 
 
+def test_full_time_administration_campaign_filters_explicit_part_time_work():
+    job = Job(
+        "admin-part-time", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid",
+        "Part-time administration role supporting the customer service team.",
+    )
+    result = score_job(job, RISHI_PROFILE, {"administration"})
+    assert result.recommendation == "Skip"
+    assert "full-time administration campaign" in " ".join(result.reasons)
+
+
+def test_full_time_administration_campaign_keeps_explicit_full_time_work():
+    job = Job(
+        "admin-full-time", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid",
+        "Full-time administration role supporting the customer service team.",
+    )
+    result = score_job(job, RISHI_PROFILE, {"administration"})
+    assert result.recommendation in {"Apply", "Review", "Strong apply"}
+
+
 def test_data_governance_role_is_discovered_as_data_analytics():
     job = Job("13", "Data Governance Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Data quality, SQL and stakeholder engagement.")
     assert score_job(job, RISHI_PROFILE).recommendation in {"Apply", "Strong apply", "Review"}
