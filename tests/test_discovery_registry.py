@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from applicant_zero.discovery_registry import board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets
+from applicant_zero.discovery_priority import prioritise_targets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -69,3 +70,14 @@ def test_board_health_summary_distinguishes_recent_stale_and_unavailable_checks(
         {"company": "Unavailable", "status": "unavailable", "checked_at": "2099-01-01 00:00:00"},
     ])
     assert summary == {"configured": 4, "checked": 1, "unavailable": 1, "stale": 1, "never_checked": 1}
+
+
+def test_priority_engine_prefers_healthy_configured_priority_employers():
+    targets = load_targets(ROOT / "data" / "target_companies.starter.json")[:2]
+    rows = [
+        {"company": targets[0].company, "route": "Research queue", "health": "not applicable"},
+        {"company": targets[1].company, "route": "Public ATS refresh", "health": "checked"},
+    ]
+    ranked = prioritise_targets(targets, rows)
+    assert ranked[0].company == targets[1].company
+    assert "Automatic refresh" in ranked[0].action
