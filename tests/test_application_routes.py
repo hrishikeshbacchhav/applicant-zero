@@ -33,6 +33,15 @@ def test_known_application_platforms_are_classified():
     assert supports_supervised_browser_handoff(classify_application_url("https://example.com/jobs/123")) is False
 
 
+def test_additional_hosted_forms_are_available_for_supervised_pilots():
+    workable = classify_application_url("https://apply.workable.com/example/j/123")
+    smartrecruiters = classify_application_url("https://jobs.smartrecruiters.com/example/123")
+    assert workable.platform == "Workable"
+    assert smartrecruiters.platform == "SmartRecruiters"
+    assert supports_supervised_browser_handoff(workable)
+    assert supports_supervised_browser_handoff(smartrecruiters)
+
+
 def test_form_scan_counts_fields_and_detects_captcha():
     response = MagicMock()
     response.__enter__.return_value.read.return_value = b"""

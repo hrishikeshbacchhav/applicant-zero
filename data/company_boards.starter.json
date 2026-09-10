@@ -88,5 +88,15 @@
     "company": "Qualtrics",
     "ats": "greenhouse",
     "token": "Qualtrics"
+  },
+  {
+    "company": "Deputy",
+    "ats": "lever",
+    "token": "deputy"
+  },
+  {
+    "company": "Blinq",
+    "ats": "lever",
+    "token": "blinq"
   }
 ]

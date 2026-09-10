@@ -59,7 +59,7 @@ python -m applicant_zero --company-boards data/company_boards.json
 
 The private company-board list is excluded from Git. This command only reads public job listings and records matching results locally; it does not open or submit an application.
 
-For the Sydney pilot, a public starter list of 12 currently verified company boards is already included. Run:
+For the Sydney pilot, a public starter list of 20 currently verified company boards is already included. Run:
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -99,6 +99,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\refresh_compa
 
 Open **Daily priorities** in the dashboard whenever you want a short ordered list of new roles, roles already being prepared, and follow-ups. It is generated locally and uses no OpenAI API credits.
 
+Use **Application operations** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files and browser plans; it does not open an employer site, use AI credits or submit anything.
+
 ## Reliability and private backup
 
 Use **System health** in the dashboard to confirm the profile, local database, and most recent discovery run are ready. You can also run `python -m applicant_zero --health-check` from the project terminal.
@@ -125,7 +127,7 @@ From a preparation brief, select **Save private application packet** to create a
 
 ## Supervised application pilot
 
-The dashboard labels every job by its application route. Lever forms have passed the browser-assistance test, while Greenhouse forms remain a supervised pilot because their browser-rendering behaviour varies. SEEK and LinkedIn can use a supervised login handoff: you sign in yourself, then Applicant Zero waits for a visible application form and fills only safe reusable answers. Workday gets the same supervised handoff for its multi-step forms. Unknown systems stay in manual review.
+The dashboard labels every job by its application route. Lever forms have passed the browser-assistance test, while Greenhouse, Ashby, Workable and SmartRecruiters remain supervised pilots because employer-specific form behaviour varies. SEEK and LinkedIn can use a supervised login handoff: you sign in yourself, then Applicant Zero waits for a visible application form and fills only safe reusable answers. Workday gets the same supervised handoff for its multi-step forms. Unknown systems stay in manual review.
 
 Install the free local browser-control package once:
 

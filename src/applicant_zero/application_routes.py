@@ -60,6 +60,10 @@ def classify_application_url(url: str) -> ApplicationRoute:
         return ApplicationRoute("LinkedIn", "login_required", url, account_required=True, detail="Application requires the candidate's LinkedIn session.")
     if "ashbyhq.com" in host:
         return ApplicationRoute("Ashby", "pilot", url, detail="Hosted application form suitable for a supervised pilot.")
+    if "workable.com" in host:
+        return ApplicationRoute("Workable", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "smartrecruiters.com" in host:
+        return ApplicationRoute("SmartRecruiters", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
     return ApplicationRoute("Other", "manual_review", url, detail="Application route must be reviewed before browser assistance.")
 
 
