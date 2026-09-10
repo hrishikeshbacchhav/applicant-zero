@@ -42,6 +42,13 @@ def test_additional_hosted_forms_are_available_for_supervised_pilots():
     assert supports_supervised_browser_handoff(smartrecruiters)
 
 
+def test_broader_australian_employer_platforms_have_explicit_routes():
+    assert classify_application_url("https://apply.bamboohr.com/careers/1").platform == "BambooHR"
+    assert classify_application_url("https://company.teamtailor.com/jobs/1").support_level == "pilot"
+    assert classify_application_url("https://jobs.icims.com/jobs/1").support_level == "complex"
+    assert classify_application_url("https://example.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/jobsearch/job/1").platform == "Oracle/Taleo"
+
+
 def test_form_scan_counts_fields_and_detects_captcha():
     response = MagicMock()
     response.__enter__.return_value.read.return_value = b"""

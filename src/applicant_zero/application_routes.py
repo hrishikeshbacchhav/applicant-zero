@@ -64,6 +64,20 @@ def classify_application_url(url: str) -> ApplicationRoute:
         return ApplicationRoute("Workable", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
     if "smartrecruiters.com" in host:
         return ApplicationRoute("SmartRecruiters", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "bamboohr.com" in host:
+        return ApplicationRoute("BambooHR", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "recruitee.com" in host:
+        return ApplicationRoute("Recruitee", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "teamtailor.com" in host:
+        return ApplicationRoute("Teamtailor", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "pinpointhq.com" in host:
+        return ApplicationRoute("Pinpoint", "pilot", url, detail="Hosted application form suitable for a supervised pilot; review any employer-specific questions.")
+    if "icims.com" in host:
+        return ApplicationRoute("iCIMS", "complex", url, account_required=True, detail="Multi-step application that may require a candidate account.")
+    if "taleo.net" in host or "oraclecloud.com" in host:
+        return ApplicationRoute("Oracle/Taleo", "complex", url, account_required=True, detail="Multi-step application that may require a candidate account.")
+    if "successfactors.com" in host:
+        return ApplicationRoute("SAP SuccessFactors", "complex", url, account_required=True, detail="Multi-step application that may require a candidate account.")
     return ApplicationRoute("Other", "manual_review", url, detail="Application route must be reviewed before browser assistance.")
 
 
@@ -77,7 +91,7 @@ def inspect_application_route(url: str) -> ApplicationRoute:
     lowered = text.lower()
     captcha = any(marker in lowered for marker in ("recaptcha", "hcaptcha", "captcha"))
     account_required = base.account_required
-    if base.platform not in {"Lever", "Greenhouse"}:
+    if base.platform not in {"Lever", "Greenhouse", "Ashby", "Workable", "SmartRecruiters", "BambooHR", "Recruitee", "Teamtailor", "Pinpoint"}:
         account_required = account_required or any(marker in lowered for marker in ("create an account", "sign in to apply", "log in to apply"))
     detail = base.detail
     if parser.field_count:

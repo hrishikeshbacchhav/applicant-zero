@@ -21,3 +21,17 @@ def test_session_trace_is_private_and_append_only(tmp_path):
     assert payload["events"][0]["event"] == "required_question"
     assert payload["form_pages"][0]["fields"][0]["handling"] == "recognised"
     assert load_trace(database_path, "job-1") == payload
+
+
+def test_repeated_unchanged_form_page_is_not_added_twice(tmp_path):
+    database_path = tmp_path / "data" / "jobs.sqlite3"
+    with initialise_database(database_path) as database:
+        job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL")
+        save_match(database, job, score_job(job, RISHI_PROFILE))
+    start_trace(database_path, "job-1", "Lever", "https://example.invalid/apply")
+    fields = [{"label": "Email", "control": "email", "required": True, "handling": "recognised"}]
+    record_form_inventory(database_path, "job-1", "https://example.invalid/apply", fields)
+    record_form_inventory(database_path, "job-1", "https://example.invalid/apply", fields)
+    trace = load_trace(database_path, "job-1")
+    assert len(trace["form_pages"]) == 1
+    assert trace["form_pages"][0]["step"] == 1

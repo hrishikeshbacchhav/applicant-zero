@@ -22,7 +22,7 @@ def start_trace(database_path: Path, external_id: str, platform: str, apply_url:
     path = _trace_path(database_path, external_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "external_id": external_id,
         "job": {"title": job["title"], "company": job["company"]},
         "platform": platform,
@@ -62,10 +62,15 @@ def record_form_inventory(database_path: Path, external_id: str, page_url: str, 
         raise ValueError("Application trace has not started.")
     payload = json.loads(path.read_text(encoding="utf-8"))
     pages = payload.setdefault("form_pages", [])
+    fingerprint = json.dumps(fields[:80], sort_keys=True, ensure_ascii=False)
+    if pages and pages[-1].get("page_url") == page_url and pages[-1].get("fingerprint") == fingerprint:
+        return path
     pages.append({
         "at": datetime.now().isoformat(timespec="seconds"),
         "page_url": page_url,
         "fields": fields[:80],
+        "fingerprint": fingerprint,
+        "step": len(pages) + 1,
     })
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return path

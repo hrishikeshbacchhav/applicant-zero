@@ -256,3 +256,7 @@ The first line tells Python where the local program files are. The second writes
 ### Eligibility and role-readiness decisions
 
 Before a role is prepared, Applicant Zero now detects explicit citizenship, residency, clearance, work-rights and sponsorship conditions in the imported listing. A direct citizenship or residency conflict with the confirmed private profile is marked **blocked**. Other conditions stay visible as **confirm** items for the candidate to verify in the employer form. The system does not infer protected answers or submit declarations.
+
+### Supervised browser coverage
+
+The assisted workflow recognises Lever, Greenhouse, Ashby, Workable, SmartRecruiters, BambooHR, Recruitee, Teamtailor and Pinpoint hosted forms, plus complex iCIMS, Oracle/Taleo, SAP SuccessFactors and Workday routes. It inventories each unique form step privately and retains browser handoffs for login, CAPTCHA, verification codes, protected questions, unknown required fields and final submission.
