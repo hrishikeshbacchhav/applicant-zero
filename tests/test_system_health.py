@@ -1,4 +1,6 @@
 import json
+import os
+from datetime import datetime, timedelta
 
 from applicant_zero.storage import initialise_database
 
@@ -62,3 +64,16 @@ def test_health_report_reads_private_discovery_log(tmp_path):
     status = next(item for item in health_report(project) if item[0] == "Scheduled discovery log")
     assert status[1] is True
     assert "completed successfully" in status[2]
+
+
+def test_health_report_marks_old_refresh_log_stale(tmp_path):
+    project = tmp_path / "project"
+    logs = project / "logs"
+    logs.mkdir(parents=True)
+    log = logs / "refresh_old.log"
+    log.write_text("finished successfully", encoding="utf-8")
+    old = (datetime.now() - timedelta(hours=31)).timestamp()
+    os.utime(log, (old, old))
+    status = next(item for item in health_report(project) if item[0] == "Scheduled discovery log")
+    assert status[1] is False
+    assert "stale" in status[2]
