@@ -3,6 +3,7 @@ import re
 
 from .profile import CandidateProfile
 from .taxonomy import classify_lane
+from .eligibility import listing_eligibility_requirements
 
 
 @dataclass(frozen=True)
@@ -144,9 +145,10 @@ def score_job(job: Job, profile: CandidateProfile) -> MatchResult:
             (f"The listing appears to require {requirement}; verify that your evidence supports it before applying.",),
         )
 
-    if any(term in text for term in ("security clearance", "baseline clearance", "australian citizen", "citizen or permanent resident")):
+    eligibility_requirements = listing_eligibility_requirements(description)
+    if eligibility_requirements:
         return MatchResult(
-            "Review", 30, family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family), (), ("eligibility or clearance requirement",),
+            "Review", 30, family, (classify_lane(job.title, job.description).identifier if classify_lane(job.title, job.description) else family), (), tuple(label for label, _ in eligibility_requirements),
             ("The role states an eligibility, citizenship or clearance condition; confirm it yourself before preparing an application.",),
         )
 

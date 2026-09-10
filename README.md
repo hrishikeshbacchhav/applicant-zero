@@ -252,3 +252,7 @@ python -m applicant_zero --demo
 ```
 
 The first line tells Python where the local program files are. The second writes `data/applicant_zero.sqlite3` locally and prints a ranked queue. The database is excluded from Git.
+
+### Eligibility and role-readiness decisions
+
+Before a role is prepared, Applicant Zero now detects explicit citizenship, residency, clearance, work-rights and sponsorship conditions in the imported listing. A direct citizenship or residency conflict with the confirmed private profile is marked **blocked**. Other conditions stay visible as **confirm** items for the candidate to verify in the employer form. The system does not infer protected answers or submit declarations.

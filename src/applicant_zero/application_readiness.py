@@ -10,6 +10,7 @@ from .resume_review import load_resume_review
 from .resume_output import editable_resume_copy_exists
 from .material_manifest import material_manifest_path
 from .resume_evidence import load_lane_resume_evidence
+from .eligibility import evaluate_listing_eligibility
 
 
 @dataclass(frozen=True)
@@ -26,10 +27,12 @@ def evaluate_application_readiness(database_path: Path, job: dict, materials_rev
         return [ReadinessItem(False, "Candidate profile", "Complete the private candidate profile first.")]
     resume_path = profile.get("resumes", {}).get(job.get("resume_family"), "")
     evidence_lines = load_lane_resume_evidence(project_root, job.get("resume_family"))
+    eligibility_check = evaluate_listing_eligibility(str(job.get("description", "")), profile)
     answers = ensure_answer_library(project_root, profile).get("answers_requiring_confirmation", {})
     core_answers = ("salary_expectations", "notice_period", "linkedin_url")
     missing_answers = [key.replace("_", " ") for key in core_answers if not str(answers.get(key, "")).strip()]
     return [
+        ReadinessItem(eligibility_check.outcome != "blocked", "Eligibility route", eligibility_check.detail),
         ReadinessItem(material_manifest_path(database_path, job["external_id"]) is not None, "Evidence manifest", "Role-to-evidence record is saved." if material_manifest_path(database_path, job["external_id"]) else "Create the role evidence manifest before tailoring."),
         ReadinessItem(bool(resume_path and Path(resume_path).exists()), "Approved resume", "Selected resume file is available." if resume_path and Path(resume_path).exists() else "Check the selected resume file path."),
         ReadinessItem(bool(evidence_lines), "Resume evidence inventory", "Approved PDF and Word source wording is available for the selected resume family." if evidence_lines else "Refresh the private resume evidence inventory for this resume family."),

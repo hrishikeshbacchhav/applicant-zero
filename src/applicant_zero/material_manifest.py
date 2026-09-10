@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .private_profile import load_profile
 from .resume_evidence import inventory_path, load_lane_resume_evidence
+from .eligibility import evaluate_listing_eligibility
 from .storage import get_match
 
 
@@ -30,6 +31,7 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
     resume = Path(profile.get("resumes", {}).get(family, ""))
     master = Path(profile.get("editable_resume_masters", {}).get(family, ""))
     description = str(row.get("description", ""))
+    eligibility_check = evaluate_listing_eligibility(description, profile)
     fingerprint = hashlib.sha256(f"{row['url']}\n{description}".encode("utf-8")).hexdigest()[:16]
     payload = {
         "schema_version": 1,
@@ -54,6 +56,11 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
             "requirements_to_check": json.loads(row["missing_requirements"]),
             "recommendation_reasons": json.loads(row["reasons"]),
         },
+        "eligibility_review": {
+            "outcome": eligibility_check.outcome,
+            "requirements": eligibility_check.requirements,
+            "detail": eligibility_check.detail,
+        },
         "editing_rules": [
             "Keep employers, dates, qualifications, tools, responsibilities and metrics truthful.",
             "Use only matched evidence or evidence verified separately in the private evidence library.",
@@ -63,7 +70,8 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
         "next_actions": [
             "Use the matched evidence to decide what belongs in the summary and bullet wording.",
             "Resolve every listed requirement before claiming it in a resume or response.",
-            "Generate an AI review draft only after the private evidence library is current.",
+        "Generate an AI review draft only after the private evidence library is current.",
+        "Do not continue if the eligibility review is blocked; otherwise verify each condition in the employer form.",
         ],
     }
     path = _path(database_path, row)

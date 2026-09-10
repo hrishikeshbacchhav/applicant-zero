@@ -45,7 +45,7 @@ def test_high_experience_requirement_is_flagged_even_without_senior_title():
 def test_work_rights_condition_is_shown_as_a_requirement_to_check():
     job = Job("7", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Power BI and SQL. Applicants must have unrestricted working rights in Australia.")
     result = score_job(job, RISHI_PROFILE)
-    assert "work-rights eligibility" in result.missing_requirements
+    assert "unrestricted work-rights requirement" in result.missing_requirements
 
 
 def test_data_engineering_role_is_not_mistaken_for_a_data_analyst_role():
@@ -57,7 +57,7 @@ def test_clearance_condition_stays_visible_for_candidate_review():
     job = Job("9", "Data Analyst", "Example", "Sydney, NSW", "test", "https://example.invalid", "Australian citizenship and baseline clearance are required.")
     result = score_job(job, RISHI_PROFILE)
     assert result.recommendation == "Review"
-    assert "eligibility or clearance requirement" in result.missing_requirements
+    assert "Australian citizenship required" in result.missing_requirements
 
 
 def test_unmatched_direct_role_is_kept_for_review_not_auto_apply():
@@ -122,3 +122,4 @@ def test_unverified_sector_and_leadership_requirements_hold_role_for_review():
     assert "independent requirements-gathering leadership" in result.missing_requirements
     assert "direct care-sector experience" in result.missing_requirements
     assert "continuous-improvement delivery experience" in result.missing_requirements
+
