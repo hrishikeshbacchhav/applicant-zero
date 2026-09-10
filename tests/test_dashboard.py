@@ -35,6 +35,8 @@ def test_empty_dashboard_has_guidance(tmp_path):
     assert "No jobs collected yet" in page
     assert "Add a job from another website" in page
     assert "Focus for today" in page
+    assert "Today’s workflow" in page
+    assert "Open application operations" in page
     outcomes = build_outcomes_page(tmp_path / "missing.sqlite3")
     assert "Search progress" in outcomes
     assert "Applications submitted" in outcomes

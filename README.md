@@ -268,3 +268,9 @@ The tracker separates Applied, Interview, Offer, Rejected and Closed outcomes. S
 ## Everyday workflow
 
 The dashboard’s **How to use this** page gives the normal six-step routine: refresh, review, prepare, verify, use browser assistance where available, then record the outcome. It is also the quickest place to see which actions Applicant Zero can perform locally and which employer-facing actions remain yours.
+
+## Daily workflow and learned form patterns
+
+The review queue now includes **Today’s workflow**: an ordered local plan based on role fit, evidence gaps, application effort, manual handoffs and the latest discovery-log health. It links directly to **Application operations** and **Manual actions**, so the next useful step stays visible without hunting through the dashboard.
+
+After a supervised application reaches a form page, **Platform pilots** shows privacy-safe learned patterns for that platform: field label, control type and whether Applicant Zero recognised it or routed it to candidate review. It never records typed values, uploaded documents, passwords, account information or submission data. Protected eligibility and identity declarations always remain for direct candidate review in the employer form.
