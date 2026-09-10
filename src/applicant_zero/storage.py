@@ -50,6 +50,18 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS board_check_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            company TEXT NOT NULL,
+            status TEXT NOT NULL,
+            job_count INTEGER NOT NULL,
+            detail TEXT NOT NULL DEFAULT '',
+            checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS application_routes (
             external_id TEXT PRIMARY KEY,
             platform TEXT NOT NULL,
@@ -371,6 +383,13 @@ def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> 
             """,
             (report.company, report.status, report.job_count, report.message),
         )
+        connection.execute(
+            """
+            INSERT INTO board_check_history (company, status, job_count, detail)
+            VALUES (?, ?, ?, ?)
+            """,
+            (report.company, report.status, report.job_count, report.message),
+        )
     connection.commit()
 
 
@@ -380,6 +399,38 @@ def list_board_checks(connection: sqlite3.Connection) -> list[dict]:
         "SELECT company, status, job_count, detail, checked_at FROM board_checks ORDER BY company"
     ).fetchall()
     return [dict(row) for row in rows]
+
+
+def list_board_check_trends(connection: sqlite3.Connection, limit: int = 30) -> tuple[dict[str, dict], list[dict]]:
+    """Return per-board listing changes and a compact, auditable check history.
+
+    A failed public endpoint is kept separate from a board that was checked and
+    currently has zero listings.  This lets the dashboard explain whether a
+    count changed because a role closed or because a source was unavailable.
+    """
+    connection.row_factory = sqlite3.Row
+    rows = [dict(row) for row in connection.execute(
+        """SELECT id, company, status, job_count, detail, checked_at
+           FROM board_check_history ORDER BY id DESC LIMIT ?""",
+        (max(1, int(limit)),),
+    ).fetchall()]
+    trends: dict[str, dict] = {}
+    for row in rows:
+        key = str(row["company"]).casefold()
+        if key not in trends:
+            trends[key] = {
+                "company": row["company"], "status": row["status"], "job_count": row["job_count"],
+                "checked_at": row["checked_at"], "previous_job_count": None, "change": None,
+            }
+            continue
+        summary = trends[key]
+        if summary["previous_job_count"] is None and row["status"] == "checked":
+            # The first record encountered for a company is its current
+            # observation. The next successful observation is its baseline.
+            summary["previous_job_count"] = row["job_count"]
+            if summary["status"] == "checked":
+                summary["change"] = int(summary["job_count"]) - int(row["job_count"])
+    return trends, rows
 
 
 def record_refresh_run(

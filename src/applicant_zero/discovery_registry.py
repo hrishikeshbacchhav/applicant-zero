@@ -99,7 +99,12 @@ def board_coverage(targets: list[TargetCompany], board_path: Path) -> dict[str, 
     return {"configured": covered, "research_needed": pending}
 
 
-def employer_coverage_rows(targets_path: Path, board_path: Path, board_checks: list[dict] | None = None) -> list[dict[str, object]]:
+def employer_coverage_rows(
+    targets_path: Path,
+    board_path: Path,
+    board_checks: list[dict] | None = None,
+    board_trends: dict[str, dict] | None = None,
+) -> list[dict[str, object]]:
     """Return an auditable employer-by-employer coverage map for the dashboard."""
     targets = load_targets(targets_path)
     boards = _load(board_path)
@@ -111,17 +116,21 @@ def employer_coverage_rows(targets_path: Path, board_path: Path, board_checks: l
         str(item.get("company", "")).casefold(): str(item.get("status", "not checked"))
         for item in (board_checks or [])
     }
-    return [
-        {
+    rows: list[dict[str, object]] = []
+    for target in targets:
+        trend = (board_trends or {}).get(target.company.casefold(), {})
+        rows.append({
             "company": target.company,
             "sector": target.sector,
             "priority": target.priority,
             "route": "Public ATS refresh" if target.company.casefold() in board_by_company else "Research queue",
             "ats": board_by_company.get(target.company.casefold(), ""),
             "health": health_by_company.get(target.company.casefold(), "not checked") if target.company.casefold() in board_by_company else "not applicable",
-        }
-        for target in targets
-    ]
+            "job_count": trend.get("job_count"),
+            "job_change": trend.get("change"),
+            "checked_at": trend.get("checked_at", ""),
+        })
+    return rows
 
 
 def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path) -> dict[str, object]:

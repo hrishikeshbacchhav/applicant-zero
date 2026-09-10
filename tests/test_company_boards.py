@@ -3,7 +3,7 @@ from unittest.mock import patch
 import json
 
 from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _smartrecruiters_jobs, fetch_company_boards_with_report
-from applicant_zero.storage import initialise_database, list_board_checks, save_board_checks
+from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
 def test_greenhouse_mapping():
@@ -87,6 +87,23 @@ def test_board_health_is_saved_locally(tmp_path):
     rows = list_board_checks(database)
     assert rows[0]["company"] == "Example"
     assert rows[0]["job_count"] == 3
+
+
+def test_board_check_history_keeps_a_listing_change_without_confusing_unavailable_with_zero(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    report = lambda status, count: type("Report", (), {"company": "Example", "status": status, "job_count": count, "message": "endpoint issue" if status == "unavailable" else ""})()
+    save_board_checks(database, [report("checked", 5)])
+    save_board_checks(database, [report("checked", 3)])
+    trends, history = list_board_check_trends(database)
+
+    assert trends["example"]["job_count"] == 3
+    assert trends["example"]["change"] == -2
+    assert len(history) == 2
+
+    save_board_checks(database, [report("unavailable", 0)])
+    trends, _ = list_board_check_trends(database)
+    assert trends["example"]["status"] == "unavailable"
+    assert trends["example"]["change"] is None
 
 
 def test_invalid_or_duplicate_board_config_does_not_stop_valid_collection(tmp_path):

@@ -480,4 +480,6 @@ def test_discovery_coverage_shows_freshness_breakdown(tmp_path):
     assert "Add a verified public employer board" in page
     assert "action='/boards'" in page
     assert "SmartRecruiters" in page
+    assert "Recent public-board checks" in page
+    assert "1 public listing" in page
 
