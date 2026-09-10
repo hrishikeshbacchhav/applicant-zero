@@ -21,7 +21,7 @@ from .daily_digest import create_daily_digest
 from .system_health import health_page
 from .reporting import outcome_summary, tracker_csv
 from .platform_pilots import build_platform_pilots_page
-from .discovery_registry import board_health_summary, discovery_overview, employer_coverage_rows
+from .discovery_registry import add_public_board, board_health_summary, discovery_overview, employer_coverage_rows
 from .discovery_registry import load_targets
 from .discovery_priority import prioritise_targets
 from .material_manifest import create_material_manifest, material_manifest_path
@@ -284,8 +284,8 @@ def build_operations_page(database_path: Path, prepared_count: int = 0) -> str:
     return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Preparation queue</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article,section{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}.ready,.success{{background:#d9f3e6;color:#12643b;padding:9px;border-radius:6px}}.blocked{{background:#fff1cc;color:#8a5a00;padding:9px;border-radius:6px}}button{{padding:10px 15px;border:0;border-radius:6px;background:#163b67;color:#fff;font-weight:bold;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Preparation queue</h1><p>This separates local preparation work from roles that need an evidence decision. Bulk preparation creates files only: no AI usage or employer contact.</p>{success}<section><h2>Ready now</h2><p><strong>{len(eligible)}</strong> role{'s' if len(eligible) != 1 else ''} can be prepared from your confirmed local materials.</p><form method='post' action='/prepare-eligible'><button type='submit'>Prepare up to three eligible roles</button></form></section><section><h2>Prioritised queue</h2>{rows}</section></main></body></html>"""
 
 
-def build_discovery_page(database_path: Path) -> str:
-    """Show what Applicant Zero can refresh directly and what needs research."""
+def build_discovery_page(database_path: Path, board_message: str = "") -> str:
+    """Show direct public coverage, candidate-import routes and board onboarding."""
     state = database_path.parent.parent
     private_boards = state / "data" / "company_boards.json"
     board_path = private_boards if private_boards.exists() else PROJECT_ROOT / "data" / "company_boards.starter.json"
@@ -317,7 +317,8 @@ def build_discovery_page(database_path: Path) -> str:
     more = max(0, len(overview["research_needed"]) - 20)
     if more:
         waiting += f" · and {more} more"
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Discovery coverage</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:1100px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}.cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}}article,section{{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px var(--border)}}article strong{{font-size:28px;color:var(--navy);display:block}}article span,.muted{{color:var(--muted)}}li{{margin:7px 0}}.table-wrap{{overflow:auto}}table{{width:100%;border-collapse:collapse}}th,td{{text-align:left;padding:10px;border-top:1px solid var(--border)}}th{{color:var(--navy);background:#eef4fb}}.auto,.research{{display:inline-block;padding:3px 8px;border-radius:12px;font-size:12px;font-weight:bold}}.auto{{background:#d9f3e6;color:#12643b}}.research{{background:#fff1cc;color:#8a5a00}}@media(max-width:650px){{.cards{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Discovery coverage</h1><p class='muted'>This is the operating map for your job search. A company is only added to automatic refresh after its public ATS board has been verified.</p><div class='cards'><article><strong>{overview['target_count']}</strong><span>target employers tracked</span></article><article><strong>{overview['configured_count']}</strong><span>verified public career boards</span></article><article><strong>{overview['source_count']}</strong><span>source routes recorded</span></article></div><section><h2>What to prioritise next</h2><ul>{priority_list}</ul></section><section><h2>Automatic refresh</h2><ul>{automated}</ul><p><strong>Current verified boards:</strong> {covered}</p><p class='muted'>{board_health['checked']} recently checked · {board_health['unavailable']} unavailable · {board_health['stale']} stale · {board_health['never_checked']} not checked yet.</p></section><section><h2>Candidate-assisted routes</h2><ul>{manual}</ul><p>Use “Add a job from another website” when you find a suitable SEEK, LinkedIn or other listing. The same scoring, tailoring and tracking workflow then applies.</p></section><section><h2>Employer-board research queue</h2><p>{waiting or 'All current targets are covered.'}</p><p class='muted'>Research queue means a target has been prioritised but no public, reliable board token has been recorded yet. It does not mean there is a vacancy.</p></section><section><h2>Employer coverage map</h2><p class='muted'>Priority 1 employers are the first research group. Public ATS refresh means the board is configured; it does not promise a current vacancy. Latest check shows the result of the most recent local refresh.</p><div class='table-wrap'><table><thead><tr><th>Employer</th><th>Sector</th><th>Priority</th><th>Discovery route</th><th>Latest check</th></tr></thead><tbody>{coverage_table}</tbody></table></div></section></main></body></html>"""
+    message = f"<p class='success'>{html.escape(board_message)}</p>" if board_message else ""
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Discovery coverage</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:1100px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}.cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}}article,section{{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px var(--border);margin:16px 0}}article strong{{font-size:28px;color:var(--navy);display:block}}article span,.muted{{color:var(--muted)}}li{{margin:7px 0}}.table-wrap{{overflow:auto}}table{{width:100%;border-collapse:collapse}}th,td{{text-align:left;padding:10px;border-top:1px solid var(--border)}}th{{color:var(--navy);background:#eef4fb}}.auto,.research{{display:inline-block;padding:3px 8px;border-radius:12px;font-size:12px;font-weight:bold}}.auto{{background:#d9f3e6;color:#12643b}}.research{{background:#fff1cc;color:#8a5a00}}.success{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:7px}}.board-form{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end}}.board-form label{{font-weight:bold;font-size:13px;color:var(--navy)}}.board-form input,.board-form select{{display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #c7d2e3;border-radius:6px;font:inherit}}button{{background:var(--navy);color:#fff;border:0;border-radius:7px;padding:10px 14px;font-weight:bold;cursor:pointer}}@media(max-width:650px){{.cards,.board-form{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Discovery coverage</h1><p class='muted'>This is the operating map for your job search. A company is only added to automatic refresh after its public ATS board has been verified.</p>{message}<div class='cards'><article><strong>{overview['target_count']}</strong><span>target employers tracked</span></article><article><strong>{overview['configured_count']}</strong><span>verified public career boards</span></article><article><strong>{overview['source_count']}</strong><span>source routes recorded</span></article></div><section><h2>Add a verified public employer board</h2><p class='muted'>Use this only after you have opened the employer’s own public career page and can see it is hosted by Greenhouse, Lever, Ashby or SmartRecruiters. Enter the public board token from that URL. This saves no login, password or API key and reads listings only.</p><form method='post' action='/boards' class='board-form'><label>Employer name<input name='company' required placeholder='e.g. Example Australia'></label><label>Public ATS<select name='ats'><option value='greenhouse'>Greenhouse</option><option value='lever'>Lever</option><option value='ashby'>Ashby</option><option value='smartrecruiters'>SmartRecruiters</option></select></label><label>Public board token<input name='token' required placeholder='Token from the public careers URL'></label><button type='submit'>Add public board</button></form></section><section><h2>What to prioritise next</h2><ul>{priority_list}</ul></section><section><h2>Automatic refresh</h2><ul>{automated}</ul><p><strong>Current verified boards:</strong> {covered}</p><p class='muted'>{board_health['checked']} recently checked · {board_health['unavailable']} unavailable · {board_health['stale']} stale · {board_health['never_checked']} not checked yet.</p></section><section><h2>Candidate-assisted routes</h2><ul>{manual}</ul><p>Use “Add a job from another website” when you find a suitable SEEK, LinkedIn or other listing. The same scoring, tailoring and tracking workflow then applies.</p></section><section><h2>Employer-board research queue</h2><p>{waiting or 'All current targets are covered.'}</p><p class='muted'>Research queue means a target has been prioritised but no public, reliable board token has been recorded yet. It does not mean there is a vacancy.</p></section><section><h2>Employer coverage map</h2><p class='muted'>Priority 1 employers are the first research group. Public ATS refresh means the board is configured; it does not promise a current vacancy. Latest check shows the result of the most recent local refresh.</p><div class='table-wrap'><table><thead><tr><th>Employer</th><th>Sector</th><th>Priority</th><th>Discovery route</th><th>Latest check</th></tr></thead><tbody>{coverage_table}</tbody></table></div></section></main></body></html>"""
 
 
 def build_answers_page(database_path: Path) -> str:
@@ -527,7 +528,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 prepared_count = int(parse_qs(parsed.query).get("prepared", ["0"])[0] or "0")
                 content = build_operations_page(database_path, prepared_count).encode("utf-8")
             elif parsed.path == "/discovery":
-                content = build_discovery_page(database_path).encode("utf-8")
+                message = parse_qs(parsed.query).get("board", [""])[0]
+                content = build_discovery_page(database_path, message).encode("utf-8")
             elif parsed.path == "/outcomes":
                 content = build_outcomes_page(database_path).encode("utf-8")
             elif parsed.path == "/daily-digest":
@@ -558,7 +560,7 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns", "/gmail-sync"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns", "/gmail-sync", "/boards"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
@@ -572,6 +574,25 @@ def serve(database_path: Path, port: int = 8765) -> None:
                     message = f"Read-only Gmail check did not run: {error}"
                 self.send_response(303)
                 self.send_header("Location", "/email-updates?" + urlencode({"sync": message}))
+                self.end_headers()
+                return
+            if self.path == "/boards":
+                try:
+                    entry, created = add_public_board(
+                        database_path.parent.parent,
+                        PROJECT_ROOT / "data" / "company_boards.starter.json",
+                        values.get("company", [""])[0],
+                        values.get("ats", [""])[0],
+                        values.get("token", [""])[0],
+                    )
+                    message = (
+                        f"Added {entry['company']} to the private public-board registry. It will be checked on the next discovery refresh."
+                        if created else f"That public board is already in the private registry as {entry['company']}."
+                    )
+                except ValueError as error:
+                    message = f"Public board was not added: {error}"
+                self.send_response(303)
+                self.send_header("Location", "/discovery?" + urlencode({"board": message}))
                 self.end_headers()
                 return
             if self.path == "/campaigns":

@@ -1,6 +1,7 @@
 """Validated source and target-company registries used by scheduled discovery."""
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,6 +21,56 @@ class TargetCompany:
     company: str
     sector: str
     priority: int
+
+
+SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters"}
+
+
+def add_public_board(state_root: Path, starter_path: Path, company: str, ats: str, token: str) -> tuple[dict[str, str], bool]:
+    """Save a verified public career board in the private runtime.
+
+    The starter boards are copied on first use, so adding one board from the
+    dashboard never hides the maintained starter coverage.  This stores only
+    the public employer board identifier, never an employer or candidate key.
+    """
+    clean_company = company.strip()
+    clean_ats = ats.strip().lower()
+    clean_token = token.strip()
+    if not clean_company or len(clean_company) > 160:
+        raise ValueError("Enter the employer name.")
+    if clean_ats not in SUPPORTED_PUBLIC_ATS:
+        raise ValueError("Choose Greenhouse, Lever, Ashby or SmartRecruiters.")
+    if not re.fullmatch(r"[A-Za-z0-9._-]{2,180}", clean_token):
+        raise ValueError("Enter the public board token from the employer careers URL.")
+
+    destination = state_root / "data" / "company_boards.json"
+    seed = _load(starter_path) if starter_path.exists() else []
+    existing = _load(destination) if destination.exists() else []
+    merged: list[dict] = []
+    known: set[tuple[str, str]] = set()
+    for row in [*seed, *existing]:
+        if not isinstance(row, dict):
+            continue
+        row_ats = str(row.get("ats", "")).strip().lower()
+        row_token = str(row.get("token", "")).strip()
+        if row_ats not in SUPPORTED_PUBLIC_ATS or not row_token:
+            continue
+        key = (row_ats, row_token.casefold())
+        if key in known:
+            continue
+        known.add(key)
+        merged.append({"company": str(row.get("company", "")).strip(), "ats": row_ats, "token": row_token})
+
+    entry = {"company": clean_company, "ats": clean_ats, "token": clean_token}
+    key = (clean_ats, clean_token.casefold())
+    created = key not in known
+    if created:
+        merged.append(entry)
+    else:
+        entry = next(row for row in merged if (row["ats"], row["token"].casefold()) == key)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    return entry, created
 
 
 def _load(path: Path) -> list[dict]:

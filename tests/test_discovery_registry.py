@@ -1,7 +1,8 @@
 import json
+import pytest
 from pathlib import Path
 
-from applicant_zero.discovery_registry import board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets
+from applicant_zero.discovery_registry import add_public_board, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets
 from applicant_zero.discovery_priority import prioritise_targets
 
 
@@ -71,6 +72,32 @@ def test_board_health_summary_distinguishes_recent_stale_and_unavailable_checks(
         {"company": "Unavailable", "status": "unavailable", "checked_at": "2099-01-01 00:00:00"},
     ])
     assert summary == {"configured": 4, "checked": 1, "unavailable": 1, "stale": 1, "never_checked": 1}
+
+
+def test_candidate_can_add_verified_public_board_without_hiding_starters(tmp_path):
+    starter = tmp_path / "starter.json"
+    starter.write_text(json.dumps([{"company": "Starter", "ats": "lever", "token": "starter-board"}]), encoding="utf-8")
+    state = tmp_path / "state"
+
+    entry, created = add_public_board(state, starter, "Example Australia", "greenhouse", "example-australia")
+
+    assert created is True
+    assert entry == {"company": "Example Australia", "ats": "greenhouse", "token": "example-australia"}
+    saved = json.loads((state / "data" / "company_boards.json").read_text(encoding="utf-8"))
+    assert {row["company"] for row in saved} == {"Starter", "Example Australia"}
+
+    duplicate, created = add_public_board(state, starter, "Different label", "greenhouse", "example-australia")
+    assert created is False
+    assert duplicate["company"] == "Example Australia"
+
+
+def test_candidate_cannot_add_an_unknown_or_malformed_public_board(tmp_path):
+    starter = tmp_path / "starter.json"
+    starter.write_text("[]", encoding="utf-8")
+    with pytest.raises(ValueError, match="Choose Greenhouse"):
+        add_public_board(tmp_path / "state", starter, "Example", "workable", "example")
+    with pytest.raises(ValueError, match="public board token"):
+        add_public_board(tmp_path / "state", starter, "Example", "lever", "bad token")
 
 
 def test_priority_engine_prefers_healthy_configured_priority_employers():

@@ -477,4 +477,7 @@ def test_discovery_coverage_shows_freshness_breakdown(tmp_path):
     page = build_discovery_page(path)
     assert "recently checked" in page
     assert "not checked yet" in page
+    assert "Add a verified public employer board" in page
+    assert "action='/boards'" in page
+    assert "SmartRecruiters" in page
 

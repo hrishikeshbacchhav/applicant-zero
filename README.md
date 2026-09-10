@@ -49,6 +49,8 @@ The API's default documented access limit is 2,500 requests each month, which is
 
 The preferred first live source is public company career boards. Greenhouse, Lever, Ashby and SmartRecruiters publish public job-board reads, so no candidate account or employer application credential is used to discover roles.
 
+From the local dashboard, open **Discovery coverage** and use **Add a verified public employer board** after you have opened an employer's own public careers page. Select the provider and enter the public board token from that URL. This is the simplest option: it saves no password, login or API key, and it adds the board to your private local registry for the next discovery refresh.
+
 1. Add only companies whose public careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file. Use the starter example as the schema reference; supported values for `ats` are `greenhouse`, `lever`, `ashby` and `smartrecruiters`.
 2. Run:
 
