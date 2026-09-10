@@ -33,9 +33,9 @@ def test_empty_dashboard_has_guidance(tmp_path):
     page = build_page(tmp_path / "missing.sqlite3")
     assert "No jobs collected yet" in page
     assert "Add a job from another website" in page
-    assert "Focus for today" in page
-    assert "Today’s workflow" in page
-    assert "Open application operations" in page
+    assert "Your next best actions" in page
+    assert "Open preparation queue" in page
+    assert "Role lanes" in page
     outcomes = build_outcomes_page(tmp_path / "missing.sqlite3")
     assert "Search progress" in outcomes
     assert "Applications submitted" in outcomes
@@ -97,7 +97,7 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     page = build_page(tmp_path / "jobs.sqlite3")
     assert "Your tracker" in page
     assert "Insights" in page
-    assert "Start with the actions most likely" in page
+    assert "Your next best actions" in page
     assert "Current listings" in page
     assert "Live sources" in page
     assert "Search role, company or location" in page
@@ -105,9 +105,9 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "All tracker stages" in page
     assert "All role lanes" in page
     assert "All relevant" in page
-    assert "Application operations" in page
+    assert "Preparation queue" in page
     assert "How to use this" in page
-    assert "Current relevant listings" in page
+    assert "Current roles" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
     assert "Prepare your application pack" in brief
@@ -175,7 +175,7 @@ def test_operations_page_exposes_safe_bulk_preparation(tmp_path):
     job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
     save_match(database, job, score_job(job, RISHI_PROFILE))
     page = build_operations_page(tmp_path / "jobs.sqlite3")
-    assert "Application operations" in page
+    assert "Preparation queue" in page
     assert "Prepare up to three eligible roles" in page
     assert "Ready for local preparation" in page
 
@@ -415,7 +415,7 @@ def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_pat
     assert "Last discovery refresh" in page
     assert "New this week" in page
     assert "source(s) unavailable" in page
-    assert "Daily priorities" in page
+    assert "Search progress" in page
     assert "System health" in page
     assert "4 boards checked" in page
 

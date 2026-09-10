@@ -99,7 +99,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\refresh_compa
 
 Open **Daily priorities** in the dashboard whenever you want a short ordered list of new roles, roles already being prepared, and follow-ups. It is generated locally and uses no OpenAI API credits.
 
-Use **Application operations** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files; it does not open an employer site, use AI credits or submit anything.
+Use **Preparation queue** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files; it does not open an employer site, use AI credits or submit anything.
 
 ### Search campaigns
 
@@ -267,4 +267,4 @@ The dashboard’s **How to use this** page gives the normal six-step routine: re
 
 ## Daily workflow
 
-The review queue includes **Today’s workflow**: an ordered local plan based on role fit, evidence gaps, preparation effort, tracker status and the latest discovery-log health. It links directly to **Application operations** and **Manual actions**, so the next useful step stays visible without hunting through the dashboard.
+The review queue has one **Your next best actions** panel: an ordered local plan based on role fit, evidence gaps, preparation effort, tracker status and the latest discovery-log health. It links directly to **Preparation queue** and **Search campaigns**, so the next useful step stays visible without hunting through the dashboard.
