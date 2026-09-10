@@ -18,6 +18,7 @@ from applicant_zero.storage import (
     list_matches,
     mark_company_jobs_inactive,
     save_match,
+    save_board_checks,
     save_material_review,
     save_submission_proof,
     complete_followup,
@@ -392,3 +393,13 @@ def test_dashboard_shows_latest_discovery_refresh_and_new_listing_filter(tmp_pat
     assert "Daily priorities" in page
     assert "System health" in page
     assert "4 boards checked" in page
+
+
+def test_discovery_coverage_shows_freshness_breakdown(tmp_path):
+    path = tmp_path / "project" / "data" / "jobs.sqlite3"
+    database = initialise_database(path)
+    save_board_checks(database, [type("Report", (), {"company": "Plenti", "status": "checked", "job_count": 1, "message": ""})()])
+    from applicant_zero.dashboard import build_discovery_page
+    page = build_discovery_page(path)
+    assert "recently checked" in page
+    assert "not checked yet" in page

@@ -1,6 +1,7 @@
 """Validated source and target-company registries used by scheduled discovery."""
 
 import json
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -86,3 +87,32 @@ def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path)
         "configured": coverage["configured"],
         "research_needed": coverage["research_needed"],
     }
+
+
+def board_health_summary(board_path: Path, board_checks: list[dict] | None = None, stale_after_hours: int = 30) -> dict[str, int]:
+    """Summarise configured-board health without treating an old check as live."""
+    configured = [row for row in _load(board_path) if isinstance(row, dict)]
+    checks = {str(row.get("company", "")).casefold(): row for row in (board_checks or [])}
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=stale_after_hours)
+    checked = unavailable = stale = never_checked = 0
+    for board in configured:
+        report = checks.get(str(board.get("company", "")).casefold())
+        if not report:
+            never_checked += 1
+            continue
+        if str(report.get("status", "")) == "unavailable":
+            unavailable += 1
+            continue
+        timestamp = str(report.get("checked_at", ""))
+        try:
+            observed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            if observed.tzinfo is None:
+                observed = observed.replace(tzinfo=timezone.utc)
+            if observed < cutoff:
+                stale += 1
+                continue
+        except ValueError:
+            stale += 1
+            continue
+        checked += 1
+    return {"configured": len(configured), "checked": checked, "unavailable": unavailable, "stale": stale, "never_checked": never_checked}

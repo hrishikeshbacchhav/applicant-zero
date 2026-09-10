@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from applicant_zero.discovery_registry import board_coverage, discovery_overview, employer_coverage_rows, load_sources, load_targets
+from applicant_zero.discovery_registry import board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,3 +53,19 @@ def test_employer_coverage_map_includes_latest_private_board_health():
         [{"company": "Plenti", "status": "checked"}],
     )
     assert next(row for row in rows if row["company"] == "Plenti")["health"] == "checked"
+
+
+def test_board_health_summary_distinguishes_recent_stale_and_unavailable_checks(tmp_path):
+    boards = tmp_path / "boards.json"
+    boards.write_text(json.dumps([
+        {"company": "Recent", "ats": "lever", "token": "recent"},
+        {"company": "Stale", "ats": "lever", "token": "stale"},
+        {"company": "Unavailable", "ats": "lever", "token": "unavailable"},
+        {"company": "Never", "ats": "lever", "token": "never"},
+    ]), encoding="utf-8")
+    summary = board_health_summary(boards, [
+        {"company": "Recent", "status": "checked", "checked_at": "2099-01-01 00:00:00"},
+        {"company": "Stale", "status": "checked", "checked_at": "2000-01-01 00:00:00"},
+        {"company": "Unavailable", "status": "unavailable", "checked_at": "2099-01-01 00:00:00"},
+    ])
+    assert summary == {"configured": 4, "checked": 1, "unavailable": 1, "stale": 1, "never_checked": 1}
