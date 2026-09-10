@@ -31,7 +31,7 @@ from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
 from .campaigns import campaign_query_allocation, load_campaigns, save_enabled_campaigns
 from .job_intelligence import inspect_job
-from .gmail_sync import gmail_setup_status
+from .gmail_sync import GmailSetupError, gmail_setup_status, sync_gmail
 from .storage import (
     WORKFLOW_STATUSES,
     get_followup,
@@ -213,7 +213,7 @@ def build_actions_page(database_path: Path) -> str:
     return f"""<!doctype html><html><head><meta charset='utf-8'><title>Applicant Zero - Manual actions</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:900px;margin:0 auto;padding:32px}}h1,h2{{color:#163b67}}a{{color:#1261a0;font-weight:bold}}article{{background:#fff;border-radius:8px;padding:18px;margin:14px 0;box-shadow:0 1px 4px #dce3ee}}button{{padding:9px 13px;border:1px solid #aabbd2;border-radius:6px;background:#fff;cursor:pointer}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Manual action queue</h1><p>Only the few steps that need your attention appear here.</p>{rows}</main></body></html>"""
 
 
-def build_email_page(database_path: Path) -> str:
+def build_email_page(database_path: Path, sync_message: str = "") -> str:
     """Show local, read-only Gmail matching results without exposing mail bodies."""
     project_root = database_path.parent.parent
     connected, setup_message = gmail_setup_status(project_root)
@@ -227,12 +227,24 @@ def build_email_page(database_path: Path) -> str:
     status = "Connected" if connected else "Setup needed"
     latest_text = "No Gmail sync has run yet."
     if latest:
-        latest_text = f"Last sync: {latest['completed_at']} · {latest['fetched_count']} new messages recorded · {latest['matched_count']} matched · {latest['updated_count']} tracker updates."
+        latest_text = (
+            f"Last sync: {latest['completed_at']} · {latest['fetched_count']} new messages recorded · "
+            f"{latest['matched_count']} matched · {latest['updated_count']} tracker updates."
+        )
     rows = "".join(
         f"<tr><td>{html.escape(event['category'].title())}</td><td>{html.escape(event['company'] or 'No confident match')}</td><td>{html.escape(event['title'] or '')}</td><td>{html.escape(event['subject'] or 'No subject')}</td><td>{html.escape(event['confidence'])}</td><td>{'Yes' if event['tracker_updated'] else 'No'}</td></tr>"
         for event in events
     ) or "<tr><td colspan='6'>No job-related email metadata has been recorded yet.</td></tr>"
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Email updates</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:1120px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}section{{background:#fff;border-radius:10px;padding:20px;margin:16px 0;box-shadow:0 1px 4px var(--border);line-height:1.55}}.status{{display:inline-block;padding:5px 9px;border-radius:12px;background:#eaf2fd;color:#15588a;font-weight:bold;font-size:13px}}.note{{background:#eaf2fd;border-left:4px solid #1468b3}}code{{display:block;background:#f4f7fb;padding:10px;border-radius:6px;white-space:pre-wrap}}table{{width:100%;border-collapse:collapse}}th,td{{padding:10px;text-align:left;border-top:1px solid var(--border);vertical-align:top}}th{{color:var(--navy)}}.muted{{color:var(--muted)}}.table-wrap{{overflow:auto}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>Email updates</h1><p>Optional read-only matching for a dedicated job-search Gmail inbox. Applicant Zero never sends, deletes, archives, labels or changes Gmail messages.</p><section><p><span class='status'>{status}</span></p><p>{html.escape(setup_message)}</p><p class='muted'>{html.escape(latest_text)}</p></section><section class='note'><h2>One-time setup</h2><ol><li>Create a separate Gmail address for job applications when ready.</li><li>In Google Cloud, create a Desktop OAuth client, enable Gmail API, then save its downloaded JSON as <code>private/gmail_client_secret.json</code>.</li><li>Install the optional local connector once:</li></ol><code>python -m pip install -e ".[gmail]"</code><p>Then run this in the project terminal:</p><code>$env:PYTHONPATH = "src"\npython -m applicant_zero --gmail-connect</code><p>Google opens its own sign-in and consent window. Applicant Zero requests only <code>gmail.readonly</code>. The private token stays on this computer.</p><p>After that, run a two-day read-only check whenever you want:</p><code>python -m applicant_zero --gmail-sync</code></section><section><h2>Recorded job email updates</h2><p class='muted'>Only sender, subject, message id and the matching outcome are saved locally. Message bodies are used only in memory to classify the current sync and are not stored.</p><div class='table-wrap'><table><thead><tr><th>Type</th><th>Company</th><th>Role</th><th>Subject</th><th>Match</th><th>Tracker updated</th></tr></thead><tbody>{rows}</tbody></table></div></section></main></body></html>"""
+    sync_notice = f"<p class='notice'>{html.escape(sync_message)}</p>" if sync_message else ""
+    sync_control = ""
+    if connected:
+        sync_control = (
+            "<form method='post' action='/gmail-sync'><button type='submit'>"
+            "Check the latest two days of job email</button></form>"
+            "<p class='muted'>This reads email only. It never sends, labels, archives, deletes or changes any Gmail message.</p>"
+        )
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Email updates</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:1120px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}section{{background:#fff;border-radius:10px;padding:20px;margin:16px 0;box-shadow:0 1px 4px var(--border);line-height:1.55}}.status{{display:inline-block;padding:5px 9px;border-radius:12px;background:#eaf2fd;color:#15588a;font-weight:bold;font-size:13px}}.notice{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:7px}}.note{{background:#eaf2fd;border-left:4px solid #1468b3}}button{{background:var(--navy);color:#fff;border:0;border-radius:7px;padding:10px 14px;font-weight:bold;cursor:pointer}}code{{display:block;background:#f4f7fb;padding:10px;border-radius:6px;white-space:pre-wrap}}table{{width:100%;border-collapse:collapse}}th,td{{padding:10px;text-align:left;border-top:1px solid var(--border);vertical-align:top}}th{{color:var(--navy)}}.muted{{color:var(--muted)}}.table-wrap{{overflow:auto}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>Email updates</h1><p>Optional read-only matching for a dedicated job-search Gmail inbox. Applicant Zero never sends, deletes, archives, labels or changes Gmail messages.</p><section><p><span class='status'>{status}</span></p><p>{html.escape(setup_message)}</p><p class='muted'>{html.escape(latest_text)}</p>{sync_notice}{sync_control}</section><section class='note'><h2>One-time setup</h2><ol><li>Create a separate Gmail address for job applications when ready.</li><li>In Google Cloud, create a Desktop OAuth client, enable Gmail API, then save its downloaded JSON as <code>private/gmail_client_secret.json</code>.</li><li>Install the optional local connector once:</li></ol><code>python -m pip install -e ".[gmail]"</code><p>Then run this in the project terminal:</p><code>$env:PYTHONPATH = "src"
+python -m applicant_zero --gmail-connect</code><p>Google opens its own sign-in and consent window. Applicant Zero requests only <code>gmail.readonly</code>. The private token stays on this computer.</p><p>After that, run a two-day read-only check whenever you want:</p><code>python -m applicant_zero --gmail-sync</code></section><section><h2>Recorded job email updates</h2><p class='muted'>Only sender, subject, message id and the matching outcome are saved locally. Message bodies are used only in memory to classify the current sync and are not stored.</p><div class='table-wrap'><table><thead><tr><th>Type</th><th>Company</th><th>Role</th><th>Subject</th><th>Match</th><th>Tracker updated</th></tr></thead><tbody>{rows}</tbody></table></div></section></main></body></html>"""
 
 
 def build_guide_page() -> str:
@@ -505,7 +517,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
             elif parsed.path == "/answers":
                 content = build_answers_page(database_path).encode("utf-8")
             elif parsed.path == "/email-updates":
-                content = build_email_page(database_path).encode("utf-8")
+                message = parse_qs(parsed.query).get("sync", [""])[0]
+                content = build_email_page(database_path, message).encode("utf-8")
             elif parsed.path == "/actions":
                 content = build_actions_page(database_path).encode("utf-8")
             elif parsed.path == "/campaigns":
@@ -545,12 +558,22 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns", "/gmail-sync"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
             values = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
             external_id = values.get("external_id", [""])[0]
+            if self.path == "/gmail-sync":
+                try:
+                    result = sync_gmail(database_path.parent.parent, database_path)
+                    message = f"Read-only check complete: {result['fetched']} new message(s), {result['matched']} matched, {result['updated']} tracker update(s)."
+                except GmailSetupError as error:
+                    message = f"Read-only Gmail check did not run: {error}"
+                self.send_response(303)
+                self.send_header("Location", "/email-updates?" + urlencode({"sync": message}))
+                self.end_headers()
+                return
             if self.path == "/campaigns":
                 save_enabled_campaigns(database_path.parent.parent, set(values.get("campaign", [])))
                 self.send_response(303)

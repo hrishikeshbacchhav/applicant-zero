@@ -77,3 +77,12 @@ def test_health_report_marks_old_refresh_log_stale(tmp_path):
     status = next(item for item in health_report(project) if item[0] == "Scheduled discovery log")
     assert status[1] is False
     assert "stale" in status[2]
+
+
+def test_health_report_treats_gmail_as_optional_and_reports_a_connected_token(tmp_path):
+    private = tmp_path / "private"
+    private.mkdir()
+    (private / "gmail_token.json").write_text("private token", encoding="utf-8")
+    gmail = next(item for item in health_report(tmp_path) if item[0] == "Optional Gmail inbox")
+    assert gmail[1] is True
+    assert "Connected locally" in gmail[2]

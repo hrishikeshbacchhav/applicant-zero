@@ -269,7 +269,7 @@ python -m applicant_zero --gmail-connect
 python -m applicant_zero --gmail-sync
 ```
 
-Only a high-confidence company-and-role match changes the tracker automatically. Other likely messages remain visible on the dashboard’s **Email updates** page for review.
+Only a high-confidence company-and-role match changes the tracker automatically. Other likely messages remain visible on the dashboard’s **Email updates** page for review. Once connected, that page also has a **Check the latest two days of job email** button; it runs the same local read-only check without requiring a terminal.
 
 ## Running the prototype
 

@@ -60,6 +60,16 @@ def test_email_updates_page_explains_the_optional_read_only_connection(tmp_path)
     assert "never sends, deletes, archives, labels" in page
 
 
+def test_email_updates_page_offers_read_only_sync_after_connection(tmp_path):
+    private = tmp_path / "private"
+    private.mkdir()
+    (private / "gmail_token.json").write_text("token", encoding="utf-8")
+    page = build_email_page(tmp_path / "data" / "jobs.sqlite3", "Read-only check complete")
+    assert "Check the latest two days of job email" in page
+    assert "Read-only check complete" in page
+    assert "action='/gmail-sync'" in page
+
+
 def test_application_answers_page_offers_private_resume_evidence_inventory(tmp_path):
     private = tmp_path / "private"
     private.mkdir()
