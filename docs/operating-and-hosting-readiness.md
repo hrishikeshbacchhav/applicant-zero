@@ -2,9 +2,9 @@
 
 ## Current operating model: ready for local use
 
-Applicant Zero is designed to run on Rishi's Windows computer. The scheduled refresh runs when the computer is on and the user is signed in. The tracker, private profile, evidence, browser profile and generated application material remain on that computer.
+Applicant Zero is designed to run on Rishi's Windows computer. The scheduled refresh runs when the computer is on and the user is signed in. The tracker, private profile, evidence and generated application material remain on that computer.
 
-The current model is suitable for daily job discovery, preparation, supervised browser handoffs, confirmation recording, follow-up reminders and local backups.
+The current model is suitable for daily job discovery, preparation, confirmation recording, follow-up reminders and local backups.
 
 ## Local operating checklist
 
@@ -17,7 +17,7 @@ The current model is suitable for daily job discovery, preparation, supervised b
 
 ## Hosting is not required yet
 
-Cloud hosting would not improve the supervised browser stage until it can preserve a secure user-controlled browser session. It would also move private candidate information off the computer and add recurring cost.
+Cloud hosting is not needed for the current discovery, preparation and tracking workflow. It would move private candidate information off the computer and add recurring cost.
 
 Do not host Applicant Zero until all of these are in place:
 
@@ -38,5 +38,5 @@ Regardless of where the system runs, it must not enter or store passwords, compl
 Reassess a hosted version after three conditions are met:
 
 1. The local workflow has been used for several real applications.
-2. At least two employer-platform pilots have been recorded as successful supervised workflows.
+2. The discovery sources and tracker have operated reliably for several weeks.
 3. The final résumé workflow is based on approved editable master documents.

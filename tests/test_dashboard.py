@@ -1,4 +1,4 @@
-from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_campaigns_page, build_operations_page, build_outcomes_page, build_page, build_resume_copy_page, build_session_trace_page
+from applicant_zero.dashboard import build_actions_page, build_answers_page, build_brief_page, build_campaigns_page, build_operations_page, build_outcomes_page, build_page, build_resume_copy_page
 from applicant_zero.manual_import import import_listing, source_name
 from applicant_zero.resume_review import create_resume_review, load_resume_review
 from applicant_zero.application_readiness import evaluate_application_readiness
@@ -6,7 +6,6 @@ from applicant_zero.profile import RISHI_PROFILE
 from applicant_zero.scoring import Job, score_job
 import json
 import sqlite3
-from unittest.mock import patch
 
 from applicant_zero.storage import (
     get_match,
@@ -111,14 +110,15 @@ def test_dashboard_includes_local_workflow_tracker(tmp_path):
     assert "Current relevant listings" in page
     assert "Preparing" in page
     brief = build_brief_page(tmp_path / "jobs.sqlite3", "job-1")
-    assert "Before applying" in brief
-    assert "Application compatibility" in brief
+    assert "Prepare your application pack" in brief
+    assert "Listing intelligence" in brief
     assert "Application readiness" in brief
+    assert "Application pack readiness" in brief
     assert "Create editable role copy" in brief
     assert "Prepare role materials" in brief
     assert "Record employer confirmation and mark Applied" in brief
-    assert "Scan application form" in brief
-    assert "Application activity" in brief
+    assert "Open original listing" in brief
+    assert "Open assisted application" not in brief
     assert "SQL and Power BI" in brief
 
 
@@ -126,7 +126,7 @@ def test_dashboard_operating_guide_uses_plain_language_and_keeps_final_submissio
     from applicant_zero.dashboard import build_guide_page
     page = build_guide_page()
     assert "How to use Applicant Zero" in page
-    assert "final Submit button" in page
+    assert "final employer submission" in page
     assert "Record the outcome" in page
 
 
@@ -156,7 +156,6 @@ def test_preparation_bundle_creates_local_materials_without_an_ai_call(tmp_path)
     bundle = create_preparation_bundle(database_path, job.external_id)
     assert bundle.manifest.exists()
     assert bundle.packet.exists()
-    assert bundle.session_plan.exists()
     assert bundle.editable_resume_copy and bundle.editable_resume_copy.exists()
 
 
@@ -232,43 +231,25 @@ def test_application_timestamp_and_funnel_are_recorded(tmp_path):
     assert "Listing no longer active" in build_page(path)
 
 
-def test_supported_route_offers_supervised_browser_assistance(tmp_path):
+def test_preparation_brief_keeps_employer_forms_out_of_the_dashboard(tmp_path):
     path = tmp_path / "project" / "data" / "jobs.sqlite3"
     database = initialise_database(path)
     job = Job("lever:example:1", "Data Analyst", "Example", "Sydney", "Lever", "https://jobs.lever.co/example/1", "SQL")
     save_match(database, job, score_job(job, RISHI_PROFILE))
-    with patch("applicant_zero.dashboard.browser_setup_issue", return_value=""):
-        brief = build_brief_page(path, job.external_id)
-    assert "Lever" in brief
-    assert "Browser assistance ready" in brief
-    assert "Open assisted application" in brief
+    brief = build_brief_page(path, job.external_id)
+    assert "Open original listing" in brief
+    assert "Listing intelligence" in brief
+    assert "Open assisted application" not in brief
 
 
-def test_browser_trace_page_is_private_and_linked_from_brief(tmp_path):
-    path = tmp_path / "project" / "data" / "jobs.sqlite3"
-    database = initialise_database(path)
-    job = Job("lever:example:1", "Data Analyst", "Example", "Sydney", "Lever", "https://jobs.lever.co/example/1", "SQL")
-    save_match(database, job, score_job(job, RISHI_PROFILE))
-    from applicant_zero.session_trace import append_trace, start_trace
-    start_trace(path, job.external_id, "Lever", "https://jobs.lever.co/example/1/apply")
-    append_trace(path, job.external_id, "required_question", "Review a required question.")
-    from applicant_zero.session_trace import record_form_inventory
-    record_form_inventory(path, job.external_id, "https://jobs.lever.co/example/1/apply", [{"label": "Email", "control": "email", "required": True, "handling": "recognised"}])
-    assert "View browser session trace" in build_brief_page(path, job.external_id)
-    trace_page = build_session_trace_page(path, job.external_id)
-    assert "Browser session trace" in trace_page
-    assert "Review a required question." in trace_page
-    assert "Form page inventory" in trace_page
-
-
-def test_login_required_route_offers_supervised_handoff(tmp_path):
+def test_login_required_route_still_links_to_the_original_listing(tmp_path):
     path = tmp_path / "project" / "data" / "jobs.sqlite3"
     database = initialise_database(path)
     job = Job("seek:example:1", "Data Analyst", "Example", "Sydney", "SEEK", "https://www.seek.com.au/job/123", "SQL")
     save_match(database, job, score_job(job, RISHI_PROFILE))
-    with patch("applicant_zero.dashboard.browser_setup_issue", return_value=""):
-        brief = build_brief_page(path, job.external_id)
-    assert "Open supervised login handoff" in brief
+    brief = build_brief_page(path, job.external_id)
+    assert "Open original listing" in brief
+    assert "Open supervised login handoff" not in brief
 
 
 def test_private_answers_page_can_be_opened_without_showing_contact_values(tmp_path):

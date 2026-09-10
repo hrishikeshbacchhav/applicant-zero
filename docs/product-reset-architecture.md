@@ -1,5 +1,12 @@
 # Applicant Zero product reset
 
+> **Superseded implementation direction.** This document records the earlier
+> browser-assistance proposal and source research. Applicant Zero now focuses
+> on permitted discovery, ranking, truthful preparation packs and tracking;
+> Rishi completes every employer application personally. Its discovery-source
+> analysis remains relevant, but browser-flow implementation sections are not
+> part of the active roadmap.
+
 ## Product decision
 
 Applicant Zero should become a **supervised job-search operating system**, not a collection of one-off browser scripts. Its purpose is to find relevant Sydney roles early, decide whether the evidence supports an application, prepare a truthful role-specific package, pre-fill ordinary fields across supported application systems, and leave only genuine candidate decisions for review.

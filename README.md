@@ -1,27 +1,27 @@
 # Applicant Zero
 
-Applicant Zero is a private job-discovery and application-preparation tool for Rishi's Sydney data, business intelligence and junior business analysis search.
+Applicant Zero is a private job-discovery, preparation and tracking workspace for Rishi's Sydney job search.
 
 ## Current local pilot
 
-Applicant Zero reads permitted public job listings and can open a selected employer application in a supervised browser. It never clicks the final submission button. It:
+Applicant Zero reads permitted public job listings and prepares a transparent application pack. Rishi applies personally on the employer’s site. It:
 
 1. imports a safe demo job feed;
 2. checks location, seniority and role-family fit;
 3. explains matched and missing evidence;
 4. recommends one of the three approved résumé families;
-5. classifies the application route and records compatibility checks;
-6. fills stable contact fields and an approved résumé on supported forms; and
-7. stores every decision and browser-assistance event in a local SQLite database.
+5. highlights public listing details such as salary, closing information and public contact emails;
+6. creates truthful, reviewable résumé and cover-letter materials; and
+7. stores every discovery, preparation and tracker decision in a local SQLite database.
 
 No private profile, résumé, credential, visa document, password or application answer belongs in this repository.
 
 ## Future stages
 
 - Add reliable hosted scheduling after the local workflow is proven.
-- Add employer systems beyond Lever and Greenhouse after supervised testing.
-- Measure completion rates and the reasons applications need human input.
-- Add support for more application systems after each one passes a supervised pilot.
+- Add more verified public career boards and recruitment-agency sources.
+- Add a read-only job-search Gmail sync after a separate job-search inbox is set up.
+- Improve the dashboard's role-lane filtering and preparation workflow.
 
 ## First live discovery source: Adzuna
 
@@ -99,7 +99,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\refresh_compa
 
 Open **Daily priorities** in the dashboard whenever you want a short ordered list of new roles, roles already being prepared, and follow-ups. It is generated locally and uses no OpenAI API credits.
 
-Use **Application operations** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files and browser plans; it does not open an employer site, use AI credits or submit anything.
+Use **Application operations** for the ordered working queue. It separates current roles that are ready for local preparation from roles that need an evidence decision, and can prepare up to three eligible roles in one action. Bulk preparation creates only private material files; it does not open an employer site, use AI credits or submit anything.
 
 ### Search campaigns
 
@@ -129,27 +129,19 @@ Use **Add a job from another website** at the top of the dashboard for a public 
 
 From a preparation brief, select **Save private application packet** to create a Markdown packet in `private/application_packets`. It records the listing, approved résumé file, evidence, requirements to check and application checklist. The packet stays on your computer and is excluded from GitHub.
 
-## Supervised application pilot
+## Preparation workflow
 
-The dashboard labels every job by its application route. Lever forms have passed the browser-assistance test, while Greenhouse, Ashby, Workable and SmartRecruiters remain supervised pilots because employer-specific form behaviour varies. SEEK and LinkedIn can use a supervised login handoff: you sign in yourself, then Applicant Zero waits for a visible application form and fills only safe reusable answers. Workday gets the same supervised handoff for its multi-step forms. Unknown systems stay in manual review.
+Open **Prepare application** for a job. Its preparation brief shows the evidence that matched, the requirements to check, and listing intelligence drawn only from the imported description:
 
-Install the free local browser-control package once:
+- advertised salary where present;
+- closing wording where present;
+- public contact email addresses where present;
+- employment type and location signals; and
+- the approved résumé family and its evidence route.
 
-```powershell
-python -m pip install -e ".[browser]"
-```
+Select **Prepare role materials** to save a local evidence manifest, application packet and editable Word copy. Select **Generate AI tailoring draft** only when you want a review draft; it uses your own private evidence and must be checked before use. Open the original listing yourself, submit personally, then record the employer confirmation to update the tracker.
 
-Open **Prepare application** for a job, then:
-
-1. Select **Scan application form** to inspect its current field count, required fields, account requirement and CAPTCHA markers.
-2. Select **Open assisted application** for a supported route.
-3. Review the separate browser window. Applicant Zero fills stable contact information, location, availability, the approved résumé and reusable notice-period or profile-link answers. It uses the advertised salary range when one is clearly stated, otherwise your private fallback, and can choose a clearly matching "how did you hear about us" option.
-4. On a supported multi-step form, it keeps watching for the next ordinary page, fills newly visible verified fields and can move through a normal **Next** or **Continue** step once every required field on that step is already complete. It stops for CAPTCHA, login, legal/identity declarations, unfamiliar questions and the final Submit button.
-5. For a login handoff, sign in or complete account steps yourself. Applicant Zero does not enter, store or create passwords, and it waits for an application form before filling safe fields.
-6. Complete the highlighted unanswered fields, verification and any work-rights, salary or personal questions yourself.
-7. Review the entire application before choosing the employer's Submit button yourself.
-
-The browser uses a private local profile under `private/browser_profile`. Login sessions may be retained there by the browser, while Applicant Zero never stores or creates passwords. Every route scan and assistance attempt appears under **Application activity** in the job brief.
+Applicant Zero does not open, scan or fill employer application forms. It does not store passwords, create employer accounts, solve CAPTCHA challenges or submit applications.
 
 Opening a preparation brief also creates `private/application_answers.json` from the verified values already in the private candidate profile. It keeps reusable answers locally and lists salary, notice period, LinkedIn, portfolio and similar unknowns separately until confirmed.
 
@@ -198,7 +190,7 @@ Applicant Zero does not submit applications. After an employer site confirms tha
 
 ## Private candidate profile
 
-Before application assistance is enabled, create one private profile on your computer. It keeps your current answers and the locations of your approved résumé PDFs together. It is excluded from GitHub and must never contain a password.
+Create one private profile on your computer. It keeps your current answers and the locations of your approved résumé PDFs together. It is excluded from GitHub and must never contain a password.
 
 ```powershell
 New-Item -ItemType Directory -Force private
@@ -261,9 +253,9 @@ The first line tells Python where the local program files are. The second writes
 
 Before a role is prepared, Applicant Zero now detects explicit citizenship, residency, clearance, work-rights and sponsorship conditions in the imported listing. A direct citizenship or residency conflict with the confirmed private profile is marked **blocked**. Other conditions stay visible as **confirm** items for the candidate to verify in the employer form. The system does not infer protected answers or submit declarations.
 
-### Supervised browser coverage
+### Listing links and personal submission
 
-The assisted workflow recognises Lever, Greenhouse, Ashby, Workable, SmartRecruiters, BambooHR, Recruitee, Teamtailor and Pinpoint hosted forms, plus complex iCIMS, Oracle/Taleo, SAP SuccessFactors and Workday routes. It inventories each unique form step privately and retains browser handoffs for login, CAPTCHA, verification codes, protected questions, unknown required fields and final submission.
+Applicant Zero keeps the original listing link for every discovered role and marks whether the link is a direct hosted listing, likely to need login, or appears multi-step. This is context for your own application process, not browser automation. The tracker changes to Applied only after you record an employer confirmation.
 
 ### Lifecycle reporting and recovery
 
@@ -271,10 +263,8 @@ The tracker separates Applied, Interview, Offer, Rejected and Closed outcomes. S
 
 ## Everyday workflow
 
-The dashboard’s **How to use this** page gives the normal six-step routine: refresh, review, prepare, verify, use browser assistance where available, then record the outcome. It is also the quickest place to see which actions Applicant Zero can perform locally and which employer-facing actions remain yours.
+The dashboard’s **How to use this** page gives the normal six-step routine: refresh, review, prepare, verify, apply personally, then record the outcome. It is also the quickest place to see which actions Applicant Zero performs locally and which employer-facing actions remain yours.
 
-## Daily workflow and learned form patterns
+## Daily workflow
 
-The review queue now includes **Today’s workflow**: an ordered local plan based on role fit, evidence gaps, application effort, manual handoffs and the latest discovery-log health. It links directly to **Application operations** and **Manual actions**, so the next useful step stays visible without hunting through the dashboard.
-
-After a supervised application reaches a form page, **Platform pilots** shows privacy-safe learned patterns for that platform: field label, control type and whether Applicant Zero recognised it or routed it to candidate review. It never records typed values, uploaded documents, passwords, account information or submission data. Protected eligibility and identity declarations always remain for direct candidate review in the employer form.
+The review queue includes **Today’s workflow**: an ordered local plan based on role fit, evidence gaps, preparation effort, tracker status and the latest discovery-log health. It links directly to **Application operations** and **Manual actions**, so the next useful step stays visible without hunting through the dashboard.

@@ -11,9 +11,7 @@ from .private_profile import load_profile
 from .packets import create_application_packet
 from .ai_drafting import DraftingError, create_ai_draft, create_question_draft, load_ai_draft, load_question_drafts
 from .application_answers import CONFIRMATION_FIELDS, ensure_answer_library, save_confirmed_answer
-from .application_routes import classify_application_url, inspect_application_route, supports_supervised_browser_handoff
-from .application_session import create_session_plan
-from .browser_assist import browser_setup_issue, start_browser_assistant
+from .application_routes import classify_application_url
 from .manual_import import import_listing
 from .profile import RISHI_PROFILE
 from .resume_review import create_resume_review, load_resume_review
@@ -27,27 +25,23 @@ from .discovery_registry import board_health_summary, discovery_overview, employ
 from .discovery_registry import load_targets
 from .discovery_priority import prioritise_targets
 from .material_manifest import create_material_manifest, material_manifest_path
-from .session_trace import load_trace
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory, inventory_path
 from .preparation_bundle import create_preparation_bundle
 from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
 from .campaigns import load_campaigns, save_enabled_campaigns
+from .job_intelligence import inspect_job
 from .storage import (
     WORKFLOW_STATUSES,
-    get_application_route,
     get_followup,
     get_material_review,
     get_match,
     get_submission_proof,
     initialise_database,
     latest_refresh_run,
-    list_application_events,
     list_board_checks,
     list_followups,
     list_matches,
-    log_application_event,
-    save_application_route,
     save_material_review,
     save_submission_proof,
     complete_followup,
@@ -171,7 +165,7 @@ def build_page(database_path: Path) -> str:
             duplicate_note = f"<small>{row['duplicate_count']} repeated copies combined</small>"
         last_seen = html.escape(str(row["last_seen_at"]).split(" ")[0])
         route = classify_application_url(row["url"])
-        route_labels = {"assisted": "Assist ready", "pilot": "Pilot", "login_required": "Login needed", "complex": "Complex", "manual_review": "Manual review"}
+        route_labels = {"assisted": "Direct listing", "pilot": "Hosted listing", "login_required": "Login likely", "complex": "Multi-step", "manual_review": "Check listing"}
         route_label = html.escape(route_labels.get(route.support_level, route.support_level))
         recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
         is_new = str(row["first_seen_at"]) >= recent_cutoff
@@ -206,7 +200,7 @@ button{{border:1px solid #c7d2e3;border-radius:6px;background:#fff;padding:9px 1
 .execution-panel{{display:grid;grid-template-columns:minmax(250px,.75fr) minmax(0,1.25fr);gap:22px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:21px 24px;margin:22px 0;box-shadow:0 4px 16px rgba(15,48,82,.04)}}.execution-panel h2{{color:var(--navy);font-size:20px;margin:0 0 8px}}.execution-panel p{{margin:7px 0;color:#5e6c84;line-height:1.5}}.execution-panel .eyebrow{{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;margin:0 0 8px;color:var(--blue)}}.execution-panel a{{display:inline-block;margin:4px 12px 0 0}}.execution-panel ol{{margin:0;padding-left:23px}}.execution-panel li{{padding:0 0 10px 5px;line-height:1.4}}.execution-panel li strong,.execution-panel li span,.execution-panel li small{{display:block}}.execution-panel li span{{color:#49627d;font-size:13px;margin-top:2px}}.refresh-health{{padding:9px 11px;border-radius:7px;font-size:13px}}.refresh-health.is-healthy{{background:#d9f3e6;color:#12643b}}.refresh-health.needs-attention{{background:#fff1cc;color:#8a5a00}}
 .table-wrap{{overflow-x:auto;background:#fff;border-radius:8px;box-shadow:0 1px 4px var(--border)}}table{{width:100%;border-collapse:collapse;min-width:1100px}} th{{text-align:left;background:#eaf0f8;color:var(--navy);padding:12px}} td{{padding:12px;border-top:1px solid #e5eaf1;vertical-align:top;font-size:14px;line-height:1.4}} a{{color:var(--blue);font-weight:bold;text-decoration:none}} small{{display:block;color:var(--muted);margin-top:4px}} form{{display:flex;gap:6px;flex-wrap:wrap;align-items:center}} form input[name=notes]{{min-width:170px;flex:1}} .badge,.listing-closed,.route{{display:inline-block;padding:3px 8px;border-radius:12px;font-weight:bold;font-size:12px}} .listing-closed{{display:block;width:max-content;background:#f1f3f5;color:#596273;margin-top:5px}} .route{{margin-top:6px;background:#eef4ff;color:#344c72}} .route-assisted{{background:#d9f3e6;color:#12643b}} .route-login_required,.route-complex{{background:#fff1cc;color:#8a5a00}} .strong-apply{{background:#d9f3e6;color:#12643b}} .apply{{background:#dceeff;color:#15588a}} .review{{background:#fff1cc;color:#8a5a00}} .skip{{background:#f1f3f5;color:#596273}} #no-results{{display:none;background:#fff;padding:28px;text-align:center;color:var(--muted);border-radius:8px}}
 @media(max-width:1080px){{body{{grid-template-columns:1fr}}.sidebar{{display:none}}main{{padding:26px}}.insight-grid{{grid-template-columns:repeat(3,1fr)}}.focus-panel,.execution-panel{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:18px 14px}}.insight-grid{{grid-template-columns:1fr 1fr;gap:8px}}.insight{{padding:12px}}.focus-panel,.execution-panel{{padding:18px}}.import-form{{grid-template-columns:1fr}}h1{{font-size:26px}}}}
-</style></head><body><aside class='sidebar'><div><div class='brand'>Applicant Zero<span>Job search workspace</span></div><nav><a class='active' href='/'>Review queue</a><a href='/campaigns'>Search campaigns</a><a href='/operations'>Application operations</a><a href='/discovery'>Discovery coverage</a><a href='/actions'>Manual actions</a><a href='/answers'>Application answers</a><a href='/daily-digest'>Daily priorities</a><a href='/outcomes'>Search progress</a><a href='/platform-pilots'>Platform pilots</a><a href='/health'>System health</a><a href='/guide'>How to use this</a></nav></div><p class='privacy'>Your candidate profile, answers, resumes, activity and browser traces stay in the private local runtime.</p></aside><main><header class='page-header'><div><p class='header-kicker'>Sydney job search</p><h1>Review queue</h1><p class='subtitle'>A focused local workspace for discovery, evidence, tailored material and supervised applications. Opening a listing never submits an application.</p></div></header>{insights}
+</style></head><body><aside class='sidebar'><div><div class='brand'>Applicant Zero<span>Job search workspace</span></div><nav><a class='active' href='/'>Review queue</a><a href='/campaigns'>Search campaigns</a><a href='/operations'>Application operations</a><a href='/discovery'>Discovery coverage</a><a href='/actions'>Manual actions</a><a href='/answers'>Application answers</a><a href='/daily-digest'>Daily priorities</a><a href='/outcomes'>Search progress</a><a href='/platform-pilots'>Platform pilots</a><a href='/health'>System health</a><a href='/guide'>How to use this</a></nav></div><p class='privacy'>Your candidate profile, answers, resumes and tracker stay in the private local runtime.</p></aside><main><header class='page-header'><div><p class='header-kicker'>Sydney job search</p><h1>Review queue</h1><p class='subtitle'>A focused local workspace for discovery, evidence, tailored materials and tracking. You apply on the employer’s site.</p></div></header>{insights}
 {focus_panel}
 {execution_panel}
 <details class='import-card'><summary>Add a job from another website</summary><p>For a role you find on SEEK, LinkedIn, Indeed or a company site, paste its public link and description here. Applicant Zero scores and prepares it locally; it does not scrape, contact or submit to that website.</p><form method='post' action='/import' class='import-form'><label>Role<input name='title' required placeholder='e.g. Data Analyst'></label><label>Company<input name='company' required></label><label>Location<input name='location' value='Sydney, NSW'></label><label>Job listing link<input name='url' type='url' required placeholder='https://...'></label><label class='description'>Job description<textarea name='description' required placeholder='Paste the responsibilities and requirements from the listing'></textarea></label><button class='active' type='submit'>Import and assess role</button></form></details>
@@ -233,11 +227,11 @@ def build_guide_page() -> str:
         ("2. Review the queue", "Use the score, role lane and current-listing filters. Import a job you find on another website when it looks promising."),
         ("3. Prepare a role", "Open Prepare application. Applicant Zero creates private evidence and a Word working copy without changing your approved originals."),
         ("4. Check the facts", "Use the readiness checklist and AI review only as a draft. Resolve any missing evidence or eligibility condition before using the material."),
-        ("5. Use browser assistance", "For supported forms it can fill recognised reusable details. You take over for login, CAPTCHA, verification, protected questions, unknown fields and final submission."),
-        ("6. Record the outcome", "After the employer confirms submission, record it as Applied. Later update Interview, Offer, Rejected or Closed and complete any follow-up reminder."),
+        ("5. Apply personally", "Open the original listing with your prepared résumé and cover letter. Applicant Zero does not interact with employer forms."),
+        ("6. Record the outcome", "Mark the role Applied immediately after submitting. Later update Interview, Offer, Rejected or Closed and complete any follow-up reminder."),
     )
     cards = "".join(f"<article><h2>{html.escape(title)}</h2><p>{html.escape(detail)}</p></article>" for title, detail in steps)
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - How to use this</title><style>:root{{--navy:#123154;--border:#dbe5f1;--muted:#64748b;--canvas:#f4f7fb}}*{{box-sizing:border-box}}body{{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--canvas);color:#1e293b;margin:0}}main{{max-width:940px;margin:0 auto;padding:38px 24px}}a{{color:#1468b3;font-weight:700}}h1,h2{{color:var(--navy)}}h1{{font-size:32px;margin-bottom:8px}}.lead{{color:var(--muted);line-height:1.55;font-size:17px}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}}article{{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(15,48,82,.04)}}article h2{{font-size:18px;margin:0 0 8px}}article p{{margin:0;line-height:1.55}}.note{{margin-top:18px;padding:17px 20px;background:#163b67;color:#fff;border-radius:12px;line-height:1.55}}@media(max-width:640px){{.grid{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>How to use Applicant Zero</h1><p class='lead'>This is your local job-search workspace. It discovers permitted listings, organises your evidence and assists with recognised form fields. You keep control of every employer-facing decision.</p><section class='grid'>{cards}</section><section class='note'><strong>What stays with you:</strong> passwords, account creation, CAPTCHA, verification codes, protected eligibility or identity answers, unknown questions, and the final Submit button.</section></main></body></html>"""
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - How to use this</title><style>:root{{--navy:#123154;--border:#dbe5f1;--muted:#64748b;--canvas:#f4f7fb}}*{{box-sizing:border-box}}body{{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--canvas);color:#1e293b;margin:0}}main{{max-width:940px;margin:0 auto;padding:38px 24px}}a{{color:#1468b3;font-weight:700}}h1,h2{{color:var(--navy)}}h1{{font-size:32px;margin-bottom:8px}}.lead{{color:var(--muted);line-height:1.55;font-size:17px}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}}article{{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(15,48,82,.04)}}article h2{{font-size:18px;margin:0 0 8px}}article p{{margin:0;line-height:1.55}}.note{{margin-top:18px;padding:17px 20px;background:#163b67;color:#fff;border-radius:12px;line-height:1.55}}@media(max-width:640px){{.grid{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>How to use Applicant Zero</h1><p class='lead'>This is your local job-search workspace. It discovers permitted listings, organises your evidence and helps you prepare each application. You keep control of every employer-facing decision.</p><section class='grid'>{cards}</section><section class='note'><strong>What stays with you:</strong> passwords, account creation, CAPTCHA, verification codes, protected eligibility or identity answers, unknown questions, and the final employer submission.</section></main></body></html>"""
 
 
 def build_campaigns_page(database_path: Path) -> str:
@@ -363,8 +357,6 @@ def build_outcomes_page(database_path: Path) -> str:
 def build_brief_page(database_path: Path, external_id: str) -> str:
     with sqlite3.connect(database_path) as connection:
         row = get_match(connection, external_id)
-        saved_route = get_application_route(connection, external_id)
-        events = list_application_events(connection, external_id)
         material_review = get_material_review(connection, external_id)
         submission_proof = get_submission_proof(connection, external_id)
         followup = get_followup(connection, external_id)
@@ -375,6 +367,15 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
     reasons = "".join(f"<li>{html.escape(reason)}</li>" for reason in json.loads(row["reasons"]))
     evidence = json.loads(row["matched_evidence"])
     missing = json.loads(row["missing_requirements"])
+    intelligence = inspect_job(str(row["title"]), str(row["location"]), str(row["description"]))
+    contact_html = "<br>".join(f"<a href='mailto:{html.escape(address, quote=True)}'>{html.escape(address)}</a>" for address in intelligence.contacts) or "No public contact email was detected in the imported listing."
+    listing_intelligence = (
+        f"<p><strong>Location:</strong> {html.escape(intelligence.location_signal)}</p>"
+        f"<p><strong>Employment type:</strong> {html.escape(intelligence.employment_type)}</p>"
+        f"<p><strong>Salary:</strong> {html.escape(intelligence.salary or 'Not stated in the imported listing.')}</p>"
+        f"<p><strong>Closing information:</strong> {html.escape(intelligence.closing_detail or 'No closing date was detected; check the original listing.')}</p>"
+        f"<p><strong>Contact:</strong> {contact_html}</p>"
+    )
     description = html.escape(row["description"] or "Run the discovery command again to import this job's current description.")
     original_url = html.escape(row["url"], quote=True)
     resume_path = profile.get("resumes", {}).get(row["resume_family"], "")
@@ -385,49 +386,14 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
             f"<p>Approved résumé file: <code>{html.escape(resume_path)}</code></p>"
             f"<p>Confirmed full-time availability: <strong>{html.escape(availability)}</strong></p>"
         )
-    predicted_route = classify_application_url(row["url"])
-    route = saved_route or {
-        "platform": predicted_route.platform,
-        "support_level": predicted_route.support_level,
-        "apply_url": predicted_route.apply_url,
-        "account_required": predicted_route.account_required,
-        "captcha_detected": predicted_route.captcha_detected,
-        "field_count": predicted_route.field_count,
-        "required_field_count": predicted_route.required_field_count,
-        "detail": predicted_route.detail,
-        "checked_at": "Not scanned yet",
-    }
-    route_labels = {"assisted": "Browser assistance ready", "pilot": "Supervised pilot", "login_required": "Candidate login required", "complex": "Complex multi-step form", "manual_review": "Manual review required"}
-    route_label = route_labels.get(route["support_level"], route["support_level"])
-    route_details = (
-        f"<p><strong>{html.escape(route['platform'])}:</strong> {html.escape(route_label)}</p>"
-        f"<p>{html.escape(route['detail'])}</p>"
-        f"<p>Account required: <strong>{'Yes' if route['account_required'] else 'No detected requirement'}</strong> · "
-        f"CAPTCHA detected: <strong>{'Yes' if route['captcha_detected'] else 'No'}</strong> · "
-        f"Fields detected: <strong>{route['field_count']}</strong> · Required fields detected: <strong>{route['required_field_count']}</strong></p>"
-    )
     verified_count = len([value for value in answer_library.get("verified_answers", {}).values() if value])
     confirmation_count = len([value for value in answer_library.get("answers_requiring_confirmation", {}).values() if not value])
-    setup_issue = browser_setup_issue()
-    setup_html = f"<p class='notice'>{html.escape(setup_issue)}</p>" if setup_issue else "<p class='ready'>Browser assistance is installed and ready.</p>"
-    event_items = "".join(
-        f"<li><strong>{html.escape(event['status'].replace('_', ' ').title())}</strong> · {html.escape(event['created_at'])}<br>{html.escape(event['detail'])}</li>"
-        for event in events
-    ) or "<li>No application activity has been recorded for this role.</li>"
-    browser_button = ""
-    if supports_supervised_browser_handoff(predicted_route) and not setup_issue:
-        button_label = "Open assisted application" if route["support_level"] in {"assisted", "pilot"} else "Open supervised login handoff"
-        browser_button = f"<form method='post' action='/assist'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button class='primary' type='submit'>{button_label}</button></form>"
     saved_draft = load_ai_draft(database_path, external_id)
-    session_trace = load_trace(database_path, external_id)
-    trace_link = ""
-    if session_trace:
-        trace_link = f"<p class='help'><a href='/session-trace?{urlencode({'external_id': external_id})}'>View browser session trace</a> · {len(session_trace.get('events', []))} recorded event(s)</p>"
     question_drafts = load_question_drafts(database_path, external_id)
     resume_review_button = f"<form method='post' action='/resume-review'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create tailored resume review</button></form>"
     resume_copy_button = f"<form method='post' action='/resume-copy'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create editable role copy</button></form>"
     manifest_button = f"<form method='post' action='/material-manifest'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create evidence manifest</button></form>"
-    preparation_bundle_button = f"<form method='post' action='/prepare-role'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Prepare role materials</button></form><p class='muted'>Creates the local evidence manifest, preparation packet, browser plan and editable Word copy. It does not contact the employer or use AI credits.</p>"
+    preparation_bundle_button = f"<form method='post' action='/prepare-role'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Prepare role materials</button></form><p class='muted'>Creates the local evidence manifest, preparation packet and editable Word copy. It does not contact the employer or use AI credits.</p>"
     manifest = material_manifest_path(database_path, external_id)
     manifest_status = f"<p class='ready'>Role evidence manifest saved: <code>{html.escape(manifest.name)}</code></p>" if manifest else ""
     editable_copy = editable_resume_copy_path(database_path, external_id)
@@ -476,41 +442,14 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
 *{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}} main{{max-width:900px;margin:0 auto;padding:32px}} h1,h2{{color:#163b67}} .card{{background:#fff;padding:20px;margin:16px 0;box-shadow:0 1px 4px #dce3ee;border-radius:8px}} a{{color:#1261a0;font-weight:bold}} pre{{white-space:pre-wrap;font-family:Arial,sans-serif;line-height:1.5}} form{{display:inline-block;margin:5px 6px 5px 0}}button{{border:1px solid #aabbd2;border-radius:6px;background:#fff;padding:9px 13px;cursor:pointer}}button.primary{{background:#163b67;color:#fff;border-color:#163b67}}.notice{{background:#fff1cc;color:#704b00;padding:10px;border-radius:6px}}.ready{{background:#d9f3e6;color:#12643b;padding:10px;border-radius:6px}}.pending{{color:#8a5a00}}.complete{{color:#12643b}}.help{{color:#667085;font-size:13px}}.stacked{{display:grid;grid-template-columns:1fr;gap:8px;max-width:520px}}.stacked label{{font-weight:bold;font-size:13px}}.stacked input,.stacked textarea{{display:block;width:100%;margin-top:4px;border:1px solid #c7d2e3;border-radius:6px;padding:8px;font:inherit}}.stacked textarea{{min-height:100px;resize:vertical}}.question-draft{{border-top:1px solid #dce3ee;padding:12px 0}}.question-draft p{{white-space:pre-wrap}}.activity li{{margin-bottom:10px}}</style></head>
 <body><main><p><a href='/'>← Return to job queue</a></p><h1>{html.escape(row['title'])}</h1><p>{html.escape(row['company'])} · {html.escape(row['location'])} · <a href='{original_url}' target='_blank' rel='noreferrer'>Open original listing</a></p>
 <section class='card'><h2>Recommended application route</h2><p>Use the <strong>{html.escape(row['resume_family'] or 'not recommended')}</strong> résumé family. Current tracker status: <strong>{html.escape(row['workflow_status'])}</strong>.</p>{profile_details}<ul>{reasons}</ul></section>
+<section class='card'><h2>Listing intelligence</h2>{listing_intelligence}</section>
 <section class='card'><h2>Evidence you can use</h2><p>{html.escape(', '.join(evidence) or 'No direct skill match was identified; read the original listing carefully.')}</p><h2>Requirements to check</h2><p>{html.escape(', '.join(missing) or 'No additional named requirement was detected by the initial matcher.')}</p></section>
-<section class='card'><h2>Application compatibility</h2>{route_details}<p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> unanswered items.</p>{setup_html}<form method='post' action='/route-check'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Scan application form</button></form>{browser_button}<p>The assisted browser fills contact details and the approved résumé, highlights unresolved required fields, and leaves the final submission untouched.</p>{trace_link}</section>
+<section class='card'><h2>Application pack readiness</h2><p>Your private answer library currently has <strong>{verified_count}</strong> verified answers and <strong>{confirmation_count}</strong> items you may want to confirm before applying.</p><p>Prepare the material below, then open the original listing and complete the employer application yourself.</p></section>
 <section class='card'><h2>Application readiness</h2><p class='{'ready' if ready_to_submit else 'notice'}'>{html.escape(readiness_status)}</p><ol>{readiness_rows}</ol><form method='post' action='/review-materials'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><input name='review_note' placeholder='Optional review note'><button type='submit'>Mark materials reviewed</button></form></section>
 <section class='card'><h2>Application question workspace</h2><p>Paste an unfamiliar role-specific application question to produce a private review draft from your verified evidence. Visa, work-rights, identity and health questions remain for you to answer directly.</p><form method='post' action='/question-draft' class='stacked'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><label>Application question<textarea name='question' required placeholder='Paste the employer question here'></textarea></label><button type='submit'>Draft truthful response</button></form>{question_items}</section>
-<section class='card'><h2>Before applying</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Set the tracker to Applied only after the employer’s site confirms submission.</li></ol>{preparation_bundle_button}{manifest_button}{manifest_status}<form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><form method='post' action='/session-plan'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Create browser assistance plan</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}{resume_copy_button}{resume_copy_status}</section>
+<section class='card'><h2>Prepare your application pack</h2><ol><li>Read the original listing and confirm eligibility, location and seniority.</li><li>Tailor only truthful résumé wording to the role’s real requirements.</li><li>Prepare a short, specific response for any application questions.</li><li>Open the original listing, apply personally, then mark the tracker Applied after the employer confirms submission.</li></ol>{preparation_bundle_button}{manifest_button}{manifest_status}<form method='post' action='/packet'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Save private application packet</button></form><p>After the private evidence library and OpenAI API key are set up, you can also generate a truthful AI review draft.</p><form method='post' action='/ai-draft'><input type='hidden' name='external_id' value='{html.escape(external_id, quote=True)}'><button type='submit'>Generate AI tailoring draft</button></form>{resume_review_button}{resume_copy_button}{resume_copy_status}</section>
 <section class='card'><h2>After you submit</h2><p>Applicant Zero never submits for you. After the employer site confirms your submission, save one confirmation detail here to update the tracker.</p>{proof_html}</section>
-{draft_section}<section class='card'><h2>Application activity</h2><ul class='activity'>{event_items}</ul></section><section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
-
-
-def build_session_trace_page(database_path: Path, external_id: str) -> str:
-    """Render the candidate's private browser handoff history for one role."""
-    trace = load_trace(database_path, external_id)
-    query = urlencode({"external_id": external_id})
-    if not trace:
-        return f"<!doctype html><title>No browser trace</title><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>No browser session has been recorded</h1><p>Open browser assistance for this role to start a private session trace.</p></main>"
-    events = []
-    for item in trace.get("events", []):
-        screenshot = str(item.get("screenshot", "")).strip()
-        evidence = f"<p class='muted'>Screenshot saved privately: {html.escape(Path(screenshot).name)}</p>" if screenshot else ""
-        page_url = str(item.get("page_url", "")).strip()
-        url = f"<p><a href='{html.escape(page_url, quote=True)}' target='_blank' rel='noreferrer'>Open recorded page</a></p>" if page_url else ""
-        events.append(f"<article><strong>{html.escape(str(item.get('event', '')).replace('_', ' ').title())}</strong><span>{html.escape(str(item.get('at', '')))}</span><p>{html.escape(str(item.get('detail', '')))}</p>{url}{evidence}</article>")
-    event_html = "".join(events) or "<p>No events were recorded before the browser closed.</p>"
-    form_pages = []
-    for page in trace.get("form_pages", []):
-        fields = page.get("fields", [])
-        recognised = sum(field.get("handling") == "recognised" for field in fields)
-        review = len(fields) - recognised
-        rows = "".join(
-            f"<li><strong>{html.escape(str(field.get('control', 'field')).title())}</strong> · {html.escape(str(field.get('handling', 'candidate review')).title())} · {html.escape(str(field.get('label', '')))}</li>"
-            for field in fields
-        )
-        form_pages.append(f"<article><strong>Form page inventory</strong><span>{html.escape(str(page.get('at', '')))}</span><p>{recognised} recognised field(s) · {review} field(s) for candidate review.</p><ul>{rows}</ul></article>")
-    inventory_html = "".join(form_pages)
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Browser trace</title><style>body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:860px;margin:0 auto;padding:36px 24px}}a{{color:#1261a0;font-weight:bold}}h1{{color:#163b67}}article{{background:#fff;border-radius:9px;padding:16px 18px;margin:12px 0;box-shadow:0 1px 4px #dce3ee}}article strong{{color:#163b67;display:block}}article span,.muted{{font-size:13px;color:#667085}}article p{{line-height:1.5}}li{{margin:7px 0}}</style></head><body><main><p><a href='/brief?{query}'>← Return to preparation brief</a></p><h1>Browser session trace</h1><p>{html.escape(str(trace.get('job', {}).get('title', 'Application')))} · {html.escape(str(trace.get('job', {}).get('company', '')))} · {html.escape(str(trace.get('platform', '')))}</p><p class='muted'>This local trace records browser-assistance events. It does not record passwords and it never records a submitted application unless you save the employer confirmation separately.</p>{inventory_html}{event_html}</main></body></html>"""
+{draft_section}<section class='card'><h2>Imported job description</h2><pre>{description}</pre></section></main></body></html>"""
 
 
 def serve(database_path: Path, port: int = 8765) -> None:
@@ -525,9 +464,6 @@ def serve(database_path: Path, port: int = 8765) -> None:
             if parsed.path == "/brief":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 content = build_brief_page(database_path, external_id).encode("utf-8")
-            elif parsed.path == "/session-trace":
-                external_id = parse_qs(parsed.query).get("external_id", [""])[0]
-                content = build_session_trace_page(database_path, external_id).encode("utf-8")
             elif parsed.path == "/resume-review":
                 external_id = parse_qs(parsed.query).get("external_id", [""])[0]
                 review = load_resume_review(database_path, external_id)
@@ -590,7 +526,7 @@ def serve(database_path: Path, port: int = 8765) -> None:
             self.end_headers()
             self.wfile.write(content)
         def do_POST(self):
-            if self.path not in {"/update", "/packet", "/ai-draft", "/session-plan", "/route-check", "/assist", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns"}:
+            if self.path not in {"/update", "/packet", "/ai-draft", "/answers", "/resume-inventory", "/import", "/resume-review", "/resume-copy", "/material-manifest", "/prepare-role", "/prepare-eligible", "/review-materials", "/submission-proof", "/question-draft", "/complete-followup", "/complete-action", "/platform-pilot", "/campaigns"}:
                 self.send_error(404)
                 return
             length = int(self.headers.get("Content-Length", "0"))
@@ -783,46 +719,9 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 self.send_header("Location", "/answers")
                 self.end_headers()
                 return
-            if self.path == "/route-check":
-                with sqlite3.connect(database_path) as connection:
-                    job = get_match(connection, external_id)
-                if job is None:
-                    self.send_error(400)
-                    return
-                try:
-                    route = inspect_application_route(job["url"])
-                    with sqlite3.connect(database_path) as connection:
-                        save_application_route(connection, external_id, route)
-                        log_application_event(connection, external_id, "route_check", "completed", route.detail)
-                except (OSError, ValueError) as error:
-                    with sqlite3.connect(database_path) as connection:
-                        log_application_event(connection, external_id, "route_check", "unavailable", f"Application form could not be scanned: {error}")
-                self.send_response(303)
-                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
-                self.end_headers()
-                return
-            if self.path == "/assist":
-                started = start_browser_assistant(database_path, external_id)
-                if not started:
-                    with sqlite3.connect(database_path) as connection:
-                        log_application_event(connection, external_id, "browser_assist", "already_running", "An assisted browser is already open for this role.")
-                self.send_response(303)
-                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
-                self.end_headers()
-                return
             if self.path == "/packet":
                 try:
                     create_application_packet(database_path, external_id)
-                except ValueError:
-                    self.send_error(400)
-                    return
-                self.send_response(303)
-                self.send_header("Location", "/brief?" + urlencode({"external_id": external_id}))
-                self.end_headers()
-                return
-            if self.path == "/session-plan":
-                try:
-                    create_session_plan(database_path, external_id)
                 except ValueError:
                     self.send_error(400)
                     return
@@ -865,4 +764,3 @@ def serve(database_path: Path, port: int = 8765) -> None:
     print("Keep this terminal open while reviewing jobs. Press Ctrl+C here when finished.")
     webbrowser.open(url)
     server.serve_forever()
-

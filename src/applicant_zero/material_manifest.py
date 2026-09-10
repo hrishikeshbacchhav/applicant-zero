@@ -11,6 +11,7 @@ from .private_profile import load_profile
 from .resume_evidence import inventory_path, load_lane_resume_evidence
 from .eligibility import evaluate_listing_eligibility
 from .storage import get_match
+from .job_intelligence import inspect_job
 
 
 def _path(database_path: Path, row: dict) -> Path:
@@ -31,6 +32,7 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
     resume = Path(profile.get("resumes", {}).get(family, ""))
     master = Path(profile.get("editable_resume_masters", {}).get(family, ""))
     description = str(row.get("description", ""))
+    intelligence = inspect_job(str(row["title"]), str(row["location"]), description)
     eligibility_check = evaluate_listing_eligibility(description, profile)
     fingerprint = hashlib.sha256(f"{row['url']}\n{description}".encode("utf-8")).hexdigest()[:16]
     payload = {
@@ -55,6 +57,13 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
             "matched": json.loads(row["matched_evidence"]),
             "requirements_to_check": json.loads(row["missing_requirements"]),
             "recommendation_reasons": json.loads(row["reasons"]),
+        },
+        "listing_intelligence": {
+            "salary": intelligence.salary,
+            "contacts": intelligence.contacts,
+            "closing_detail": intelligence.closing_detail,
+            "employment_type": intelligence.employment_type,
+            "location_signal": intelligence.location_signal,
         },
         "eligibility_review": {
             "outcome": eligibility_check.outcome,

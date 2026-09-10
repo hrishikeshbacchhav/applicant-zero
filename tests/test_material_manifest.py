@@ -22,7 +22,7 @@ def test_manifest_records_the_resume_route_and_evidence(tmp_path):
     }), encoding="utf-8")
     database_path = tmp_path / "data" / "jobs.sqlite3"
     with initialise_database(database_path) as database:
-        job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "SQL and Power BI")
+        job = Job("job-1", "Data Analyst", "Example", "Sydney", "test", "https://example.invalid", "Full-time. Salary $90,000 - $110,000. Contact careers@example.com. SQL and Power BI")
         save_match(database, job, score_job(job, RISHI_PROFILE))
 
     path = create_material_manifest(database_path, "job-1")
@@ -31,4 +31,6 @@ def test_manifest_records_the_resume_route_and_evidence(tmp_path):
     assert payload["job"]["listing_fingerprint"]
     assert payload["resume_route"]["approved_pdf"] == str(resume)
     assert "sql" in payload["evidence"]["matched"]
+    assert payload["listing_intelligence"]["salary"].startswith("AUD 90,000")
+    assert payload["listing_intelligence"]["contacts"] == ["careers@example.com"]
     assert material_manifest_path(database_path, "job-1") == path
