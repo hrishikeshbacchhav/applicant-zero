@@ -94,7 +94,7 @@ The dashboard also records the last completed discovery refresh and provides a *
 
 ## Daily operations
 
-The existing refresh script now runs the complete daily discovery bundle: it checks your company boards, runs seven focused Sydney search queries when Adzuna is configured, records source health, and creates a private `daily_priority_digest.html` file. If Adzuna has not been configured, the company-board refresh still completes and the dashboard records that the query source was skipped.
+The existing refresh script runs the complete daily discovery bundle: it checks your company boards, rotates through the enabled Sydney and NSW search campaigns within the configured Adzuna budget, records source health, and creates a private `daily_priority_digest.html` file. If Adzuna has not been configured, the company-board refresh still completes and records that the broad query source was unavailable.
 
 Run it manually with:
 
