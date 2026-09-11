@@ -29,6 +29,7 @@ from applicant_zero.storage import (
     update_workflow,
     save_manual_action,
     record_source_measurements,
+    save_discovery_inventory,
 )
 
 
@@ -47,9 +48,11 @@ def test_empty_dashboard_has_guidance(tmp_path):
 def test_discovery_page_shows_latest_source_contribution(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     record_source_measurements(database, [{"source": "Adzuna", "collected_count": 12, "relevant_count": 3, "distinct_count": 2, "repeated_count": 1, "request_count": 2}])
+    save_discovery_inventory(database, [Job("inventory", "Data Analyst", "Example", "Sydney", "Adzuna", "https://example.test", "")])
     from applicant_zero.dashboard import build_discovery_page
     page = build_discovery_page(tmp_path / "jobs.sqlite3")
     assert "Latest source contribution" in page
+    assert "source records in inventory" in page
     assert "Adzuna" in page
 
 

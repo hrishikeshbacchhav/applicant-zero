@@ -178,6 +178,23 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS discovery_inventory (
+            external_id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            company TEXT NOT NULL,
+            location TEXT NOT NULL,
+            source TEXT NOT NULL,
+            url TEXT NOT NULL,
+            description TEXT NOT NULL DEFAULT '',
+            canonical_key TEXT NOT NULL,
+            first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            is_active INTEGER NOT NULL DEFAULT 1
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS email_sync_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fetched_count INTEGER NOT NULL,
@@ -235,6 +252,12 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_job_matches_company_active ON job_matches(company, is_active)"
         )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_discovery_inventory_source_active ON discovery_inventory(source, is_active)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_discovery_inventory_canonical ON discovery_inventory(canonical_key)"
+    )
     refresh_columns = {row[1] for row in connection.execute("PRAGMA table_info(refresh_runs)")}
     if "detail" not in refresh_columns:
         connection.execute("ALTER TABLE refresh_runs ADD COLUMN detail TEXT NOT NULL DEFAULT ''")
@@ -263,6 +286,55 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
          json.dumps(result.matched_evidence), json.dumps(result.missing_requirements), json.dumps(result.reasons)),
     )
     connection.commit()
+
+
+def _inventory_key(job: Job) -> str:
+    values = (job.company, job.title, job.location)
+    return "|".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip() for value in values)
+
+
+def save_discovery_inventory(connection: sqlite3.Connection, jobs: list[Job]) -> None:
+    """Retain every collected listing, including roles outside the review queue.
+
+    This is deliberately separate from ``job_matches``. The inventory can grow
+    to thousands of source records without diluting the candidate's action
+    queue with jobs that score as out of scope.
+    """
+    for job in jobs:
+        connection.execute(
+            """
+            INSERT INTO discovery_inventory (
+                external_id, title, company, location, source, url, description, canonical_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(external_id) DO UPDATE SET
+                title=excluded.title, company=excluded.company, location=excluded.location,
+                source=excluded.source, url=excluded.url, description=excluded.description,
+                canonical_key=excluded.canonical_key, last_seen_at=CURRENT_TIMESTAMP, is_active=1
+            """,
+            (job.external_id, job.title, job.company, job.location, job.source, job.url, job.description, _inventory_key(job)),
+        )
+    connection.commit()
+
+
+def discovery_inventory_summary(connection: sqlite3.Connection) -> dict[str, int]:
+    """Return source-record volume and canonical listing volume for the dashboard."""
+    connection.row_factory = sqlite3.Row
+    row = connection.execute(
+        """SELECT COUNT(*) AS collected, COUNT(DISTINCT canonical_key) AS canonical,
+                  COUNT(DISTINCT company) AS companies
+           FROM discovery_inventory WHERE is_active = 1"""
+    ).fetchone()
+    return {key: int(row[key]) for key in ("collected", "canonical", "companies")} if row else {"collected": 0, "canonical": 0, "companies": 0}
+
+
+def list_inventory_records(connection: sqlite3.Connection, limit: int = 100_000) -> list[dict]:
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """SELECT external_id, title, company, location, source, url, description
+           FROM discovery_inventory WHERE is_active = 1 ORDER BY last_seen_at DESC LIMIT ?""",
+        (max(1, limit),),
+    ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def _duplicate_key(row: dict) -> str:

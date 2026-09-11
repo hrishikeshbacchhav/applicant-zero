@@ -23,6 +23,7 @@ from .storage import (
     prune_inactive_discovery_records,
     record_refresh_run,
     record_source_measurements,
+    save_discovery_inventory,
     save_board_checks,
     save_match,
 )
@@ -31,6 +32,7 @@ from .runtime import backup_database, database_path, prepare_state, recover_data
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
 from .gmail_sync import GmailSetupError, connect_gmail, sync_gmail
 from .provider_trials import ProviderTrialError, assess_trial_sample, load_trial_sample
+from .sources.jobdatalake import run_trial as run_jobdatalake_trial
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -74,6 +76,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     consume_discovery_query_plan(state, len(query_plan), request_count)
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
     database = initialise_database(database_path(ROOT))
+    save_discovery_inventory(database, jobs)
     save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state), persist_skips=False)
     for report in reports:
@@ -132,13 +135,15 @@ def main() -> None:
     parser.add_argument("--gmail-sync", action="store_true")
     parser.add_argument("--gmail-days", type=int, default=2)
     parser.add_argument("--provider-trial-report", type=Path)
+    parser.add_argument("--jobdatalake-trial", action="store_true")
+    parser.add_argument("--max-provider-requests", type=int, default=5)
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
     recovery_message = recover_database(ROOT)
     if recovery_message:
         print(recovery_message)
-    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup) + int(args.gmail_connect) + int(args.gmail_sync) + int(args.provider_trial_report is not None)
+    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup) + int(args.gmail_connect) + int(args.gmail_sync) + int(args.provider_trial_report is not None) + int(args.jobdatalake_trial)
     if args.provider_trial_report:
         if source_count != 1 or args.dashboard:
             parser.error("Use --provider-trial-report on its own.")
@@ -150,6 +155,23 @@ def main() -> None:
             print("Provider trial sample (local only): " + "; ".join(f"{key.replace('_', ' ')} {value}" for key, value in report.items()))
         except (ProviderTrialError, OSError, sqlite3.Error) as error:
             print(f"Provider trial sample could not be assessed: {error}")
+        return
+    if args.jobdatalake_trial:
+        if source_count != 1 or args.dashboard:
+            parser.error("Use --jobdatalake-trial on its own.")
+        try:
+            from .storage import list_inventory_records
+            queries = []
+            for query, _ in discovery_query_status(state, args.max_provider_requests)["planned"]:
+                if query not in queries:
+                    queries.append(query)
+            jobs, reports = run_jobdatalake_trial(state, queries, max_requests=args.max_provider_requests)
+            database_connection = initialise_database(database)
+            report = assess_trial_sample(jobs, list_inventory_records(database_connection))
+            failures = sum(bool(item.error) for item in reports)
+            print("JobDataLake trial (no listings saved): " + "; ".join(f"{key.replace('_', ' ')} {value}" for key, value in report.items()) + f"; requests {sum(item.requests for item in reports)}; issues {failures}")
+        except (OSError, RuntimeError, ValueError, sqlite3.Error) as error:
+            print(f"JobDataLake trial could not run: {error}")
         return
     _sync_private_facts(state)
     if args.gmail_connect:
