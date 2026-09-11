@@ -484,3 +484,13 @@ def test_discovery_coverage_shows_freshness_breakdown(tmp_path):
     assert "SmartRecruiters" in page
     assert "Recent public-board checks" in page
     assert "1 public listing" in page
+
+
+def test_search_progress_shows_lane_and_source_breakdowns(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    job = Job("job-progress", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid", "SQL and Power BI")
+    save_match(database, job, score_job(job, RISHI_PROFILE))
+    page = build_outcomes_page(tmp_path / "jobs.sqlite3")
+    assert "Tracker by role lane" in page
+    assert "Discovery source contribution" in page
+    assert "Data Bi" in page

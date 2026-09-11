@@ -32,6 +32,43 @@ def outcome_summary(database_path: Path) -> dict[str, int | float]:
     }
 
 
+def progress_breakdown(database_path: Path) -> dict[str, list[dict[str, int | str]]]:
+    """Summarise the local queue by role lane and discovery source.
+
+    Counts describe what Applicant Zero has recorded, not job-market totals or
+    employer outcomes.  This keeps a broad source feed useful without implying
+    that every collected listing is a suitable application.
+    """
+    with initialise_database(database_path) as connection:
+        jobs = list_matches(connection, include_duplicates=True)
+
+    groups: dict[str, dict[str, dict[str, int | str]]] = {"lanes": {}, "sources": {}}
+    for job in jobs:
+        if job["recommendation"] == "Skip":
+            continue
+        for dimension, label in (
+            ("lanes", str(job.get("lane") or "unclassified").replace("_", " ").title()),
+            ("sources", str(job.get("source") or "Unknown source")),
+        ):
+            item = groups[dimension].setdefault(label, {"label": label, "current": 0, "preparing": 0, "submitted": 0, "interviews": 0, "offers": 0})
+            if job["is_active"]:
+                item["current"] = int(item["current"]) + 1
+            status = str(job["workflow_status"])
+            if status in {"Saved", "Preparing"}:
+                item["preparing"] = int(item["preparing"]) + 1
+            if status in {"Applied", "Interview", "Offer", "Rejected", "Closed"}:
+                item["submitted"] = int(item["submitted"]) + 1
+            if status == "Interview":
+                item["interviews"] = int(item["interviews"]) + 1
+            if status == "Offer":
+                item["offers"] = int(item["offers"]) + 1
+
+    return {
+        dimension: sorted(values.values(), key=lambda item: (-int(item["current"]), str(item["label"])))
+        for dimension, values in groups.items()
+    }
+
+
 def tracker_csv(database_path: Path) -> str:
     with initialise_database(database_path) as connection:
         jobs = list_matches(connection, include_duplicates=True)

@@ -19,7 +19,7 @@ from .resume_output import create_editable_resume_copy, editable_resume_copy_pat
 from .application_readiness import evaluate_application_readiness
 from .daily_digest import create_daily_digest
 from .system_health import health_page
-from .reporting import outcome_summary, tracker_csv
+from .reporting import outcome_summary, progress_breakdown, tracker_csv
 from .platform_pilots import build_platform_pilots_page
 from .discovery_registry import add_public_board_url, board_health_summary, discovery_overview, employer_coverage_rows, public_board_from_url
 from .discovery_registry import load_targets
@@ -436,6 +436,7 @@ def build_resume_copy_page(database_path: Path, external_id: str) -> str:
 
 def build_outcomes_page(database_path: Path) -> str:
     summary = outcome_summary(database_path)
+    breakdown = progress_breakdown(database_path)
     cards = (
         ("Applications submitted", str(summary["submitted"])),
         ("Interviews", str(summary["interviews"])),
@@ -447,10 +448,15 @@ def build_outcomes_page(database_path: Path) -> str:
         ("In progress", str(summary["in_progress"])),
     )
     card_html = "".join(f"<article><strong>{html.escape(value)}</strong><span>{html.escape(label)}</span></article>" for label, value in cards)
+    def table_rows(items: list[dict[str, int | str]]) -> str:
+        return "".join(
+            f"<tr><td>{html.escape(str(item['label']))}</td><td>{item['current']}</td><td>{item['preparing']}</td><td>{item['submitted']}</td><td>{item['interviews']}</td><td>{item['offers']}</td></tr>"
+            for item in items
+        ) or "<tr><td colspan='6'>No relevant roles recorded yet.</td></tr>"
     next_step = "Prepare your strongest current role." if summary["in_progress"] else "Review the current queue and prepare one suitable role."
     if summary["due_followups"]:
         next_step = "Complete the due follow-up before preparing another application."
-    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Search progress</title><style>:root{{--navy:#163b67;--border:#dce3ee;--muted:#667085}}*{{box-sizing:border-box}}body{{font-family:Arial,sans-serif;background:#f5f7fb;color:#182230;margin:0}}main{{max-width:960px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1261a0;font-weight:bold}}.cards{{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}}article,section{{background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px var(--border)}}article strong{{font-size:26px;color:var(--navy);display:block}}article span{{font-size:13px;color:var(--muted)}}section{{margin-top:18px;line-height:1.55}}.next{{background:#d9f3e6;color:#12643b}}@media(max-width:760px){{.cards{{grid-template-columns:repeat(2,1fr)}}}}@media(max-width:420px){{.cards{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to job queue</a></p><h1>Search progress</h1><p>Private, local progress figures based only on roles you have recorded in Applicant Zero.</p><div class='cards'>{card_html}</div><section class='next'><h2>Next action</h2><p>{html.escape(next_step)}</p></section><section><h2>How to use these figures</h2><p>“Applications submitted” includes roles marked Applied, Interview, Offer, Rejected or Closed. The interview rate is interviews divided by submitted applications. The response rate is interviews plus offers divided by submitted applications. These figures do not infer employer responses and never send follow-ups automatically.</p><p><a href='/export-tracker'>Download the full tracker CSV</a> when you want to review details in Excel.</p></section></main></body></html>"""
+    return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - Search progress</title><style>:root{{--navy:#123154;--border:#dbe5f1;--muted:#64748b;--canvas:#f4f7fb}}*{{box-sizing:border-box}}body{{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--canvas);color:#1e293b;margin:0}}main{{max-width:1160px;margin:0 auto;padding:36px 24px}}h1,h2{{color:var(--navy)}}a{{color:#1468b3;font-weight:700}}.cards{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}}article,section{{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 4px 16px rgba(15,48,82,.04)}}article strong{{font-size:26px;color:var(--navy);display:block}}article span{{font-size:13px;color:var(--muted)}}section{{margin-top:18px;line-height:1.55}}.next{{background:#d9f3e6;color:#12643b}}.muted{{color:var(--muted)}}.table-wrap{{overflow:auto}}table{{width:100%;border-collapse:collapse;min-width:640px}}th,td{{padding:10px;text-align:left;border-top:1px solid var(--border)}}th{{background:#edf3fa;color:var(--navy)}}@media(max-width:760px){{.cards{{grid-template-columns:repeat(2,1fr)}}}}@media(max-width:420px){{.cards{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>Search progress</h1><p class='muted'>Private, local figures based only on the roles recorded in Applicant Zero.</p><div class='cards'>{card_html}</div><section class='next'><h2>Next action</h2><p>{html.escape(next_step)}</p></section><section><h2>Tracker by role lane</h2><p class='muted'>Use this to see which parts of your search are finding current roles and moving into your personal application tracker.</p><div class='table-wrap'><table><thead><tr><th>Role lane</th><th>Current</th><th>Preparing</th><th>Submitted</th><th>Interviews</th><th>Offers</th></tr></thead><tbody>{table_rows(breakdown['lanes'])}</tbody></table></div></section><section><h2>Discovery source contribution</h2><p class='muted'>This distinguishes what each source has supplied from the applications you personally submitted.</p><div class='table-wrap'><table><thead><tr><th>Source</th><th>Current</th><th>Preparing</th><th>Submitted</th><th>Interviews</th><th>Offers</th></tr></thead><tbody>{table_rows(breakdown['sources'])}</tbody></table></div></section><section><h2>How to use these figures</h2><p>“Applications submitted” includes roles marked Applied, Interview, Offer, Rejected or Closed. The interview rate is interviews divided by submitted applications. The response rate is interviews plus offers divided by submitted applications. These figures do not infer employer responses and never send follow-ups automatically.</p><p><a href='/export-tracker'>Download the full tracker CSV</a> when you want to review details in Excel.</p></section></main></body></html>"""
 
 
 def build_brief_page(database_path: Path, external_id: str) -> str:

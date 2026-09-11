@@ -1,5 +1,5 @@
 from applicant_zero.profile import RISHI_PROFILE
-from applicant_zero.reporting import outcome_summary, tracker_csv
+from applicant_zero.reporting import outcome_summary, progress_breakdown, tracker_csv
 from applicant_zero.scoring import Job, score_job
 from applicant_zero.storage import initialise_database, save_match, save_submission_proof, update_workflow
 
@@ -46,3 +46,16 @@ def test_outcome_summary_keeps_offers_and_rejections_separate(tmp_path):
     assert summary["offers"] == 1
     assert summary["rejected"] == 1
     assert summary["response_rate"] == 50.0
+
+
+def test_progress_breakdown_separates_role_lanes_and_sources(tmp_path):
+    database_path = tmp_path / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    data = Job("data", "Data Analyst", "Example", "Sydney", "Lever", "https://example.invalid/data", "SQL and Power BI")
+    support = Job("support", "IT Support Officer", "Example", "Sydney", "Workable", "https://example.invalid/support", "Technical support")
+    save_match(database, data, score_job(data, RISHI_PROFILE))
+    save_match(database, support, score_job(support, RISHI_PROFILE))
+    update_workflow(database, data.external_id, "Applied", "Submitted")
+    rows = progress_breakdown(database_path)
+    assert next(item for item in rows["lanes"] if item["label"] == "Data Bi")["submitted"] == 1
+    assert next(item for item in rows["sources"] if item["label"] == "Workable")["current"] == 1
