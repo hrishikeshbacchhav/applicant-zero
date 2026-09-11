@@ -28,6 +28,7 @@ No private profile, résumé, credential, visa document, password or application
 Applicant Zero supports Adzuna's official Australian job-search API as its first live source. It searches and scores vacancies only; it does not submit applications.
 
 Broad-feed campaigns rotate through their active search terms across refreshes. The starter configuration permits 14 calls per refresh and caps the local plan at 60 Adzuna calls per day; both settings are candidate-controlled in the private search-campaign configuration.
+The role taxonomy covers data and BI, business/process analysis, IT support, junior IT and full-time administration, then keeps role-specific gaps and seniority requirements visible for review instead of hiding them.
 
 1. Register for a free API key at https://developer.adzuna.com/signup.
 2. Create a file named `.env` in the project folder. This file is private and excluded from Git.

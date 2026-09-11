@@ -156,3 +156,23 @@ def test_unverified_sector_and_leadership_requirements_hold_role_for_review():
     assert "direct care-sector experience" in result.missing_requirements
     assert "continuous-improvement delivery experience" in result.missing_requirements
 
+
+
+def test_broader_supported_title_vocabulary_keeps_discoverable_roles_visible():
+    examples = [
+        ("Data Visualisation Analyst", "data_bi"),
+        ("Business Improvement Analyst", "business_analysis"),
+        ("ICT Support Officer", "it_support"),
+        ("Graduate Technology Analyst", "it_general"),
+        ("Administration Assistant", "administration"),
+    ]
+    enabled = {"data_bi", "business_analysis", "it_support", "it_general", "administration"}
+    for index, (title, lane) in enumerate(examples):
+        result = score_job(Job(f"expanded-{index}", title, "Example", "Sydney, NSW", "test", "https://example.invalid", "SQL, Excel, technical support and stakeholder communication."), RISHI_PROFILE, enabled)
+        assert result.recommendation != "Skip"
+        assert result.lane == lane
+
+
+def test_unrelated_analyst_work_is_still_kept_out_of_broader_vocabulary():
+    result = score_job(Job("noise", "SEO Analyst", "Example", "Sydney", "test", "https://example.invalid", "Analytics and reporting."), RISHI_PROFILE)
+    assert result.recommendation == "Skip"

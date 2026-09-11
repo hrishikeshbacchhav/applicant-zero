@@ -1,5 +1,8 @@
 {
-  "locations": ["Sydney", "NSW"],
+  "locations": [
+    "Sydney",
+    "NSW"
+  ],
   "max_queries_per_refresh": 14,
   "max_queries_per_day": 60,
   "campaigns": [
@@ -7,32 +10,94 @@
       "id": "data_business",
       "label": "Data, BI and business analysis",
       "description": "Primary search: data, reporting, Power BI, BI and business/process analysis roles.",
-      "role_lanes": ["data_bi", "business_analysis", "commercial_analytics", "data_operations"],
-      "queries": ["data analyst", "business intelligence analyst", "power bi analyst", "reporting analyst", "business analyst", "process analyst", "business systems analyst", "operations analyst", "data quality analyst", "data governance analyst", "insights analyst", "data administrator"],
+      "role_lanes": [
+        "data_bi",
+        "business_analysis",
+        "commercial_analytics",
+        "data_operations"
+      ],
+      "queries": [
+        "data analyst",
+        "business intelligence analyst",
+        "power bi analyst",
+        "reporting analyst",
+        "business analyst",
+        "process analyst",
+        "business systems analyst",
+        "operations analyst",
+        "data quality analyst",
+        "data governance analyst",
+        "insights analyst",
+        "data administrator",
+        "data visualisation analyst",
+        "business improvement analyst",
+        "information management analyst"
+      ],
       "active": true
     },
     {
       "id": "it_support",
       "label": "IT support and service desk",
       "description": "Entry-level technical support, service desk, desktop and application support roles.",
-      "role_lanes": ["it_support"],
-      "queries": ["service desk analyst", "IT support officer", "technical support analyst", "desktop support", "IT helpdesk analyst", "end user support", "application support analyst", "ICT support officer"],
+      "role_lanes": [
+        "it_support"
+      ],
+      "queries": [
+        "service desk analyst",
+        "IT support officer",
+        "technical support analyst",
+        "desktop support",
+        "IT helpdesk analyst",
+        "end user support",
+        "application support analyst",
+        "ICT support officer",
+        "technology support officer",
+        "end user support analyst"
+      ],
       "active": true
     },
     {
       "id": "broader_it",
       "label": "Broader entry-level IT",
       "description": "Junior cloud, cybersecurity, QA, systems and implementation-support roles.",
-      "role_lanes": ["it_general"],
-      "queries": ["graduate IT", "junior systems administrator", "cloud support", "junior cyber security analyst", "test analyst", "QA analyst", "application implementation support", "IT operations analyst"],
+      "role_lanes": [
+        "it_general"
+      ],
+      "queries": [
+        "graduate IT",
+        "junior systems administrator",
+        "cloud support",
+        "junior cyber security analyst",
+        "test analyst",
+        "QA analyst",
+        "application implementation support",
+        "IT operations analyst",
+        "graduate technology",
+        "junior infrastructure support",
+        "cloud operations analyst"
+      ],
       "active": false
     },
     {
       "id": "administration",
       "label": "Full-time administration",
       "description": "General administration, coordination, clerical and customer-administration roles.",
-      "role_lanes": ["administration"],
-      "queries": ["administration officer", "project administrator", "customer service administrator", "administration coordinator", "team administrator", "office coordinator", "operations administrator", "data entry administrator"],
+      "role_lanes": [
+        "administration"
+      ],
+      "queries": [
+        "administration officer",
+        "project administrator",
+        "customer service administrator",
+        "administration coordinator",
+        "team administrator",
+        "office coordinator",
+        "operations administrator",
+        "data entry administrator",
+        "administration assistant",
+        "administrative officer",
+        "administration clerk"
+      ],
       "active": false
     }
   ]

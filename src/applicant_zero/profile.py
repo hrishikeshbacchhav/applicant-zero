@@ -14,10 +14,10 @@ RISHI_PROFILE = CandidateProfile(
         "data_bi": (
             "data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst",
             "data quality analyst", "data governance analyst", "information analyst", "insights analyst", "performance analyst",
-            "data reporting analyst", "data management analyst",
+            "data reporting analyst", "data management analyst", "data visualisation analyst", "information management analyst", "master data analyst",
         ),
         "power_bi": ("business intelligence", "power bi", "bi analyst", "bi developer"),
-        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "technology business analyst", "business process analyst"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "technology business analyst", "business process analyst", "business improvement analyst", "change analyst"),
         "adjacent_analytics": (
             "commercial analyst", "pricing analyst", "operations analyst",
             "finance operations analyst", "crm analyst", "insights analyst",
@@ -26,16 +26,16 @@ RISHI_PROFILE = CandidateProfile(
         ),
         "it_support": (
             "service desk", "help desk", "it support", "technical support", "desktop support", "application support",
-            "support analyst", "it operations", "technology support",
+            "support analyst", "it operations", "technology support", "ict support", "end user support",
         ),
         "it_general": (
             "junior systems administrator", "systems administrator", "cloud support", "cyber security analyst", "cybersecurity analyst",
             "security operations", "qa analyst", "test analyst", "software tester", "network support", "implementation support",
-            "junior developer", "graduate developer",
+            "junior developer", "graduate developer", "graduate technology", "technology graduate", "junior infrastructure", "cloud operations",
         ),
         "administration": (
             "administration officer", "administration coordinator", "project administrator", "customer service administrator",
-            "office administrator", "administrative assistant", "data entry", "clerical officer", "program administrator",
+            "office administrator", "administrative assistant", "administration assistant", "administrative officer", "administration clerk", "data entry", "clerical officer", "program administrator", "reception and administration",
         ),
     },
     skills=(

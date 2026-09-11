@@ -78,10 +78,10 @@ EVIDENCE_CHECK_PATTERNS = (
 def _direct_title_alignment(title: str, family: str) -> bool:
     """Return whether the title itself names one of the core search targets."""
     core_titles = {
-        "data_bi": ("data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst"),
+        "data_bi": ("data analyst", "reporting analyst", "analytics analyst", "data and insights analyst", "data & insights analyst", "data visualisation analyst", "master data analyst", "information management analyst"),
         "power_bi": ("power bi", "business intelligence", "bi analyst"),
-        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems"),
-        "it_support": ("service desk", "help desk", "it support", "technical support", "desktop support", "application support", "support analyst"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "business improvement analyst", "change analyst"),
+        "it_support": ("service desk", "help desk", "it support", "ict support", "technical support", "technology support", "desktop support", "end user support", "application support", "support analyst"),
     }
     return any(term in title for term in core_titles.get(family, ()))
 
