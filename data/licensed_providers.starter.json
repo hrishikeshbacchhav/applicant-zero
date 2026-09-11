@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "id": "jobdatalake",
+      "label": "JobDataLake",
+      "enabled": false,
+      "max_requests_per_refresh": 5,
+      "daily_request_limit": 20
+    }
+  ]
+}
