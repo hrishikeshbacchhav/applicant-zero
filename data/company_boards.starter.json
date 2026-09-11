@@ -99,4 +99,10 @@
     "ats": "lever",
     "token": "blinq"
   }
+,
+  {
+    "company": "Freelancer.com",
+    "ats": "workable",
+    "token": "freelancer"
+  }
 ]

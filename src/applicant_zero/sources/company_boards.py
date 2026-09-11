@@ -124,6 +124,46 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _workable_jobs(company: str, token: str) -> list[Job]:
+    """Read a Workable hosted public careers feed.
+
+    This uses Workable's documented public account endpoint, not its employer
+    REST API. The identifier is the public account subdomain from an
+    ``apply.workable.com`` link, and no employer or candidate credential is
+    accepted or needed.
+    """
+    payload = _get_json(f"https://www.workable.com/api/accounts/{token}?details=true")
+    rows = payload.get("jobs", []) if isinstance(payload, dict) else []
+    jobs: list[Job] = []
+    for item in rows:
+        if not isinstance(item, dict) or not item.get("shortcode"):
+            continue
+        locations = item.get("locations", [])
+        location_values = []
+        if isinstance(locations, list):
+            for location in locations:
+                if isinstance(location, dict):
+                    value = ", ".join(str(location.get(key, "")).strip() for key in ("city", "region", "country") if str(location.get(key, "")).strip())
+                    if value:
+                        location_values.append(value)
+        location = " / ".join(dict.fromkeys(location_values)) or ", ".join(str(item.get(key, "")).strip() for key in ("city", "state", "country") if str(item.get(key, "")).strip()) or "Unknown location"
+        metadata = " ".join(str(item.get(key, "")).strip() for key in ("employment_type", "experience", "function") if str(item.get(key, "")).strip())
+        description = _plain_text(item.get("description", ""))
+        if metadata:
+            description = f"{description}\nRole metadata: {metadata}".strip()
+        shortcode = str(item["shortcode"])
+        jobs.append(Job(
+            external_id=f"workable:{token}:{shortcode}",
+            title=str(item.get("title", "Untitled role")),
+            company=company,
+            location=location,
+            source="Workable",
+            url=str(item.get("url") or item.get("shortlink") or f"https://apply.workable.com/j/{shortcode}"),
+            description=description,
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -151,7 +191,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -178,8 +218,10 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
                 board_jobs = _ashby_jobs(company, token)
             elif ats == "smartrecruiters":
                 board_jobs = _smartrecruiters_jobs(company, token)
+            elif ats == "workable":
+                board_jobs = _workable_jobs(company, token)
             else:
-                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever, ashby or smartrecruiters.")
+                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever, ashby, smartrecruiters or workable.")
         except (OSError, ValueError, KeyError, TypeError) as error:
             return [], BoardReport(company, "unavailable", 0, str(error))
         return board_jobs, BoardReport(company, "checked", len(board_jobs))

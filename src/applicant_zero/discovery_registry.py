@@ -23,7 +23,7 @@ class TargetCompany:
     priority: int
 
 
-SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters"}
+SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"}
 
 
 def add_public_board(state_root: Path, starter_path: Path, company: str, ats: str, token: str) -> tuple[dict[str, str], bool]:
@@ -39,7 +39,7 @@ def add_public_board(state_root: Path, starter_path: Path, company: str, ats: st
     if not clean_company or len(clean_company) > 160:
         raise ValueError("Enter the employer name.")
     if clean_ats not in SUPPORTED_PUBLIC_ATS:
-        raise ValueError("Choose Greenhouse, Lever, Ashby or SmartRecruiters.")
+        raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters or Workable.")
     if not re.fullmatch(r"[A-Za-z0-9._-]{2,180}", clean_token):
         raise ValueError("Enter the public board token from the employer careers URL.")
 

@@ -95,7 +95,7 @@ def test_candidate_cannot_add_an_unknown_or_malformed_public_board(tmp_path):
     starter = tmp_path / "starter.json"
     starter.write_text("[]", encoding="utf-8")
     with pytest.raises(ValueError, match="Choose Greenhouse"):
-        add_public_board(tmp_path / "state", starter, "Example", "workable", "example")
+        add_public_board(tmp_path / "state", starter, "Example", "recruitee", "example")
     with pytest.raises(ValueError, match="public board token"):
         add_public_board(tmp_path / "state", starter, "Example", "lever", "bad token")
 
