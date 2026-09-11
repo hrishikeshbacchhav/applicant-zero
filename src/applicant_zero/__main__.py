@@ -1,5 +1,6 @@
 import argparse
 import json
+import sqlite3
 from pathlib import Path
 
 from .ai_drafting import check_tailoring_setup
@@ -14,12 +15,14 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
+from .discovery_measurements import measure_sources
 from .storage import (
     deactivate_stale_broad_feed_jobs,
     initialise_database,
     mark_company_jobs_inactive,
     prune_inactive_discovery_records,
     record_refresh_run,
+    record_source_measurements,
     save_board_checks,
     save_match,
 )
@@ -27,6 +30,7 @@ from .system_health import health_report
 from .runtime import backup_database, database_path, prepare_state, recover_database, synchronise_board_registry
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
 from .gmail_sync import GmailSetupError, connect_gmail, sync_gmail
+from .provider_trials import ProviderTrialError, assess_trial_sample, load_trial_sample
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -87,6 +91,20 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += f"; {pruned} old inactive discovery record(s) removed"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
+    request_counts = {"Adzuna": request_count}
+    failure_counts = {"Adzuna": len(query_errors)}
+    for report in reports:
+        source = getattr(report, "ats", "") or "Public board"
+        request_counts[source] = request_counts.get(source, 0) + 1
+        if report.status == "unavailable":
+            failure_counts[source] = failure_counts.get(source, 0) + 1
+    record_source_measurements(
+        database,
+        measure_sources(
+            jobs, {job.external_id for job, _ in visible},
+            request_counts=request_counts, failure_counts=failure_counts,
+        ),
+    )
     record_refresh_run(database, "Daily discovery refresh", len(jobs), len(visible), checked, unavailable, detail)
     return len(jobs), len(visible), detail
 
@@ -113,14 +131,27 @@ def main() -> None:
     parser.add_argument("--gmail-connect", action="store_true")
     parser.add_argument("--gmail-sync", action="store_true")
     parser.add_argument("--gmail-days", type=int, default=2)
+    parser.add_argument("--provider-trial-report", type=Path)
     args = parser.parse_args()
     state = prepare_state(ROOT)
     database = database_path(ROOT)
     recovery_message = recover_database(ROOT)
     if recovery_message:
         print(recovery_message)
+    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup) + int(args.gmail_connect) + int(args.gmail_sync) + int(args.provider_trial_report is not None)
+    if args.provider_trial_report:
+        if source_count != 1 or args.dashboard:
+            parser.error("Use --provider-trial-report on its own.")
+        try:
+            jobs = load_trial_sample(args.provider_trial_report, args.provider_trial_report.stem)
+            database_connection = initialise_database(database)
+            from .storage import list_matches
+            report = assess_trial_sample(jobs, list_matches(database_connection, include_duplicates=True))
+            print("Provider trial sample (local only): " + "; ".join(f"{key.replace('_', ' ')} {value}" for key, value in report.items()))
+        except (ProviderTrialError, OSError, sqlite3.Error) as error:
+            print(f"Provider trial sample could not be assessed: {error}")
+        return
     _sync_private_facts(state)
-    source_count = int(args.demo) + int(args.adzuna) + int(args.company_boards is not None) + int(args.daily_refresh) + int(args.daily_digest) + int(args.health_check) + int(args.backup) + int(args.gmail_connect) + int(args.gmail_sync)
     if args.gmail_connect:
         if source_count != 1 or args.dashboard:
             parser.error("Use --gmail-connect on its own.")

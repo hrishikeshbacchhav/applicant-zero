@@ -1,6 +1,7 @@
 import json
 import re
 import sqlite3
+import uuid
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -160,6 +161,23 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS source_measurements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            batch_id TEXT NOT NULL DEFAULT '',
+            source TEXT NOT NULL,
+            collected_count INTEGER NOT NULL,
+            relevant_count INTEGER NOT NULL,
+            distinct_count INTEGER NOT NULL,
+            repeated_count INTEGER NOT NULL,
+            request_count INTEGER NOT NULL DEFAULT 0,
+            failure_count INTEGER NOT NULL DEFAULT 0,
+            detail TEXT NOT NULL DEFAULT '',
+            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS email_sync_runs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fetched_count INTEGER NOT NULL,
@@ -220,6 +238,9 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     refresh_columns = {row[1] for row in connection.execute("PRAGMA table_info(refresh_runs)")}
     if "detail" not in refresh_columns:
         connection.execute("ALTER TABLE refresh_runs ADD COLUMN detail TEXT NOT NULL DEFAULT ''")
+    measurement_columns = {row[1] for row in connection.execute("PRAGMA table_info(source_measurements)")}
+    if "batch_id" not in measurement_columns:
+        connection.execute("ALTER TABLE source_measurements ADD COLUMN batch_id TEXT NOT NULL DEFAULT ''")
     connection.commit()
     return connection
 
@@ -450,6 +471,53 @@ def record_refresh_run(
         (source, collected_count, relevant_count, checked_count, unavailable_count, detail),
     )
     connection.commit()
+
+
+def record_source_measurements(connection: sqlite3.Connection, rows: list[dict]) -> None:
+    """Persist a compact, source-level discovery quality snapshot.
+
+    These are observations from a single refresh, not lifetime claims.  A
+    listing counted as repeated was also found by another source in that run;
+    it is kept for provenance, while the dashboard shows the preferred copy.
+    """
+    batch_id = uuid.uuid4().hex
+    for row in rows:
+        connection.execute(
+            """
+            INSERT INTO source_measurements (
+                batch_id, source, collected_count, relevant_count, distinct_count,
+                repeated_count, request_count, failure_count, detail
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                batch_id,
+                str(row.get("source", "Unknown"))[:120],
+                int(row.get("collected_count", 0)),
+                int(row.get("relevant_count", 0)),
+                int(row.get("distinct_count", 0)),
+                int(row.get("repeated_count", 0)),
+                int(row.get("request_count", 0)),
+                int(row.get("failure_count", 0)),
+                str(row.get("detail", ""))[:1000],
+            ),
+        )
+    connection.commit()
+
+
+def latest_source_measurements(connection: sqlite3.Connection) -> list[dict]:
+    """Return the latest snapshot for each source from the newest refresh."""
+    connection.row_factory = sqlite3.Row
+    latest = connection.execute("SELECT batch_id FROM source_measurements ORDER BY id DESC LIMIT 1").fetchone()
+    if not latest or not latest["batch_id"]:
+        return []
+    rows = connection.execute(
+        """SELECT source, collected_count, relevant_count, distinct_count,
+                  repeated_count, request_count, failure_count, detail, completed_at
+           FROM source_measurements WHERE batch_id = ?
+           ORDER BY relevant_count DESC, distinct_count DESC, source""",
+        (latest["batch_id"],),
+    ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def latest_refresh_run(connection: sqlite3.Connection) -> dict | None:

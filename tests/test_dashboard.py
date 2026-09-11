@@ -28,6 +28,7 @@ from applicant_zero.storage import (
     record_refresh_run,
     update_workflow,
     save_manual_action,
+    record_source_measurements,
 )
 
 
@@ -41,6 +42,15 @@ def test_empty_dashboard_has_guidance(tmp_path):
     outcomes = build_outcomes_page(tmp_path / "missing.sqlite3")
     assert "Search progress" in outcomes
     assert "Applications submitted" in outcomes
+
+
+def test_discovery_page_shows_latest_source_contribution(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    record_source_measurements(database, [{"source": "Adzuna", "collected_count": 12, "relevant_count": 3, "distinct_count": 2, "repeated_count": 1, "request_count": 2}])
+    from applicant_zero.dashboard import build_discovery_page
+    page = build_discovery_page(tmp_path / "jobs.sqlite3")
+    assert "Latest source contribution" in page
+    assert "Adzuna" in page
 
 
 def test_search_campaigns_page_exposes_candidate_controlled_role_groups(tmp_path):

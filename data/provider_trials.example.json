@@ -1,0 +1,13 @@
+{
+  "provider": "licensed-provider-name",
+  "jobs": [
+    {
+      "id": "provider-job-id",
+      "title": "Example Analyst",
+      "company": "Example Company",
+      "location": "Sydney NSW",
+      "url": "https://careers.example.com/jobs/example",
+      "description": "Optional public job description"
+    }
+  ]
+}

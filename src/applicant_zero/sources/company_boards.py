@@ -14,6 +14,7 @@ class BoardReport:
     status: str
     job_count: int
     message: str = ""
+    ats: str = ""
 
 
 def _get_json(url: str) -> dict | list:
@@ -259,8 +260,8 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
         try:
             board_jobs = fetch_public_board(company, board["ats"], board["token"])
         except (OSError, ValueError, KeyError, TypeError) as error:
-            return [], BoardReport(company, "unavailable", 0, str(error))
-        return board_jobs, BoardReport(company, "checked", len(board_jobs))
+            return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title())
+        return board_jobs, BoardReport(company, "checked", len(board_jobs), "", board["ats"].title())
 
     # Board APIs are independent. Parallel requests keep one slow employer
     # endpoint from holding up every other source during scheduled refreshes.
