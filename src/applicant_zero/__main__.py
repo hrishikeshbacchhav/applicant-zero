@@ -33,6 +33,7 @@ from .resume_evidence import ResumeEvidenceError, create_resume_evidence_invento
 from .gmail_sync import GmailSetupError, connect_gmail, sync_gmail
 from .provider_trials import ProviderTrialError, assess_trial_sample, load_trial_sample
 from .sources.jobdatalake import run_trial as run_jobdatalake_trial
+from .licensed_providers import enabled_licensed_providers, provider_remaining_today, record_provider_requests
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -74,7 +75,28 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     request_count = sum(report.requests for report in query_reports)
     query_errors = [report for report in query_reports if report.error]
     consume_discovery_query_plan(state, len(query_plan), request_count)
-    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
+    licensed_jobs: list[Job] = []
+    licensed_requests: dict[str, int] = {}
+    licensed_failures: dict[str, int] = {}
+    provider_notes: list[str] = []
+    unique_queries = list(dict.fromkeys(query for query, _ in query_plan))
+    for provider in enabled_licensed_providers(state):
+        allowance = min(provider.max_requests_per_refresh, provider_remaining_today(state, provider))
+        if allowance <= 0:
+            provider_notes.append(f"{provider.label} daily allowance exhausted")
+            continue
+        if provider.identifier != "jobdatalake":
+            provider_notes.append(f"{provider.label} has no adapter installed")
+            continue
+        provider_jobs, provider_reports = run_jobdatalake_trial(state, unique_queries, max_requests=allowance)
+        used = sum(report.requests for report in provider_reports)
+        record_provider_requests(state, provider, used)
+        licensed_jobs.extend(provider_jobs)
+        licensed_requests[provider.label] = used
+        failures = sum(bool(report.error) for report in provider_reports)
+        licensed_failures[provider.label] = failures
+        provider_notes.append(f"{provider.label} used {used} licensed request(s), {len(provider_jobs)} role(s) returned")
+    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *licensed_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_discovery_inventory(database, jobs)
     save_board_checks(database, reports)
@@ -94,8 +116,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += f"; {pruned} old inactive discovery record(s) removed"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
+    if provider_notes:
+        detail += "; " + "; ".join(provider_notes)
     request_counts = {"Adzuna": request_count}
     failure_counts = {"Adzuna": len(query_errors)}
+    request_counts.update(licensed_requests)
+    failure_counts.update(licensed_failures)
     for report in reports:
         source = getattr(report, "ats", "") or "Public board"
         request_counts[source] = request_counts.get(source, 0) + 1
