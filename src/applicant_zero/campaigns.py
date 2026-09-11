@@ -1,6 +1,7 @@
 """Candidate-controlled discovery campaigns and their safe query budgets."""
 
 import json
+from datetime import date
 from dataclasses import dataclass
 from pathlib import Path
 from collections import Counter
@@ -29,6 +30,11 @@ def _starter_path(project_root: Path) -> Path:
 
 def campaign_path(project_root: Path) -> Path:
     return project_root / "private" / "search_campaigns.json"
+
+
+def query_cursor_path(project_root: Path) -> Path:
+    """Keep local query rotation and daily-call accounting outside Git."""
+    return project_root / "private" / "discovery_query_cursor.json"
 
 
 def _load_raw(project_root: Path) -> dict:
@@ -72,17 +78,16 @@ def campaign_query_allocation(project_root: Path, max_queries: int | None = None
     return dict(Counter(identifier for identifier, _, _ in _campaign_query_plan(project_root, max_queries)))
 
 
-def _campaign_query_plan(project_root: Path, max_queries: int | None = None) -> list[tuple[str, str, str]]:
+def _full_campaign_query_plan(project_root: Path) -> list[tuple[str, str, str]]:
     raw = _load_raw(project_root)
     locations = [str(value).strip() for value in raw.get("locations", ["Sydney", "NSW"]) if str(value).strip()]
     selected = [campaign for campaign in load_campaigns(project_root) if campaign.active and campaign.queries]
     if not selected or not locations:
         return []
-    if max_queries is None:
-        max_queries = int(raw.get("max_queries_per_refresh", sum(len(campaign.queries) for campaign in selected) * len(locations)))
 
     # Interleave the same query position across enabled campaigns and both
-    # locations. With a cap, every active campaign gets an early turn.
+    # locations. This makes every enabled role group visible early in a capped
+    # cycle rather than letting the first group consume the broad-feed budget.
     scheduled: list[tuple[str, str, str]] = []
     max_depth = max(len(campaign.queries) for campaign in selected)
     for query_index in range(max_depth):
@@ -90,7 +95,66 @@ def _campaign_query_plan(project_root: Path, max_queries: int | None = None) -> 
             for campaign in selected:
                 if query_index < len(campaign.queries):
                     scheduled.append((campaign.identifier, campaign.queries[query_index], location))
-    return scheduled[:max(0, max_queries)]
+    return scheduled
+
+
+def _configured_refresh_limit(project_root: Path, max_queries: int | None = None) -> int:
+    if max_queries is not None:
+        return max(0, max_queries)
+    raw = _load_raw(project_root)
+    return max(0, int(raw.get("max_queries_per_refresh", len(_full_campaign_query_plan(project_root)))))
+
+
+def _cursor(project_root: Path) -> dict[str, int | str]:
+    path = query_cursor_path(project_root)
+    today = date.today().isoformat()
+    try:
+        cursor = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    except (OSError, ValueError, TypeError):
+        cursor = {}
+    if cursor.get("day") != today:
+        return {"day": today, "offset": int(cursor.get("offset", 0) or 0), "calls_today": 0}
+    return {"day": today, "offset": int(cursor.get("offset", 0) or 0), "calls_today": int(cursor.get("calls_today", 0) or 0)}
+
+
+def discovery_query_status(project_root: Path, max_queries: int | None = None) -> dict[str, object]:
+    """Preview the next bounded slice without consuming any API calls."""
+    full_plan = _full_campaign_query_plan(project_root)
+    raw = _load_raw(project_root)
+    daily_limit = max(0, int(raw.get("max_queries_per_day", 60)))
+    cursor = _cursor(project_root)
+    remaining_today = max(0, daily_limit - int(cursor["calls_today"]))
+    planned_count = min(_configured_refresh_limit(project_root, max_queries), remaining_today)
+    offset = int(cursor["offset"])
+    planned = [full_plan[(offset + index) % len(full_plan)] for index in range(planned_count)] if full_plan else []
+    return {
+        "planned": planned,
+        "cycle_size": len(full_plan),
+        "cycle_offset": offset % len(full_plan) if full_plan else 0,
+        "daily_limit": daily_limit,
+        "calls_today": int(cursor["calls_today"]),
+        "remaining_today": remaining_today,
+    }
+
+
+def consume_discovery_query_plan(project_root: Path, attempted_queries: int) -> None:
+    """Advance local rotation and account for attempted broad-feed requests."""
+    attempted = max(0, attempted_queries)
+    cursor = _cursor(project_root)
+    cursor["offset"] = int(cursor["offset"]) + attempted
+    cursor["calls_today"] = int(cursor["calls_today"]) + attempted
+    path = query_cursor_path(project_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cursor, indent=2), encoding="utf-8")
+
+
+def next_discovery_query_plan(project_root: Path, max_queries: int | None = None) -> list[tuple[str, str]]:
+    """Return the next rotation slice; call ``consume`` after attempting it."""
+    return [(query, location) for _, query, location in discovery_query_status(project_root, max_queries)["planned"]]
+
+
+def _campaign_query_plan(project_root: Path, max_queries: int | None = None) -> list[tuple[str, str, str]]:
+    return _full_campaign_query_plan(project_root)[:_configured_refresh_limit(project_root, max_queries)]
 
 
 def save_enabled_campaigns(project_root: Path, enabled: set[str]) -> tuple[SearchCampaign, ...]:

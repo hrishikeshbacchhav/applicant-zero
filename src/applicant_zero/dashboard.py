@@ -29,7 +29,7 @@ from .resume_evidence import ResumeEvidenceError, create_resume_evidence_invento
 from .preparation_bundle import create_preparation_bundle
 from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
-from .campaigns import campaign_query_allocation, load_campaigns, save_enabled_campaigns
+from .campaigns import campaign_query_allocation, discovery_query_status, load_campaigns, save_enabled_campaigns
 from .job_intelligence import inspect_job
 from .gmail_sync import GmailSetupError, gmail_setup_status, sync_gmail
 from .storage import (
@@ -294,11 +294,15 @@ def build_campaigns_page(database_path: Path) -> str:
     project_root = database_path.parent.parent
     campaigns = load_campaigns(project_root)
     allocation = campaign_query_allocation(project_root)
+    query_status = discovery_query_status(project_root)
+    next_allocation: dict[str, int] = {}
+    for identifier, _, _ in query_status["planned"]:
+        next_allocation[identifier] = next_allocation.get(identifier, 0) + 1
     rows = "".join(
-        f"<article class='section-card'><label><input type='checkbox' name='campaign' value='{html.escape(campaign.identifier, quote=True)}'{' checked' if campaign.active else ''}> <strong>{html.escape(campaign.label)}</strong></label><p>{html.escape(campaign.description)}</p><small>Role lanes: {html.escape(', '.join(lane.replace('_', ' ') for lane in campaign.role_lanes))}</small><p class='queries'>Search terms: {html.escape(' · '.join(campaign.queries))}</p><p class='allocation'>{'Next refresh: ' + str(allocation.get(campaign.identifier, 0)) + ' broad-feed search' + ('es' if allocation.get(campaign.identifier, 0) != 1 else '') if campaign.active else 'Paused: no broad-feed calls reserved.'}</p></article>"
+        f"<article class='section-card'><label><input type='checkbox' name='campaign' value='{html.escape(campaign.identifier, quote=True)}'{' checked' if campaign.active else ''}> <strong>{html.escape(campaign.label)}</strong></label><p>{html.escape(campaign.description)}</p><small>Role lanes: {html.escape(', '.join(lane.replace('_', ' ') for lane in campaign.role_lanes))}</small><p class='queries'>Search terms: {html.escape(' · '.join(campaign.queries))}</p><p class='allocation'>{'Next refresh: ' + str(next_allocation.get(campaign.identifier, 0)) + ' broad-feed search' + ('es' if next_allocation.get(campaign.identifier, 0) != 1 else '') + ' · standard cycle allocation: ' + str(allocation.get(campaign.identifier, 0)) if campaign.active else 'Paused: no broad-feed calls reserved.'}</p></article>"
         for campaign in campaigns
     )
-    content = f"""<p class='notice'>Sydney and NSW are searched separately. A capped refresh shares its broad-feed calls across every active campaign, so one role group cannot consume the whole search budget.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
+    content = f"""<p class='notice'>Sydney and NSW are searched separately. Each refresh shares its broad-feed calls across active campaigns and rotates through the full active vocabulary instead of repeatedly searching the first few phrases. This computer is configured for up to {query_status['daily_limit']} broad-feed calls per day; {query_status['remaining_today']} remain today, and the next slice contains {len(query_status['planned'])} calls.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
     return _workspace_page(
         "campaigns", "Discovery control", "Search campaigns",
         "Choose the role groups included in future discovery runs. Your choice stays private on this computer.", content,
