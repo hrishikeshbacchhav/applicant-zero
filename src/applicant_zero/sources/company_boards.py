@@ -203,25 +203,28 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
     return valid, reports
 
 
+def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
+    """Read one supported public board so onboarding can validate it first."""
+    handlers = {
+        "greenhouse": _greenhouse_jobs,
+        "lever": _lever_jobs,
+        "ashby": _ashby_jobs,
+        "smartrecruiters": _smartrecruiters_jobs,
+        "workable": _workable_jobs,
+    }
+    try:
+        handler = handlers[ats.lower()]
+    except KeyError as error:
+        raise ValueError(f"Unsupported ATS '{ats}'.") from error
+    return handler(company, token)
+
+
 def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
     boards, configuration_reports = _load_valid_boards(path)
     def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
         company = board["company"]
-        token = board["token"]
-        ats = board["ats"].lower()
         try:
-            if ats == "greenhouse":
-                board_jobs = _greenhouse_jobs(company, token)
-            elif ats == "lever":
-                board_jobs = _lever_jobs(company, token)
-            elif ats == "ashby":
-                board_jobs = _ashby_jobs(company, token)
-            elif ats == "smartrecruiters":
-                board_jobs = _smartrecruiters_jobs(company, token)
-            elif ats == "workable":
-                board_jobs = _workable_jobs(company, token)
-            else:
-                raise ValueError(f"Unsupported ATS '{ats}'. Use greenhouse, lever, ashby, smartrecruiters or workable.")
+            board_jobs = fetch_public_board(company, board["ats"], board["token"])
         except (OSError, ValueError, KeyError, TypeError) as error:
             return [], BoardReport(company, "unavailable", 0, str(error))
         return board_jobs, BoardReport(company, "checked", len(board_jobs))

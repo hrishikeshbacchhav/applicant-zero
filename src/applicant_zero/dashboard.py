@@ -21,7 +21,7 @@ from .daily_digest import create_daily_digest
 from .system_health import health_page
 from .reporting import outcome_summary, tracker_csv
 from .platform_pilots import build_platform_pilots_page
-from .discovery_registry import add_public_board, board_health_summary, discovery_overview, employer_coverage_rows
+from .discovery_registry import add_public_board_url, board_health_summary, discovery_overview, employer_coverage_rows, public_board_from_url
 from .discovery_registry import load_targets
 from .discovery_priority import prioritise_targets
 from .material_manifest import create_material_manifest, material_manifest_path
@@ -31,6 +31,7 @@ from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
 from .campaigns import campaign_query_allocation, discovery_query_status, load_campaigns, save_enabled_campaigns
 from .job_intelligence import inspect_job
+from .sources.company_boards import fetch_public_board
 from .gmail_sync import GmailSetupError, gmail_setup_status, sync_gmail
 from .storage import (
     WORKFLOW_STATUSES,
@@ -381,7 +382,7 @@ def build_discovery_page(database_path: Path, board_message: str = "") -> str:
     if more:
         waiting += f" · and {more} more"
     message = f"<p class='success'>{html.escape(board_message)}</p>" if board_message else ""
-    content = f"""{message}<section class='card-grid'><article class='metric'><strong>{overview['target_count']}</strong><span>target employers tracked</span></article><article class='metric'><strong>{overview['configured_count']}</strong><span>verified public career boards</span></article><article class='metric'><strong>{overview['source_count']}</strong><span>source routes recorded</span></article></section><section class='section-card'><h2>Add a verified public employer board</h2><p class='muted'>Use this after opening the employer’s own public careers page and confirming it uses Greenhouse, Lever, Ashby or SmartRecruiters. This saves no login, password or API key, and reads public listings only.</p><form method='post' action='/boards' class='grid'><label>Employer name<input name='company' required placeholder='e.g. Example Australia'></label><label>Public ATS<select name='ats'><option value='greenhouse'>Greenhouse</option><option value='lever'>Lever</option><option value='ashby'>Ashby</option><option value='smartrecruiters'>SmartRecruiters</option></select></label><label>Public board token<input name='token' required placeholder='Token from the public careers URL'></label><p><button type='submit'>Add public board</button></p></form></section><section class='grid'><article class='section-card'><h2>What to prioritise next</h2><ul>{priority_list}</ul></article><article class='section-card'><h2>Automatic refresh</h2><ul>{automated}</ul><p><strong>Current verified boards:</strong> {covered}</p><p class='muted'>{board_health['checked']} recently checked · {board_health['unavailable']} unavailable · {board_health['stale']} stale · {board_health['never_checked']} not checked yet.</p></article></section><section class='section-card'><h2>Recent public-board checks</h2><p class='muted'>Zero listings means the public board was read successfully and has no current listings. An unavailable result is a source issue, not a zero.</p><div class='table-wrap'><table><thead><tr><th>Checked</th><th>Employer</th><th>Result</th><th>Listings</th><th>Detail</th></tr></thead><tbody>{history_table}</tbody></table></div></section><section class='section-card'><h2>Candidate-assisted routes</h2><ul>{manual}</ul><p>When you find a relevant public listing on SEEK, LinkedIn, Indeed or another site, use <strong>Add a job from another website</strong> in the review queue. Applicant Zero will still score, prepare and track it locally.</p></section><section class='section-card'><h2>Employer-board research queue</h2><p>{waiting or 'All current targets are covered.'}</p><p class='muted'>Research queue means a target has been prioritised but no public, reliable board token has been recorded. It does not mean there is a vacancy.</p></section><section class='section-card'><h2>Employer coverage map</h2><p class='muted'>Public ATS refresh means the employer board is configured, not that it necessarily has a vacancy.</p><div class='table-wrap'><table><thead><tr><th>Employer</th><th>Sector</th><th>Priority</th><th>Discovery route</th><th>Latest check</th><th>Current public listings</th></tr></thead><tbody>{coverage_table}</tbody></table></div></section>"""
+    content = f"""{message}<section class='card-grid'><article class='metric'><strong>{overview['target_count']}</strong><span>target employers tracked</span></article><article class='metric'><strong>{overview['configured_count']}</strong><span>verified public career boards</span></article><article class='metric'><strong>{overview['source_count']}</strong><span>source routes recorded</span></article></section><section class='section-card'><h2>Add a public employer careers link</h2><p class='muted'>Paste the employer’s public Greenhouse, Lever, Ashby, SmartRecruiters or Workable careers URL. Applicant Zero identifies the provider and validates that it can read public listings before saving it. No login, password or API key is stored.</p><form method='post' action='/boards' class='grid'><label>Employer name<input name='company' required placeholder='e.g. Example Australia'></label><label>Public careers URL<input name='board_url' type='url' required placeholder='https://jobs.lever.co/example'></label><p><button type='submit'>Validate and add board</button></p></form></section><section class='grid'><article class='section-card'><h2>What to prioritise next</h2><ul>{priority_list}</ul></article><article class='section-card'><h2>Automatic refresh</h2><ul>{automated}</ul><p><strong>Current verified boards:</strong> {covered}</p><p class='muted'>{board_health['checked']} recently checked · {board_health['unavailable']} unavailable · {board_health['stale']} stale · {board_health['never_checked']} not checked yet.</p></article></section><section class='section-card'><h2>Recent public-board checks</h2><p class='muted'>Zero listings means the public board was read successfully and has no current listings. An unavailable result is a source issue, not a zero.</p><div class='table-wrap'><table><thead><tr><th>Checked</th><th>Employer</th><th>Result</th><th>Listings</th><th>Detail</th></tr></thead><tbody>{history_table}</tbody></table></div></section><section class='section-card'><h2>Candidate-assisted routes</h2><ul>{manual}</ul><p>When you find a relevant public listing on SEEK, LinkedIn, Indeed or another site, use <strong>Add a job from another website</strong> in the review queue. Applicant Zero will still score, prepare and track it locally.</p></section><section class='section-card'><h2>Employer-board research queue</h2><p>{waiting or 'All current targets are covered.'}</p><p class='muted'>Research queue means a target has been prioritised but no public, reliable board token has been recorded. It does not mean there is a vacancy.</p></section><section class='section-card'><h2>Employer coverage map</h2><p class='muted'>Public ATS refresh means the employer board is configured, not that it necessarily has a vacancy.</p><div class='table-wrap'><table><thead><tr><th>Employer</th><th>Sector</th><th>Priority</th><th>Discovery route</th><th>Latest check</th><th>Current public listings</th></tr></thead><tbody>{coverage_table}</tbody></table></div></section>"""
     return _workspace_page(
         "discovery", "Source coverage", "Discovery coverage",
         "See which public employer boards are being monitored, where discovery needs research, and what each verified source returned.", content,
@@ -646,18 +647,21 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 return
             if self.path == "/boards":
                 try:
-                    entry, created = add_public_board(
+                    company = values.get("company", [""])[0]
+                    board_url = values.get("board_url", [""])[0]
+                    ats, token = public_board_from_url(board_url)
+                    public_jobs = fetch_public_board(company.strip(), ats, token)
+                    entry, created = add_public_board_url(
                         database_path.parent.parent,
                         PROJECT_ROOT / "data" / "company_boards.starter.json",
-                        values.get("company", [""])[0],
-                        values.get("ats", [""])[0],
-                        values.get("token", [""])[0],
+                        company,
+                        board_url,
                     )
                     message = (
-                        f"Added {entry['company']} to the private public-board registry. It will be checked on the next discovery refresh."
-                        if created else f"That public board is already in the private registry as {entry['company']}."
+                        f"Validated {len(public_jobs)} public listing(s) and added {entry['company']} to the private board registry."
+                        if created else f"Validated {len(public_jobs)} public listing(s). That board is already saved as {entry['company']}."
                     )
-                except ValueError as error:
+                except (OSError, ValueError, KeyError, TypeError) as error:
                     message = f"Public board was not added: {error}"
                 self.send_response(303)
                 self.send_header("Location", "/discovery?" + urlencode({"board": message}))

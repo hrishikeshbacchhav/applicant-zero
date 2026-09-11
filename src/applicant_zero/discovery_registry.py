@@ -2,6 +2,7 @@
 
 import json
 import re
+from urllib.parse import urlparse
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,6 +25,41 @@ class TargetCompany:
 
 
 SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"}
+
+
+def public_board_from_url(value: str) -> tuple[str, str]:
+    """Recognise a supported public careers URL without following it or scraping.
+
+    Only the provider's hosted public-board URL shapes are accepted.  A normal
+    employer web page, individual job link, credential URL or arbitrary domain
+    is deliberately rejected so the candidate can choose the correct public
+    careers page instead.
+    """
+    url = urlparse(value.strip())
+    host = url.netloc.casefold().split(":", 1)[0]
+    parts = [part for part in url.path.split("/") if part]
+    token = ""
+    ats = ""
+    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"} and parts:
+        ats, token = "greenhouse", parts[0]
+    elif host in {"jobs.lever.co", "jobs.eu.lever.co"} and parts:
+        ats, token = "lever", parts[0]
+    elif host == "jobs.ashbyhq.com" and parts:
+        ats, token = "ashby", parts[0]
+    elif host in {"jobs.smartrecruiters.com", "careers.smartrecruiters.com"} and parts:
+        ats, token = "smartrecruiters", parts[0]
+    elif host == "apply.workable.com" and parts and parts[0] != "j":
+        ats, token = "workable", parts[0]
+    elif host == "www.workable.com" and parts[:3] == ["api", "accounts"] and len(parts) >= 3:
+        ats, token = "workable", parts[2]
+    if ats and re.fullmatch(r"[A-Za-z0-9._-]{2,180}", token):
+        return ats, token
+    raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters or Workable careers URL.")
+
+
+def add_public_board_url(state_root: Path, starter_path: Path, company: str, public_url: str) -> tuple[dict[str, str], bool]:
+    ats, token = public_board_from_url(public_url)
+    return add_public_board(state_root, starter_path, company, ats, token)
 
 
 def add_public_board(state_root: Path, starter_path: Path, company: str, ats: str, token: str) -> tuple[dict[str, str], bool]:

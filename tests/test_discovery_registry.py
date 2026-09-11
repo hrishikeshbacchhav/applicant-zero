@@ -2,7 +2,7 @@ import json
 import pytest
 from pathlib import Path
 
-from applicant_zero.discovery_registry import add_public_board, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets
+from applicant_zero.discovery_registry import add_public_board, add_public_board_url, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets, public_board_from_url
 from applicant_zero.discovery_priority import prioritise_targets
 
 
@@ -109,3 +109,20 @@ def test_priority_engine_prefers_healthy_configured_priority_employers():
     ranked = prioritise_targets(targets, rows)
     assert ranked[0].company == targets[1].company
     assert "Automatic refresh" in ranked[0].action
+
+
+def test_supported_public_careers_urls_produce_an_ats_and_board_token(tmp_path):
+    assert public_board_from_url("https://jobs.lever.co/example-australia") == ("lever", "example-australia")
+    assert public_board_from_url("https://boards.greenhouse.io/example/jobs/7") == ("greenhouse", "example")
+    assert public_board_from_url("https://jobs.ashbyhq.com/example") == ("ashby", "example")
+    assert public_board_from_url("https://jobs.smartrecruiters.com/Example") == ("smartrecruiters", "Example")
+    with pytest.raises(ValueError, match="supported public"):
+        public_board_from_url("https://example.com/careers")
+
+
+def test_candidate_can_save_a_public_board_from_its_url(tmp_path):
+    starter = tmp_path / "starter.json"
+    starter.write_text("[]", encoding="utf-8")
+    entry, created = add_public_board_url(tmp_path / "state", starter, "Example", "https://jobs.lever.co/example")
+    assert created is True
+    assert entry == {"company": "Example", "ats": "lever", "token": "example"}
