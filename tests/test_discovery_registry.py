@@ -16,6 +16,10 @@ def test_source_register_has_public_and_manual_routes():
     assert all({"data_bi", "it_support", "it_general", "administration"} <= set(source.role_lanes) for source in sources)
 
 
+def test_recruitee_public_careers_url_is_recognised():
+    assert public_board_from_url("https://example.recruitee.com/o/data-analyst") == ("recruitee", "example")
+
+
 def test_target_universe_is_deduplicated_and_prioritised():
     targets = load_targets(ROOT / "data" / "target_companies.starter.json")
     assert len(targets) >= 75
@@ -95,7 +99,7 @@ def test_candidate_cannot_add_an_unknown_or_malformed_public_board(tmp_path):
     starter = tmp_path / "starter.json"
     starter.write_text("[]", encoding="utf-8")
     with pytest.raises(ValueError, match="Choose Greenhouse"):
-        add_public_board(tmp_path / "state", starter, "Example", "recruitee", "example")
+        add_public_board(tmp_path / "state", starter, "Example", "unknown", "example")
     with pytest.raises(ValueError, match="public board token"):
         add_public_board(tmp_path / "state", starter, "Example", "lever", "bad token")
 

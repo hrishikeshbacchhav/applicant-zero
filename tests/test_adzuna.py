@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch, fetch_query_plan
+from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch, fetch_query_plan, fetch_query_plan_paged
 
 
 def test_search_url_targets_australia():
@@ -41,3 +41,13 @@ def test_query_plan_keeps_location_specific_failures_and_deduplicates(tmp_path):
         jobs, errors = fetch_query_plan(tmp_path, [("data", "Sydney"), ("data", "NSW"), ("bi", "Sydney")])
     assert [job.external_id for job in jobs] == ["adzuna:1", "adzuna:2"]
     assert errors == ["data (NSW): unavailable"]
+
+
+def test_paged_plan_fetches_a_second_page_only_after_a_full_first_page(tmp_path):
+    full = [_job_from_result({"id": str(index), "title": "Data Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}}) for index in range(50)]
+    second = _job_from_result({"id": "second-page", "title": "BI Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})
+    with patch("applicant_zero.sources.adzuna.fetch_jobs", side_effect=[full, [second], [second]]):
+        jobs, reports = fetch_query_plan_paged(tmp_path, [("data", "Sydney"), ("bi", "NSW")], max_pages_per_query=2)
+    assert len(jobs) == 51
+    assert [report.requests for report in reports] == [2, 1]
+    assert [report.returned for report in reports] == [51, 1]

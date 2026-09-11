@@ -4,7 +4,8 @@
     "NSW"
   ],
   "max_queries_per_refresh": 14,
-  "max_queries_per_day": 60,
+  "max_api_calls_per_day": 120,
+  "max_pages_per_query": 2,
   "campaigns": [
     {
       "id": "data_business",
@@ -31,7 +32,11 @@
         "data administrator",
         "data visualisation analyst",
         "business improvement analyst",
-        "information management analyst"
+        "information management analyst",
+        "data steward",
+        "data insights specialist",
+        "decision support analyst",
+        "reporting specialist"
       ],
       "active": true
     },
@@ -52,7 +57,10 @@
         "application support analyst",
         "ICT support officer",
         "technology support officer",
-        "end user support analyst"
+        "end user support analyst",
+        "service delivery analyst",
+        "IT customer support",
+        "level 1 support analyst"
       ],
       "active": true
     },
@@ -74,7 +82,10 @@
         "IT operations analyst",
         "graduate technology",
         "junior infrastructure support",
-        "cloud operations analyst"
+        "cloud operations analyst",
+        "graduate cyber security",
+        "junior IT analyst",
+        "IT coordinator"
       ],
       "active": false
     },
@@ -96,7 +107,10 @@
         "data entry administrator",
         "administration assistant",
         "administrative officer",
-        "administration clerk"
+        "administration clerk",
+        "administration support officer",
+        "operations coordinator",
+        "customer operations administrator"
       ],
       "active": false
     }

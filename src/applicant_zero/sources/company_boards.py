@@ -164,6 +164,38 @@ def _workable_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _recruitee_jobs(company: str, token: str) -> list[Job]:
+    """Read currently-public Recruitee offer feeds.
+
+    Recruitee has announced that its Careers Site API will require an employer
+    token from February 2027. This adapter is read-only and transitional: an
+    authentication response becomes an unavailable-board report, never a
+    prompt to obtain an employer credential.
+    """
+    payload = _get_json(f"https://{token}.recruitee.com/api/offers/")
+    offers = payload.get("offers", []) if isinstance(payload, dict) else []
+    jobs: list[Job] = []
+    for item in offers:
+        if not isinstance(item, dict) or str(item.get("status", "published")).lower() not in {"published", "open"}:
+            continue
+        identifier = item.get("id") or item.get("slug")
+        if not identifier:
+            continue
+        locations = item.get("locations", [])
+        values = [str(row.get("name") or row.get("city") or "").strip() for row in locations if isinstance(row, dict)] if isinstance(locations, list) else []
+        location = ", ".join(value for value in values if value) or str(item.get("location", "Unknown location"))
+        jobs.append(Job(
+            external_id=f"recruitee:{token}:{identifier}",
+            title=str(item.get("title", "Untitled role")),
+            company=company,
+            location=location,
+            source="Recruitee",
+            url=str(item.get("careers_url") or item.get("careers_apply_url") or ""),
+            description=str(item.get("description") or item.get("description_html") or ""),
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -191,7 +223,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -211,6 +243,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "ashby": _ashby_jobs,
         "smartrecruiters": _smartrecruiters_jobs,
         "workable": _workable_jobs,
+        "recruitee": _recruitee_jobs,
     }
     try:
         handler = handlers[ats.lower()]

@@ -24,7 +24,7 @@ class TargetCompany:
     priority: int
 
 
-SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"}
+SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee"}
 
 
 def public_board_from_url(value: str) -> tuple[str, str]:
@@ -52,9 +52,11 @@ def public_board_from_url(value: str) -> tuple[str, str]:
         ats, token = "workable", parts[0]
     elif host == "www.workable.com" and parts[:3] == ["api", "accounts"] and len(parts) >= 3:
         ats, token = "workable", parts[2]
+    elif host.endswith(".recruitee.com") and host.count(".") >= 2:
+        ats, token = "recruitee", host.split(".", 1)[0]
     if ats and re.fullmatch(r"[A-Za-z0-9._-]{2,180}", token):
         return ats, token
-    raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters or Workable careers URL.")
+    raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters, Workable or Recruitee careers URL.")
 
 
 def add_public_board_url(state_root: Path, starter_path: Path, company: str, public_url: str) -> tuple[dict[str, str], bool]:
@@ -75,7 +77,7 @@ def add_public_board(state_root: Path, starter_path: Path, company: str, ats: st
     if not clean_company or len(clean_company) > 160:
         raise ValueError("Enter the employer name.")
     if clean_ats not in SUPPORTED_PUBLIC_ATS:
-        raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters or Workable.")
+        raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters, Workable or Recruitee.")
     if not re.fullmatch(r"[A-Za-z0-9._-]{2,180}", clean_token):
         raise ValueError("Enter the public board token from the employer careers URL.")
 

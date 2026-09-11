@@ -38,6 +38,7 @@ SOURCE_CONTRACTS = (
     SourceContract("ashby", "Ashby", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("smartrecruiters", "SmartRecruiters", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("workable", "Workable", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
+    SourceContract("recruitee", "Recruitee", "transitional public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "prepare and open listing"),
     SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "prepare and open listing"),
     SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "prepare and open listing"),

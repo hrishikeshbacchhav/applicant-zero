@@ -105,6 +105,11 @@ def _configured_refresh_limit(project_root: Path, max_queries: int | None = None
     return max(0, int(raw.get("max_queries_per_refresh", len(_full_campaign_query_plan(project_root)))))
 
 
+def max_pages_per_query(project_root: Path) -> int:
+    """Return the explicit, bounded page allowance for one broad-feed query."""
+    return max(1, min(2, int(_load_raw(project_root).get("max_pages_per_query", 1))))
+
+
 def _cursor(project_root: Path) -> dict[str, int | str]:
     path = query_cursor_path(project_root)
     today = date.today().isoformat()
@@ -121,10 +126,16 @@ def discovery_query_status(project_root: Path, max_queries: int | None = None) -
     """Preview the next bounded slice without consuming any API calls."""
     full_plan = _full_campaign_query_plan(project_root)
     raw = _load_raw(project_root)
-    daily_limit = max(0, int(raw.get("max_queries_per_day", 60)))
+    # The quota is API *requests*, rather than search terms. A full first
+    # result page can use a second request, so reserve that possibility before
+    # selecting the next group of campaign queries.
+    daily_limit = max(0, int(raw.get("max_api_calls_per_day", raw.get("max_queries_per_day", 60))))
     cursor = _cursor(project_root)
     remaining_today = max(0, daily_limit - int(cursor["calls_today"]))
-    planned_count = min(_configured_refresh_limit(project_root, max_queries), remaining_today)
+    planned_count = min(
+        _configured_refresh_limit(project_root, max_queries),
+        remaining_today // max_pages_per_query(project_root),
+    )
     offset = int(cursor["offset"])
     planned = [full_plan[(offset + index) % len(full_plan)] for index in range(planned_count)] if full_plan else []
     return {
@@ -134,15 +145,22 @@ def discovery_query_status(project_root: Path, max_queries: int | None = None) -
         "daily_limit": daily_limit,
         "calls_today": int(cursor["calls_today"]),
         "remaining_today": remaining_today,
+        "max_pages_per_query": max_pages_per_query(project_root),
+        "planned_api_calls": planned_count * max_pages_per_query(project_root),
     }
 
 
-def consume_discovery_query_plan(project_root: Path, attempted_queries: int) -> None:
-    """Advance local rotation and account for attempted broad-feed requests."""
+def consume_discovery_query_plan(project_root: Path, attempted_queries: int, api_calls: int | None = None) -> None:
+    """Advance the query rotation and account for actual broad-feed requests.
+
+    A saturated first page can produce two API requests for one search term.
+    Keep those counters distinct so paging cannot silently skip campaign terms.
+    """
     attempted = max(0, attempted_queries)
+    requests = attempted if api_calls is None else max(0, api_calls)
     cursor = _cursor(project_root)
     cursor["offset"] = int(cursor["offset"]) + attempted
-    cursor["calls_today"] = int(cursor["calls_today"]) + attempted
+    cursor["calls_today"] = int(cursor["calls_today"]) + requests
     path = query_cursor_path(project_root)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cursor, indent=2), encoding="utf-8")

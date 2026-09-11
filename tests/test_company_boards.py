@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import json
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _smartrecruiters_jobs, _workable_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _smartrecruiters_jobs, _workable_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -144,5 +144,23 @@ def test_workable_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{"company": "Example", "ats": "workable", "token": "example"}]), encoding="utf-8")
     with patch("applicant_zero.sources.company_boards._workable_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert reports[0].status == "checked"
+
+
+def test_recruitee_mapping_keeps_only_published_jobs():
+    payload = {"offers": [
+        {"id": "published", "title": "Data Analyst", "status": "published", "careers_url": "https://example.recruitee.com/o/data", "description": "SQL", "locations": [{"name": "Sydney"}]},
+        {"id": "draft", "title": "Draft role", "status": "draft"},
+    ]}
+    with patch("applicant_zero.sources.company_boards._get_json", return_value=payload):
+        jobs = _recruitee_jobs("Example", "example")
+    assert [(job.external_id, job.location) for job in jobs] == [("recruitee:example:published", "Sydney")]
+
+
+def test_recruitee_board_is_an_accepted_public_board_type(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([{ "company": "Example", "ats": "recruitee", "token": "example" }]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._recruitee_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"

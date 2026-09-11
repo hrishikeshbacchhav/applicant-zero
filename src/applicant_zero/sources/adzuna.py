@@ -1,10 +1,22 @@
 import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from ..scoring import Job
+
+
+@dataclass(frozen=True)
+class QueryFetchReport:
+    """Auditable result for a bounded broad-feed campaign query."""
+
+    query: str
+    location: str
+    requests: int
+    returned: int
+    error: str = ""
 
 
 def load_dotenv(project_root: Path) -> None:
@@ -90,3 +102,39 @@ def fetch_query_plan(
         except (OSError, RuntimeError, ValueError) as error:
             errors.append(f"{query} ({where}): {error}")
     return list(jobs_by_id.values()), errors
+
+
+def fetch_query_plan_paged(
+    project_root: Path,
+    query_plan: list[tuple[str, str]],
+    *,
+    max_pages_per_query: int = 1,
+) -> tuple[list[Job], list[QueryFetchReport]]:
+    """Fetch a small campaign slice, paging only when a page is full.
+
+    Adzuna returns up to fifty listings per request. A full first page is the
+    useful signal that a second page may contain distinct roles; sparse pages
+    do not spend another request. The caller owns the overall daily request
+    budget, so this function has no hidden retries or unbounded pagination.
+    """
+    pages = max(1, min(int(max_pages_per_query), 2))
+    jobs_by_id: dict[str, Job] = {}
+    reports: list[QueryFetchReport] = []
+    for query, where in query_plan:
+        request_count = returned = 0
+        error = ""
+        for page in range(1, pages + 1):
+            try:
+                result = fetch_jobs(project_root, query, where, page)
+                request_count += 1
+                returned += len(result)
+                for job in result:
+                    jobs_by_id[job.external_id] = job
+            except (OSError, RuntimeError, ValueError) as caught:
+                request_count += 1
+                error = str(caught)
+                break
+            if len(result) < 50:
+                break
+        reports.append(QueryFetchReport(query, where, request_count, returned, error))
+    return list(jobs_by_id.values()), reports

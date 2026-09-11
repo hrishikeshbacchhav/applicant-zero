@@ -11,8 +11,8 @@ from .application_answers import ensure_answer_library
 from .candidate_facts import ensure_fact_library
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
-from .sources.adzuna import fetch_jobs, fetch_query_plan
-from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, next_discovery_query_plan
+from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
+from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .storage import (
     deactivate_stale_broad_feed_jobs,
@@ -62,8 +62,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     board_jobs, reports = fetch_company_boards_with_report(_board_path(state))
     query_status = discovery_query_status(state, max_queries)
     query_plan = next_discovery_query_plan(state, max_queries)
-    query_jobs, query_errors = fetch_query_plan(state, query_plan)
-    consume_discovery_query_plan(state, len(query_plan))
+    query_jobs, query_reports = fetch_query_plan_paged(
+        state, query_plan, max_pages_per_query=max_pages_per_query(state)
+    )
+    request_count = sum(report.requests for report in query_reports)
+    query_errors = [report for report in query_reports if report.error]
+    consume_discovery_query_plan(state, len(query_plan), request_count)
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_board_checks(database, reports)
@@ -76,7 +80,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     stale_broad = deactivate_stale_broad_feed_jobs(database)
     pruned = prune_inactive_discovery_records(database)
     skipped = len(jobs) - len(visible)
-    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries run; {query_status['remaining_today']} broad-feed calls remained before this run; {skipped} hard skips not stored"
+    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); {query_status['remaining_today']} broad-feed calls remained before this run; {skipped} hard skips not stored"
     if stale_broad:
         detail += f"; {stale_broad} old broad-feed listing(s) marked inactive"
     if pruned:
