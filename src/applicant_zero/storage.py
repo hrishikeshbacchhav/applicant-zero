@@ -337,6 +337,21 @@ def list_inventory_records(connection: sqlite3.Connection, limit: int = 100_000)
     return [dict(row) for row in rows]
 
 
+def list_inventory_employers(connection: sqlite3.Connection, limit: int = 200) -> list[dict]:
+    """Show the employer universe actually observed through discovery."""
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """SELECT company, COUNT(*) AS source_records,
+                  COUNT(DISTINCT canonical_key) AS distinct_listings,
+                  GROUP_CONCAT(DISTINCT source) AS sources, MAX(last_seen_at) AS last_seen_at
+           FROM discovery_inventory WHERE is_active = 1
+           GROUP BY lower(company), company
+           ORDER BY distinct_listings DESC, last_seen_at DESC, company LIMIT ?""",
+        (max(1, limit),),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
 def _duplicate_key(row: dict) -> str:
     values = (row["company"], row["title"], row["location"])
     return "|".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip() for value in values)

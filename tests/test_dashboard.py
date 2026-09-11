@@ -53,6 +53,7 @@ def test_discovery_page_shows_latest_source_contribution(tmp_path):
     page = build_discovery_page(tmp_path / "jobs.sqlite3")
     assert "Latest source contribution" in page
     assert "source records in inventory" in page
+    assert "Employers observed in the discovery index" in page
     assert "Adzuna" in page
 
 
