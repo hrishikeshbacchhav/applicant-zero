@@ -29,7 +29,8 @@ from .resume_evidence import ResumeEvidenceError, create_resume_evidence_invento
 from .preparation_bundle import create_preparation_bundle
 from .operations import operational_queue, prepare_eligible_roles
 from .discovery_health import discovery_log_status
-from .campaigns import campaign_query_allocation, discovery_query_status, load_campaigns, save_enabled_campaigns
+from .campaigns import active_lanes, campaign_query_allocation, discovery_query_status, load_campaigns, save_enabled_campaigns
+from .inventory_rescoring import rescore_active_inventory
 from .job_intelligence import inspect_job
 from .sources.company_boards import fetch_public_board
 from .gmail_sync import GmailSetupError, gmail_setup_status, sync_gmail
@@ -294,7 +295,7 @@ def build_guide_page() -> str:
     return f"""<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Applicant Zero - How to use this</title><style>:root{{--navy:#123154;--border:#dbe5f1;--muted:#64748b;--canvas:#f4f7fb}}*{{box-sizing:border-box}}body{{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--canvas);color:#1e293b;margin:0}}main{{max-width:940px;margin:0 auto;padding:38px 24px}}a{{color:#1468b3;font-weight:700}}h1,h2{{color:var(--navy)}}h1{{font-size:32px;margin-bottom:8px}}.lead{{color:var(--muted);line-height:1.55;font-size:17px}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}}article{{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 4px 16px rgba(15,48,82,.04)}}article h2{{font-size:18px;margin:0 0 8px}}article p{{margin:0;line-height:1.55}}.note{{margin-top:18px;padding:17px 20px;background:#163b67;color:#fff;border-radius:12px;line-height:1.55}}@media(max-width:640px){{.grid{{grid-template-columns:1fr}}}}</style></head><body><main><p><a href='/'>← Return to review queue</a></p><h1>How to use Applicant Zero</h1><p class='lead'>This is your local job-search workspace. It discovers permitted listings, organises your evidence and helps you prepare each application. You keep control of every employer-facing decision.</p><section class='grid'>{cards}</section><section class='note'><strong>What stays with you:</strong> passwords, account creation, CAPTCHA, verification codes, protected eligibility or identity answers, unknown questions, and the final employer submission.</section></main></body></html>"""
 
 
-def build_campaigns_page(database_path: Path) -> str:
+def build_campaigns_page(database_path: Path, rescore_message: str = "") -> str:
     """Allow the candidate to turn broad role groups on or off before refresh."""
     project_root = database_path.parent.parent
     campaigns = load_campaigns(project_root)
@@ -307,7 +308,8 @@ def build_campaigns_page(database_path: Path) -> str:
         f"<article class='section-card'><label><input type='checkbox' name='campaign' value='{html.escape(campaign.identifier, quote=True)}'{' checked' if campaign.active else ''}> <strong>{html.escape(campaign.label)}</strong></label><p>{html.escape(campaign.description)}</p><small>Role lanes: {html.escape(', '.join(lane.replace('_', ' ') for lane in campaign.role_lanes))}</small><p class='queries'>Search terms: {html.escape(' · '.join(campaign.queries))}</p><p class='allocation'>{'Next refresh: ' + str(next_allocation.get(campaign.identifier, 0)) + ' broad-feed search' + ('es' if next_allocation.get(campaign.identifier, 0) != 1 else '') + ' · standard cycle allocation: ' + str(allocation.get(campaign.identifier, 0)) if campaign.active else 'Paused: no broad-feed calls reserved.'}</p></article>"
         for campaign in campaigns
     )
-    content = f"""<p class='notice'>Sydney and NSW are searched separately. Each refresh shares its broad-feed calls across active campaigns and rotates through the full active vocabulary instead of repeatedly searching the first few phrases. This computer is configured for up to {query_status['daily_limit']} broad-feed calls per day; {query_status['remaining_today']} remain today, and the next slice contains {len(query_status['planned'])} calls.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
+    success = f"<p class='success'>{html.escape(rescore_message)}</p>" if rescore_message else ""
+    content = f"""{success}<p class='notice'>Sydney and NSW are searched separately. Each refresh shares its broad-feed calls across active campaigns and rotates through the full active vocabulary instead of repeatedly searching the first few phrases. This computer is configured for up to {query_status['daily_limit']} broad-feed calls per day; {query_status['remaining_today']} remain today, and the next slice contains {len(query_status['planned'])} calls.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
     return _workspace_page(
         "campaigns", "Discovery control", "Search campaigns",
         "Choose the role groups included in future discovery runs. Your choice stays private on this computer.", content,
@@ -629,7 +631,8 @@ def serve(database_path: Path, port: int = 8765) -> None:
             elif parsed.path == "/actions":
                 content = build_actions_page(database_path).encode("utf-8")
             elif parsed.path == "/campaigns":
-                content = build_campaigns_page(database_path).encode("utf-8")
+                message = parse_qs(parsed.query).get("rescored", [""])[0]
+                content = build_campaigns_page(database_path, message).encode("utf-8")
             elif parsed.path == "/operations":
                 prepared_count = int(parse_qs(parsed.query).get("prepared", ["0"])[0] or "0")
                 content = build_operations_page(database_path, prepared_count).encode("utf-8")
@@ -706,8 +709,10 @@ def serve(database_path: Path, port: int = 8765) -> None:
                 return
             if self.path == "/campaigns":
                 save_enabled_campaigns(database_path.parent.parent, set(values.get("campaign", [])))
+                with sqlite3.connect(database_path) as connection:
+                    result = rescore_active_inventory(connection, active_lanes(database_path.parent.parent))
                 self.send_response(303)
-                self.send_header("Location", "/campaigns")
+                self.send_header("Location", "/campaigns?" + urlencode({"rescored": f"Re-scored {result['rescored']} current discovery records locally; {result['relevant']} now match your selected lanes."}))
                 self.end_headers()
                 return
             if self.path == "/resume-inventory":
