@@ -21,15 +21,24 @@ class QueryFetchReport:
 
 
 def load_dotenv(project_root: Path) -> None:
-    """Load a local .env file without adding a third-party dependency."""
-    env_file = project_root / ".env"
-    if not env_file.exists():
-        return
-    for line in env_file.read_text(encoding="utf-8").splitlines():
-        if "=" not in line or line.lstrip().startswith("#"):
+    """Load local credentials from runtime state or the checkout root.
+
+    Scheduled refreshes receive the private runtime directory, while manual
+    commands often receive the checkout root. Supporting both avoids a silent
+    loss of the broad feed after the runtime-state migration.
+    """
+    roots = (project_root, Path(__file__).resolve().parents[3])
+    seen: set[Path] = set()
+    for root in roots:
+        env_file = root / ".env"
+        if env_file in seen or not env_file.exists():
             continue
-        key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip())
+        seen.add(env_file)
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if "=" not in line or line.lstrip().startswith("#"):
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip())
 
 
 def build_search_url(app_id: str, app_key: str, query: str, where: str, page: int = 1) -> str:

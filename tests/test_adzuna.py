@@ -1,12 +1,20 @@
+import os
 from unittest.mock import patch
 
-from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch, fetch_query_plan, fetch_query_plan_paged
+from applicant_zero.sources.adzuna import _job_from_result, build_search_url, fetch_query_batch, fetch_query_plan, fetch_query_plan_paged, load_dotenv
 
 
 def test_search_url_targets_australia():
     url = build_search_url("id", "key", "data analyst", "Sydney")
     assert "/jobs/au/search/1" in url
     assert "what=data+analyst" in url
+
+
+def test_runtime_dotenv_is_loaded_before_checkout_fallback(tmp_path, monkeypatch):
+    (tmp_path / ".env").write_text("ADZUNA_APP_ID=runtime-id\n", encoding="utf-8")
+    monkeypatch.delenv("ADZUNA_APP_ID", raising=False)
+    load_dotenv(tmp_path)
+    assert os.environ["ADZUNA_APP_ID"] == "runtime-id"
 
 
 def test_adzuna_result_maps_to_job():
