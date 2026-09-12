@@ -1,0 +1,62 @@
+[
+  {
+    "provider": "Adzuna Australia",
+    "status": "research"
+  },
+  {
+    "provider": "APS Jobs",
+    "status": "research"
+  },
+  {
+    "provider": "Careerjet Australia",
+    "status": "research"
+  },
+  {
+    "provider": "CareerOne",
+    "status": "research"
+  },
+  {
+    "provider": "EthicalJobs",
+    "status": "research"
+  },
+  {
+    "provider": "GradConnection",
+    "status": "research"
+  },
+  {
+    "provider": "Hatch",
+    "status": "research"
+  },
+  {
+    "provider": "I Work for NSW",
+    "status": "research"
+  },
+  {
+    "provider": "Indeed Australia",
+    "status": "research"
+  },
+  {
+    "provider": "Jora",
+    "status": "research"
+  },
+  {
+    "provider": "LinkedIn Jobs",
+    "status": "research"
+  },
+  {
+    "provider": "Prosple",
+    "status": "research"
+  },
+  {
+    "provider": "Wellfound",
+    "status": "research"
+  },
+  {
+    "provider": "Workforce Australia",
+    "status": "research"
+  },
+  {
+    "provider": "Y Combinator Jobs",
+    "status": "research"
+  }
+]

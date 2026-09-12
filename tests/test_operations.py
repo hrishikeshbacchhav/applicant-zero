@@ -47,3 +47,12 @@ def test_priority_makes_form_effort_and_evidence_gaps_visible():
     hard = role_priority({"score": 70, "recommendation": "Apply", "url": "https://example.wd3.myworkdayjobs.com/job/1", "missing_requirements": "[\"clearance\"]"})
     assert easy.effort == "low"
     assert easy.score > hard.score
+
+
+def test_target_employer_priority_is_used_when_ordering_the_preparation_queue(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    target = Job("target", "Data Analyst", "Canva", "Sydney", "test", "https://jobs.lever.co/example/1", "SQL and Power BI")
+    other = Job("other", "Data Analyst", "Unlisted Employer", "Sydney", "test", "https://jobs.lever.co/example/2", "SQL and Power BI")
+    save_match(database, target, score_job(target, RISHI_PROFILE))
+    save_match(database, other, score_job(other, RISHI_PROFILE))
+    assert operational_queue(tmp_path / "jobs.sqlite3")[0].company == "Canva"

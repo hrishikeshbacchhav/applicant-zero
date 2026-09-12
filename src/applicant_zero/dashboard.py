@@ -406,6 +406,7 @@ def build_discovery_page(database_path: Path, board_message: str = "") -> str:
     observed_employers_section = f"""<section class='section-card'><h2>Employers observed in the discovery index</h2><p class='muted'>This map grows automatically from actual collected listings. It is separate from the target-employer research list, so it can represent hundreds of employers once broad discovery sources are connected.</p><div class='table-wrap'><table><thead><tr><th>Employer</th><th>Distinct listings</th><th>Source records</th><th>Sources</th><th>Last seen</th></tr></thead><tbody>{observed_employer_table}</tbody></table></div></section>"""
     automated = "".join(f"<li>{html.escape(item)}</li>" for item in overview["automated_sources"])
     manual = "".join(f"<li>{html.escape(item)}</li>" for item in overview["manual_sources"])
+    recruitment_targets = " · ".join(html.escape(item) for item in overview["recruitment_source_targets"])
     covered = " · ".join(html.escape(item) for item in overview["configured"]) or "None yet"
     waiting = " · ".join(html.escape(item) for item in overview["research_needed"][:20])
     more = max(0, len(overview["research_needed"]) - 20)

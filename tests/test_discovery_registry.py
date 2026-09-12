@@ -2,7 +2,7 @@ import json
 import pytest
 from pathlib import Path
 
-from applicant_zero.discovery_registry import add_public_board, add_public_board_url, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_sources, load_targets, public_board_from_url
+from applicant_zero.discovery_registry import add_public_board, add_public_board_url, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_recruitment_source_targets, load_sources, load_targets, public_board_from_url
 from applicant_zero.discovery_priority import prioritise_targets
 
 
@@ -38,11 +38,18 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     )
     assert overview["target_count"] >= 1_500
     assert overview["sectors"] >= 20
+    assert len(overview["recruitment_source_targets"]) == 15
     assert "Lever career boards" in overview["automated_sources"]
     assert overview["configured_count"] >= 6
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18
     assert {"Omni", "Lime", "Qualtrics"} <= {board["company"] for board in boards}
+
+
+def test_recruitment_provider_targets_are_kept_separate_from_employer_targets():
+    providers = load_recruitment_source_targets(ROOT / "data" / "target_companies.starter.json")
+    assert "Workforce Australia" in providers
+    assert len(providers) == 15
 
 
 def test_employer_coverage_map_keeps_priority_sector_and_route():

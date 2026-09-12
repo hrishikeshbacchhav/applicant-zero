@@ -141,6 +141,28 @@ def load_targets(path: Path, expansion_path: Path | None = None) -> list[TargetC
     return sorted(unique.values(), key=lambda item: (item.priority, item.company))
 
 
+def target_priority_map(path: Path) -> dict[str, int]:
+    """Build an exact employer-priority lookup for the action queue.
+
+    It changes only the order of already relevant listings. A target-employer
+    entry never turns an unrelated role into a match.
+    """
+    return {target.company.casefold(): target.priority for target in load_targets(path)}
+
+
+def load_recruitment_source_targets(path: Path) -> list[str]:
+    """Load provider leads separately from employer targets.
+
+    They are research candidates only until a provider offers a permitted,
+    documented feed or publishes a verifiable public employer board.
+    """
+    source_path = path.with_name("recruitment_source_targets.json")
+    if not source_path.exists():
+        return []
+    return sorted({str(row.get("provider", "")).strip() for row in _load(source_path)
+                   if isinstance(row, dict) and str(row.get("provider", "")).strip()})
+
+
 def board_coverage(targets: list[TargetCompany], board_path: Path) -> dict[str, list[str]]:
     """Show which target companies have a verified public ATS board configured."""
     boards = _load(board_path)
@@ -198,6 +220,7 @@ def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path)
         "configured": coverage["configured"],
         "research_needed": coverage["research_needed"],
         "sectors": len({target.sector for target in targets}),
+        "recruitment_source_targets": load_recruitment_source_targets(targets_path),
     }
 
 
