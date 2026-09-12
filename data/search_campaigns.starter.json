@@ -36,7 +36,17 @@
         "data steward",
         "data insights specialist",
         "decision support analyst",
-        "reporting specialist"
+        "reporting specialist",
+        "analytics consultant",
+        "data management analyst",
+        "master data analyst",
+        "CRM analyst",
+        "customer insights analyst",
+        "performance analyst",
+        "workforce analyst",
+        "product analyst",
+        "finance analyst",
+        "data migration analyst"
       ],
       "active": true
     },
@@ -60,7 +70,14 @@
         "end user support analyst",
         "service delivery analyst",
         "IT customer support",
-        "level 1 support analyst"
+        "level 1 support analyst",
+        "support engineer",
+        "technical support officer",
+        "IT support technician",
+        "ICT service desk",
+        "service delivery coordinator",
+        "IT operations officer",
+        "systems support analyst"
       ],
       "active": true
     },
@@ -85,7 +102,13 @@
         "cloud operations analyst",
         "graduate cyber security",
         "junior IT analyst",
-        "IT coordinator"
+        "IT coordinator",
+        "junior network engineer",
+        "cyber security support analyst",
+        "graduate software tester",
+        "technology implementation analyst",
+        "IT project support officer",
+        "junior systems engineer"
       ],
       "active": false
     },
@@ -110,7 +133,13 @@
         "administration clerk",
         "administration support officer",
         "operations coordinator",
-        "customer operations administrator"
+        "customer operations administrator",
+        "business support officer",
+        "administrative coordinator",
+        "office administrator",
+        "program administrator",
+        "clerical officer",
+        "reception and administration"
       ],
       "active": false
     }

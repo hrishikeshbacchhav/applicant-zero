@@ -1,7 +1,8 @@
 from applicant_zero.discovery_measurements import measure_sources
 from applicant_zero.provider_trials import assess_trial_sample
 from applicant_zero.scoring import Job
-from applicant_zero.storage import initialise_database, latest_source_measurements, record_source_measurements
+from applicant_zero.sources.adzuna import QueryFetchReport
+from applicant_zero.storage import initialise_database, latest_source_measurements, recent_query_measurements, record_query_measurements, record_source_measurements
 
 
 def job(identifier, source, company="Example", title="Analyst", location="Sydney"):
@@ -24,6 +25,15 @@ def test_latest_source_measurements_are_persisted(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     record_source_measurements(database, [{"source": "Adzuna", "collected_count": 3, "relevant_count": 2, "distinct_count": 2, "repeated_count": 1, "request_count": 2}])
     assert latest_source_measurements(database)[0]["relevant_count"] == 2
+
+
+def test_query_measurements_keep_returned_and_relevant_counts_distinct(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    report = QueryFetchReport("data analyst", "Sydney", 2, 51, external_ids=("a", "b"))
+    record_query_measurements(database, [report], {"a"})
+    row = recent_query_measurements(database)[0]
+    assert row["returned_count"] == 51
+    assert row["relevant_count"] == 1
 
 
 def test_provider_trial_assessment_reports_existing_overlap():

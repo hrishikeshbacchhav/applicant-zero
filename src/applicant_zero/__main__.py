@@ -23,6 +23,7 @@ from .storage import (
     prune_inactive_discovery_records,
     record_refresh_run,
     record_source_measurements,
+    record_query_measurements,
     save_discovery_inventory,
     save_board_checks,
     save_match,
@@ -101,6 +102,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     save_discovery_inventory(database, jobs)
     save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state), persist_skips=False)
+    record_query_measurements(database, query_reports, {job.external_id for job, _ in visible})
     for report in reports:
         if report.status == "checked":
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])

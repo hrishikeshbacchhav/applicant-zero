@@ -17,6 +17,7 @@ class QueryFetchReport:
     requests: int
     returned: int
     error: str = ""
+    external_ids: tuple[str, ...] = ()
 
 
 def load_dotenv(project_root: Path) -> None:
@@ -122,6 +123,7 @@ def fetch_query_plan_paged(
     reports: list[QueryFetchReport] = []
     for query, where in query_plan:
         request_count = returned = 0
+        query_ids: set[str] = set()
         error = ""
         for page in range(1, pages + 1):
             try:
@@ -130,11 +132,15 @@ def fetch_query_plan_paged(
                 returned += len(result)
                 for job in result:
                     jobs_by_id[job.external_id] = job
+                    query_ids.add(job.external_id)
             except (OSError, RuntimeError, ValueError) as caught:
                 request_count += 1
                 error = str(caught)
                 break
             if len(result) < 50:
                 break
-        reports.append(QueryFetchReport(query, where, request_count, returned, error))
+        reports.append(QueryFetchReport(
+            query, where, request_count, returned, error,
+            tuple(sorted(query_ids)),
+        ))
     return list(jobs_by_id.values()), reports

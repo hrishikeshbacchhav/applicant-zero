@@ -178,6 +178,20 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         """
+        CREATE TABLE IF NOT EXISTS query_measurements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query TEXT NOT NULL,
+            location TEXT NOT NULL,
+            request_count INTEGER NOT NULL DEFAULT 0,
+            returned_count INTEGER NOT NULL DEFAULT 0,
+            relevant_count INTEGER NOT NULL DEFAULT 0,
+            error TEXT NOT NULL DEFAULT '',
+            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
         CREATE TABLE IF NOT EXISTS discovery_inventory (
             external_id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
@@ -257,6 +271,9 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     )
     connection.execute(
         "CREATE INDEX IF NOT EXISTS idx_discovery_inventory_canonical ON discovery_inventory(canonical_key)"
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_query_measurements_recent ON query_measurements(completed_at DESC)"
     )
     refresh_columns = {row[1] for row in connection.execute("PRAGMA table_info(refresh_runs)")}
     if "detail" not in refresh_columns:
@@ -603,6 +620,42 @@ def latest_source_measurements(connection: sqlite3.Connection) -> list[dict]:
            FROM source_measurements WHERE batch_id = ?
            ORDER BY relevant_count DESC, distinct_count DESC, source""",
         (latest["batch_id"],),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def record_query_measurements(connection: sqlite3.Connection, reports: list[object], visible_external_ids: set[str]) -> None:
+    """Record individual broad-feed query yield for future coverage decisions.
+
+    A query that returns many listings is not automatically good: the relevant
+    count comes from the same truthful scoring rule that feeds the review queue.
+    """
+    for report in reports:
+        identifiers = set(getattr(report, "external_ids", ()) or ())
+        connection.execute(
+            """
+            INSERT INTO query_measurements (query, location, request_count, returned_count, relevant_count, error)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                str(getattr(report, "query", ""))[:160],
+                str(getattr(report, "location", ""))[:120],
+                int(getattr(report, "requests", 0)),
+                int(getattr(report, "returned", 0)),
+                len(identifiers & visible_external_ids),
+                str(getattr(report, "error", ""))[:600],
+            ),
+        )
+    connection.commit()
+
+
+def recent_query_measurements(connection: sqlite3.Connection, limit: int = 24) -> list[dict]:
+    """Return the latest observed query coverage, without implying a quota."""
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """SELECT query, location, request_count, returned_count, relevant_count, error, completed_at
+           FROM query_measurements ORDER BY id DESC LIMIT ?""",
+        (max(1, limit),),
     ).fetchall()
     return [dict(row) for row in rows]
 

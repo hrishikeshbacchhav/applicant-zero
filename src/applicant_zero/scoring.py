@@ -63,6 +63,18 @@ ENTRY_LEVEL_TERMS = ("graduate", "junior", "entry level", "entry-level", "early 
 FULL_TIME_ONLY_LANES = {"administration"}
 NON_FULL_TIME_PATTERNS = (r"\bpart[ -]?time\b", r"\bcasual\b", r"\bjob[ -]?share\b")
 
+# Broad feeds frequently return the suburb rather than "Sydney, NSW".  These
+# are employment centres in Greater Sydney, not a claim that every NSW role is
+# local.  Unknown NSW-only records remain visible for review; named places
+# outside this list remain out of scope.
+GREATER_SYDNEY_LOCATION_TERMS = (
+    "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
+    "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
+    "ryde", "rhodes", "homebush", "sydney olympic park", "strathfield", "burwood",
+    "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
+    "bella vista", "milsons point", "circular quay", "botany", "waterloo",
+)
+
 # These phrases signal a requirement that is substantially more specific than a
 # role title.  We do not infer that Rishi has led initiatives or worked in a
 # regulated care setting merely because the title is an otherwise suitable
@@ -121,7 +133,9 @@ def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None
         family = lane.resume_family
     reasons: list[str] = []
 
-    exact_location = any(place in location for place in profile.locations)
+    named_sydney_location = "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
+    remote_australia = "remote" in location and not any(place in location for place in ("melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia"))
+    exact_location = named_sydney_location or remote_australia
     nsw_only = "nsw" in location or "new south wales" in location
     if not exact_location and not nsw_only:
         return MatchResult("Skip", 0, None, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
@@ -211,6 +225,10 @@ def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None
         reasons.append("Role family and location match; review the detailed requirements.")
     if not exact_location and nsw_only:
         reasons.insert(0, "The listing is labelled NSW rather than a specific Sydney location; confirm the actual workplace before applying.")
+    elif any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS):
+        reasons.insert(0, "The listing is located in Greater Sydney and is included in the Sydney search area.")
+    elif remote_australia:
+        reasons.insert(0, "The listing is marked remote or location-flexible; confirm the Australian work-location arrangement before applying.")
 
     recommendation = "Strong apply" if score >= 78 else "Apply" if score >= 62 else "Review"
     if not matched:

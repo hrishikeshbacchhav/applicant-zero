@@ -90,6 +90,23 @@ def test_nsw_only_location_is_held_for_location_review_not_discarded():
     assert "labelled NSW" in " ".join(result.reasons)
 
 
+def test_greater_sydney_suburb_is_not_lost_when_provider_omits_nsw():
+    result = score_job(Job("parra", "Data Analyst", "Example", "Parramatta", "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "Greater Sydney" in " ".join(result.reasons)
+
+
+def test_explicit_interstate_hybrid_role_is_not_treated_as_sydney():
+    result = score_job(Job("hybrid-melb", "Data Analyst", "Example", "Hybrid, Melbourne", "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
+    assert result.recommendation == "Skip"
+
+
+def test_remote_australia_is_kept_for_location_arrangement_review():
+    result = score_job(Job("remote-au", "Data Analyst", "Example", "Remote, Australia", "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "location-flexible" in " ".join(result.reasons)
+
+
 def test_inactive_campaign_lane_does_not_clutter_the_active_queue():
     job = Job("admin", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid", "Administration and customer service")
     result = score_job(job, RISHI_PROFILE, {"data_bi"})
