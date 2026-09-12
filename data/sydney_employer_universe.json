@@ -1,0 +1,7552 @@
+[
+  {
+    "company": "Afterpay",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Airwallex",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "American Express Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "AMP",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "ANZ",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Argo Investments",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "ASX Limited",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Athena Home Loans",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Australian Ethical Investment",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Australian Foundation Investment Company",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Australian Military Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "AustralianSuper",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Automic Group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Aware Super",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bank First",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bank of America Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bank of Queensland",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "BankVic",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bendigo and Adelaide Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bendigo Community Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Betashares",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Beyond Bank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "BlackRock Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Block",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Bloomberg Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "BNP Paribas Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Brighte",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Canstar",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Cbus Super",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Citibank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Colonial First State",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Commonwealth Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Compare Club",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Computershare Corporate Trust",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Constantinople",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Cuscal",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Defence Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Deutsche Bank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Equity Trustees",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Fidelity International Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "FrankieOne",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Goldman Sachs Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Great Southern Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Heritage Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "HESTA",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Hostplus",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "HSBC Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "HUB24",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "humm group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "IMB Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "ING Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Insignia Financial",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "JPMorgan Chase Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Judo Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "La Trobe Financial",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Latitude Financial Services",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Link Group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Lumi Finance",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Macquarie Group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Macrovue",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Magellan Financial Group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Mastercard",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Mercer Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Mizuho Bank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "MoneyMe",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Moody's Analytics Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Morgan Stanley Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Morningstar Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "MUFG Bank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "National Australia Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Netwealth",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Nomura Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "OFX",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "P&N Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "PayPal Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Pearler",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Pendal Group",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Pepper Money",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Perpetual",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Pinnacle Investment Management",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Platinum Asset Management",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Plenti",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Police Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Praemium",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Prospa",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Rabobank Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Refinitiv Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Regional Australia Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "REST Super",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Revolut Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "S&P Global Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Schroders Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "SelfWealth",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Shift",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "SMBC Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Societe Generale Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "SocietyOne",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Stake",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "State Street Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Stripe",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Suncorp Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Superhero",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Teachers Mutual Bank",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Tyro Payments",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "UBS Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "UniSuper",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "VanEck Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Vanguard Australia",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Visa",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Washington H. Soul Pattinson",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Westpac",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Wise",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Wisr",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "Zip Co",
+    "sector": "Banking & Finance",
+    "priority": 3
+  },
+  {
+    "company": "BHP Group",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Capricorn Metals",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Dyno Nobel",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Evolution Mining",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Fortescue",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Greatland Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Incitec Pivot",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Lynas Rare Earths",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Mineral Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "MMG",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Newcrest Mining",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Northern Star Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Orica",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "OZ Minerals",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Perseus Mining",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Pilbara Minerals",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Ramelius Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Regis Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Sandfire Resources",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Sims",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "South32",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Vault Minerals",
+    "sector": "Materials & Mining",
+    "priority": 3
+  },
+  {
+    "company": "Abbotsleigh",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Association of Independent Schools of NSW",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Australian Catholic University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Australian Council for Educational Research",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Australian National University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Australian Nuclear Science and Technology Organisation",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Barker College",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Bond University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Cambridge University Press & Assessment Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Catholic Schools NSW",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Charles Sturt University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Cranbrook School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "CSIRO",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Curtin University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Deakin University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Edith Cowan University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Flinders University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Garvan Institute of Medical Research",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Griffith University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "IDP Education",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Kaplan Business School Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Knox Grammar School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "La Trobe University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Macquarie University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "MLC School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Monash University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Murdoch University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Navitas",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "NESA",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Newington College",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "NSW Education Standards Authority",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Oxford University Press Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Pearson Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Pymble Ladies' College",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Queensland University of Technology",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Ravenswood School for Girls",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "RMIT University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Shore School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Southern Cross University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Study Group Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Swinburne University of Technology",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Catholic Schools",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Grammar School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "TAFE NSW",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "The King's School",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Torrens University Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Trinity Grammar School Sydney",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Adelaide",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Canberra",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Melbourne",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of New England",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Newcastle",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Notre Dame Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Queensland",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of South Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Sydney",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Tasmania",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Technology Sydney",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Western Australia",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "University of Wollongong",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "UNSW Sydney",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Victoria University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Western Sydney University",
+    "sector": "Education Research",
+    "priority": 3
+  },
+  {
+    "company": "Ampol",
+    "sector": "Energy",
+    "priority": 3
+  },
+  {
+    "company": "Santos",
+    "sector": "Energy",
+    "priority": 3
+  },
+  {
+    "company": "Whitehaven Coal",
+    "sector": "Energy",
+    "priority": 3
+  },
+  {
+    "company": "Yancoal Australia",
+    "sector": "Energy",
+    "priority": 3
+  },
+  {
+    "company": "Accolade Wines",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Asahi Beverages",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Asahi Beverages Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Baiada Poultry",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Bega Cheese",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Bidfood Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Brown-Forman Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Campari Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Campbell Arnott's",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Carlton & United Breweries",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Coca-Cola Europacific Partners",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Coca-Cola Europacific Partners Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Colgate-Palmolive Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Danone Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Diageo Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Endeavour Drinks Group",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Estée Lauder Companies Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Ferrero Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Fonterra Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Freedom Foods Group",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "General Mills Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "George Weston Foods",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Goodman Fielder",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Goodman Fielder Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Heineken Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "HelloFresh Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Henkel Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Inghams",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "JBS Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Kellanova Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Kellogg Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Kimberly-Clark Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Kraft Heinz Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "L'Oréal Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Lactalis Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Lindt & Sprüngli Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Lion",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Lion Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Marley Spoon Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Mars Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Mars Wrigley Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "McCain Foods Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Metcash Food",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Mondelez Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Nestlé Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Nestlé Purina Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Noumi",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "PepsiCo ANZ",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "PepsiCo Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Pernod Ricard Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Pernod Ricard Winemakers",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "PFD Food Services",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Primo Foods",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Procter & Gamble Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Reckitt Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Sanitarium Health Food Company",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Saputo Dairy Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Simplot Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Teys Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "The Arnott's Group",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Treasury Wine Estates",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Unilever ANZ",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Unilever Australia",
+    "sector": "FMCG Food Beverage",
+    "priority": 3
+  },
+  {
+    "company": "Art Gallery of NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Audit Office of NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Broadcasting Corporation",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Bureau of Statistics",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Communications and Media Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Competition and Consumer Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Criminal Intelligence Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Digital Health Agency",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Electoral Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Energy Market Operator",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Federal Police",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Financial Security Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Human Rights Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Institute of Criminology",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Institute of Health and Welfare",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Museum",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Prudential Regulation Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Public Service Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Renewable Energy Agency",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Securities and Investments Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Signals Directorate",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Submarine Agency",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Taxation Office",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian Transaction Reports and Analysis Centre",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Australian War Memorial",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Bureau of Meteorology",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Clean Energy Regulator",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Comcare",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Defence Housing Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Climate Change Energy the Environment and Water",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Defence Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Education Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Employment and Workplace Relations Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Finance Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Foreign Affairs and Trade Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Health and Aged Care Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Home Affairs Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Industry Science and Resources",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Infrastructure Transport Regional Development Communications and the Arts",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Social Services Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Department of Treasury Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Destination NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "eHealth NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Fire and Rescue NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Geoscience Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "HealthShare NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "icare NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Independent Commission Against Corruption NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Infrastructure NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "IP Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Landcom",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Legal Aid NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Museums of History NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "National Archives of Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "National Disability Insurance Agency",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "National Library of Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "National Museum of Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Biodiversity Conservation Trust",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Crown Lands",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Climate Change, Energy, the Environment and Water",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Communities and Justice",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Customer Service",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Education",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Planning, Housing and Infrastructure",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Department of Primary Industries and Regional Development",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Electoral Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Environment Protection Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Fair Trading",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Food Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Health",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Independent Pricing and Regulatory Tribunal",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Institute of Sport",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Local Land Services",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Ministry of Health",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW National Parks and Wildlife Service",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Office of Sport",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Ombudsman",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Police Force",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Ports Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Public Service Commission",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Reconstruction Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Resources",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Rural Fire Service",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW State Emergency Service",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW State Insurance Regulatory Authority",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Treasury",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "NSW Trustee and Guardian",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Port Authority of NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Premier's Department NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Reserve Bank of Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Revenue NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Safe Work Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Service NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Services Australia",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Special Broadcasting Service",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "State Library of NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Living Museums",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Opera House",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "The Cabinet Office NSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "WaterNSW",
+    "sector": "Government Public",
+    "priority": 3
+  },
+  {
+    "company": "Abbott Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "AbbVie Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Alfred Health",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Amgen Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Anglicare Sydney",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "AstraZeneca Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Australian Clinical Labs",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Australian Red Cross",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Australian Red Cross Lifeblood",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "B. Braun Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Baxter Healthcare Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Bayer Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Beckman Coulter Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "bioMérieux Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Boehringer Ingelheim Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Boston Scientific Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Bristol Myers Squibb Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Calvary Health Care",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Catholic Healthcare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Central Coast Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Cochlear",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Cochlear Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "CSL",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "CSL Behring",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Danaher Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Douglass Hanly Moir Pathology",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Edwards Lifesciences Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Eli Lilly Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Epworth HealthCare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Eucalyptus",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Fisher & Paykel Healthcare Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Fortrea Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Fresenius Kabi Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "GE HealthCare Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "GenesisCare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Gilead Sciences Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "GSK Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "HammondCare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Harrison.ai",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Healius",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Healthe Care",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Healthscope",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "ICON Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Icon Group",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Ipsen Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "IQVIA Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Johnson & Johnson Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Laverty Pathology",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Life Without Barriers",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Mater Health",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Medpace Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Medtronic Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Merck Sharp & Dohme Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Mission Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Monash Health",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "MSD Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Nepean Blue Mountains Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Northcott",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Northern Sydney Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Novartis Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Novo Nordisk Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Olympus Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Organon Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Parexel Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Pfizer Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Philips Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Pro Medicus",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Ramsay Health Care",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Ramsay Pharmacy",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "ResMed",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "ResMed Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Roche Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Roche Diagnostics Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sandoz Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sanofi Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Seqirus",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Servier Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Siemens Healthineers Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sigma Healthcare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Smith+Nephew Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sonder",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sonic Clinical Services",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sonic Healthcare",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "South Eastern Sydney Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "South Western Sydney Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "St John of God Health Care",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "St Vincent's Health Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "St Vincent's Hospital Sydney",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Stryker Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Syneos Health Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Takeda Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Telix Pharmaceuticals",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "The Salvation Army Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Thermo Fisher Scientific Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Uniting NSW.ACT",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Viatris Australia",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Western Sydney Local Health District",
+    "sector": "Healthcare Pharma",
+    "priority": 3
+  },
+  {
+    "company": "Accor",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "ALH Hotels",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "APT Travel Group",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Australian Turf Club",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Australian Venue Co",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Capella Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Carnival Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Club Med Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Contiki Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Crown Resorts",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Crown Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Endeavour Group",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "EVT Hotels & Resorts",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Flight Centre Travel Group",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Four Seasons Hotel Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "G Adventures Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Hilton",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Hilton Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Hyatt",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Hyatt Regency Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "IHG Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "IHG Hotels & Resorts",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "InterContinental Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Intrepid Travel",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Luna Park Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Mantra Hotels",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Marriott International",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Mercure Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Meriton Suites",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Merivale",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Minor Hotels Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Norwegian Cruise Line Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Novotel Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Oaks Hotels Resorts & Suites",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Park Hyatt Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Pullman Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Quest Apartment Hotels",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Royal Caribbean Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Scenic Group",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Shangri-La Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Sheraton Grand Sydney Hyde Park",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Sofitel Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Solotel",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Cricket & Sports Grounds",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Olympic Park Authority",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Taronga Conservation Society Australia",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "TFE Hotels",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "The Langham Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "The Star Entertainment Group",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "The Star Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "Venues NSW",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "W Sydney",
+    "sector": "Hospitality Leisure",
+    "priority": 3
+  },
+  {
+    "company": "3M Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "ABB Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Advanced Navigation",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Audi Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Austal",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "BAE Systems Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "BlueScope",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "BlueScope Steel",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "BMW Group Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Boeing Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Boeing Defence Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Bosch Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Breville Group",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Caterpillar Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "CSR Limited",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Cummins Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "DroneShield",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Eagers Automotive",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Emerson Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Epiroc Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Fletcher Building Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Ford Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "General Motors Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Hanwha Defence Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Hino Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Hitachi Construction Machinery Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Honeywell Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Hyundai Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Hyundai Motor Company Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "InfraBuild",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Isuzu Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Jacobs Defence Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "James Hardie Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "KBR Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Kia Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Komatsu Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Leidos Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Liberty Primary Steel Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Liebherr Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Lockheed Martin Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Mercedes-Benz Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Metso Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Naval Group Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Northrop Grumman Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "PACCAR Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Porsche Cars Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Propeller Aero",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Raytheon Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Rheinmetall Defence Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Rockwell Automation Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "RTX Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Saab Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Saint-Gobain Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Sandvik Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Scania Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Schneider Electric",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Schneider Electric Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "SGH",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Siemens Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Tesla Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Thales Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Toyota Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Toyota Motor Corporation Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Volkswagen Group Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Volvo Car Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Volvo Group Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Weir Minerals Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Yokogawa Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "Yokogawa Electric Australia",
+    "sector": "Industrial Defence Auto",
+    "priority": 3
+  },
+  {
+    "company": "AAMI",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "AIA Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "AIG Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Allianz Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Allianz Partners Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Aon Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Apia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Auto & General Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Berkshire Hathaway Insurance Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Berkshire Hathaway Specialty Insurance Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "BMS Group Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Budget Direct",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Bupa Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Challenger",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Chubb Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "ClearView Wealth",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Cover-More Group",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Gallagher Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "GIO",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Hannover Re Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "HCF",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "HDI Global Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Hollard Insurance Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Honan Insurance Group",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Howden Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "IAG",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Liberty Specialty Markets Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Lockton Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Marsh McLennan",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Medibank",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Mercer Marsh Benefits",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "MetLife",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "MetLife Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "MLC Life Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Munich Re Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "nib",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "nib Travel",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "NobleOak",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "NRMA Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "PSC Insurance Group",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Qantas Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "QBE Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "QBE Lenders Mortgage Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "RAA Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "RAC Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "RACQ Insurance",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Resolution Life Australasia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Steadfast Group",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Swiss Re Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "TAL",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "TAL Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "TAL Life",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Tokio Marine Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "WTW Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Youi",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Zurich Assure",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "Zurich Australia",
+    "sector": "Insurance & Wealth",
+    "priority": 3
+  },
+  {
+    "company": "AC3",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Accenture",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Accenture Song",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Accenture Technology",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Arinco",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "ASG Group",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Atturra",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Avanade Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Bilue",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "blueAPACHE",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Brennan IT",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Canon Business Services Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Capgemini",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Centorrino Technologies",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Cevo",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "CGI",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Cognizant",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Cognizant Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "CyberCX",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Data Army",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Data#3",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Datacom Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Deloitte",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Deloitte Digital",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "DXC Technology",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Endava",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Endava Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "EPAM Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "EPAM Systems",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Equal Experts Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "EY Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "EY Technology Consulting",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "First Focus",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Fractal Analytics Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Fujitsu Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Globant Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "HCLTech",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "HCLTech Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Infosys",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Infosys Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Insight Enterprises Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Interactive",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Kablamo",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Kasna",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Kinetic IT",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "KPMG Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "KPMG Technology",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Kyndryl",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "LAB3",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Logicalis Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "LTIMindtree Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Macquarie Cloud Services",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Mantel Group",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Nagarro Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "NCS Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "NTT DATA",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Orro Group",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Persistent Systems Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Publicis Sapient",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "PwC Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "PwC Digital",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Quantium",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Searce Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Servian",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Slalom",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Slalom Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Tata Consultancy Services",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "TCS Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Tech Mahindra Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "The Missing Link",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Thoughtworks",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Thoughtworks Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Tiger Analytics Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Unisys",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "UST Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "V2 AI",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Versent",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Virtusa Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Wipro",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Wipro Australia",
+    "sector": "IT Services Consulting",
+    "priority": 3
+  },
+  {
+    "company": "Albury City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Armidale Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Ballina Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Balranald Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bathurst Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bayside Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bega Valley Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bellingen Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Berrigan Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Blacktown City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bland Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Blayney Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Blue Mountains City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bogan Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Bourke Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Brewarrina Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Broken Hill City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Burwood Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Byron Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cabonne Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Camden Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Campbelltown City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Carrathool Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Central Coast Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Central Darling Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cessnock City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Canada Bay Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Canterbury Bankstown",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Newcastle",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Parramatta Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Ryde",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "City of Sydney",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Clarence Valley Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cobar Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Coffs Harbour City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Coolamon Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Coonamble Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cootamundra-Gundagai Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cowra Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Cumberland City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Dubbo Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Dungog Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Edward River Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Eurobodalla Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Fairfield City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Federation Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Forbes Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Georges River Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Gilgandra Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Glen Innes Severn Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Goulburn Mulwaree Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Greater Hume Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Griffith City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Gunnedah Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Gwydir Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Hawkesbury City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Hay Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Hilltops Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Hornsby Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Hunter's Hill Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Inner West Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Inverell Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Junee Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Kempsey Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Kiama Municipal Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Ku-ring-gai Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Kyogle Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lachlan Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lake Macquarie City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lane Cove Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Leeton Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lismore City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lithgow City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Liverpool City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Liverpool Plains Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Lockhart Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Maitland City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Mid-Western Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "MidCoast Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Moree Plains Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Mosman Municipal Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Murray River Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Murrumbidgee Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Muswellbrook Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Nambucca Valley Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Narrabri Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Narrandera Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Narromine Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "North Sydney Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Northern Beaches Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Oberon Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Orange City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Parkes Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Penrith City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Port Macquarie-Hastings Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Port Stephens Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Queanbeyan-Palerang Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Randwick City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Richmond Valley Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Shellharbour City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Shoalhaven City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Singleton Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Snowy Monaro Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Snowy Valleys Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Strathfield Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Sutherland Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Tamworth Regional Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Temora Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Tenterfield Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "The Hills Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Tweed Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Upper Hunter Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Upper Lachlan Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Uralla Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Wagga Wagga City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Walcha Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Walgett Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Warren Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Warrumbungle Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Waverley Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Weddin Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Wentworth Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Willoughby City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Wingecarribee Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Wollondilly Shire Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Wollongong City Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Woollahra Municipal Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "Yass Valley Council",
+    "sector": "Local Government",
+    "priority": 3
+  },
+  {
+    "company": "ABC",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Aristocrat Leisure",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "ARN Media",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "BBC Studios Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Carat Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "CHEP Network",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Clemenger BBDO",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Dentsu Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "dentsu Creative Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Disney Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "EssenceMediacom Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Event Cinemas",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Foxtel",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Foxtel Group",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "GroupM Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Hearts & Science Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Howatson+Company",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "HOYTS",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Initiative Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "iProspect Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "JCDecaux Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Kinesso Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Leo Burnett Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Live Nation Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "M&C Saatchi Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Mindshare Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "NBCUniversal Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Netflix Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "News Corp",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "News Corp Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Nine",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Nine Entertainment",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "NOVA Entertainment",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Ogilvy Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "OMD Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Omnicom Media Group Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "oOh!media",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Paramount ANZ",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Paramount Australia & New Zealand",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "PHD Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Publicis Groupe Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Publicis Worldwide Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "QMS Media",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Saatchi & Saatchi Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "SBS",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Seven",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Seven West Media",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Snap Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Sony Music Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Sony Pictures Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Spark Foundry Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Special Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Spotify Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Starcom Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "TBWA Sydney",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "TEG",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "The Lottery Corporation",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "The Monkeys",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Thinkerbell",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Ticketek",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "TikTok Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "UM Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Universal Music Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Village Roadshow",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "VML Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Warner Bros. Discovery Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Warner Music Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Wavemaker Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "WPP Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Zenith Australia",
+    "sector": "Media Advertising",
+    "priority": 3
+  },
+  {
+    "company": "Adecco Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Allen Overy Shearman Sterling Sydney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Allens",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Allens Linklaters",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "ALS",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Alvarez & Marsal",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Alvarez & Marsal Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Ankura Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Ashurst",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Ashurst Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Aurec",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Bain & Company",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Bain & Company Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Baker McKenzie Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Baker McKenzie Sydney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Baker Tilly Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "BDO Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Beaumont People",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Bird & Bird Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Bluefin Resources",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Boston Consulting Group",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Boston Consulting Group Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "CBRE",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Chandler Macleod",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Charterhouse Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Clayton Utz",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Clicks IT Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Clifford Chance Sydney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Clyde & Co Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Colin Biggers & Paisley",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Colliers",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Control Risks Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Corrs Chambers Westgarth",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Cushman & Wakefield",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Deloitte Private",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Dentons Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "DFP Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "DLA Piper Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "DLA Piper Sydney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Egon Zehnder Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Ethos BeathChapman",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "EY Parthenon Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "FinXL",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Forrester",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "FTI Consulting Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Fuse Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "FutureYou",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Gadens",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Gartner",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Gilbert + Tobin",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Grant Thornton Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Hall & Wilcox",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Hall Chadwick",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Hays Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Heidrick & Struggles Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Herbert Smith Freehills Kramer",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Herbert Smith Freehills Kramer Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Holding Redlich",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Holman Webb",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Hudson Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "HWL Ebsworth",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "JLL",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Jones Day Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "K&L Gates Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Kearney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Kearney Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Keegan Adams Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Kennedy Reid",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Kennedys Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "King & Wood Mallesons",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "King & Wood Mallesons Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Knight Frank Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "KordaMentha",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Korn Ferry Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "KPMG Enterprise",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "L.E.K. Consulting",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Launch Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Maddocks",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "ManpowerGroup Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "MARS Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "McCabes",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "McGrathNicol",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "McKinsey & Company",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Mercer Consulting Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Michael Page Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Mills Oakley",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "MinterEllison",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Moore Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Moray & Agnew",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Morgan McKinley Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Motion Recruitment Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Nexia Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Norton Rose Fulbright Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Norton Rose Fulbright Sydney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Nous Group",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Oliver Wyman",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Onset Group",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Paxus",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Peoplebank",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Pinsent Masons Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Pitcher Partners",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "PKF Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Profusion Group",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Programmed",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Protiviti Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Randstad Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Recruitment Hive",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Robert Half Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Robert Walters Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Roland Berger Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "RSM Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Russell Reynolds Associates Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Salt Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Savills Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "SB Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Sharp & Carter",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Sparke Helmore",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Spencer Stuart Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Squire Patton Boggs Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Strategy& Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "SustainAbility Consulting",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "SW Accountants & Advisors",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Talent International",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "TalentWeb",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Talenza",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "TEKsystems Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Thomson Geer",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "u&u Recruitment Partners",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Vincents",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "White & Case Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Whizdom Recruitment",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "William Buck Australia",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Wotton + Kearney",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Zone IT Solutions",
+    "sector": "Professional Services",
+    "priority": 3
+  },
+  {
+    "company": "Abergeldie Complex Infrastructure",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "ADCO Constructions",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "AECOM",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "AECOM Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Arcadis Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Arup",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Arup Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Atlas Arteria",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Aurecon",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "AVJennings",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Beca Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Belle Property",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "BESIX Watpac",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "BG&E",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "BMD Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Boral",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Brookfield Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Brookfield Properties Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Built",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Centuria Capital Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Charter Hall",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "CIMIC Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Coffey",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Colliers Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "CPB Contractors",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Cromwell Property Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Cushman & Wakefield Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Dexus",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Domain",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Douglas Partners",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Downer",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Downer Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Egis Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Frasers Property Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Fulton Hogan Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Gamuda Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Georgiou",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "GHD",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Goodman Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "GPT",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "GPT Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Hansen Yuncken",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Hutchinson Builders",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Ingenia Communities",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Investa",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Jacobs Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "JLL Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "John Holland",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Kane Constructions",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Laing O'Rourke",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Laing O'Rourke Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Lendlease",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Lifestyle Communities",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "LJ Hooker Commercial",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "MBM",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "McConnell Dowell",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "McGrath Estate Agents",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Mirvac",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Mirvac Construction",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Mott MacDonald Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Multiplex",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Northrop Consulting Engineers",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Raine & Horne",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Ray White Commercial",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Richard Crookes Constructions",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Rider Levett Bucknall",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Robert Bird Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Roberts Co",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Scentre Group",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Seymour Whyte",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Slattery",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "SMEC Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Stantec Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Stockland",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Transurban",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "TTW Engineers",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Turner & Townsend",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Turner & Townsend Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "UGL",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Ventia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Vicinity Centres",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "Worley",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "WSP Australia",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "WT Partnership",
+    "sector": "Property Eng Infra",
+    "priority": 3
+  },
+  {
+    "company": "7-Eleven Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Accent Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Adairs",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Adidas Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Adore Beauty",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Aldi",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Aldi Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Amazon Australia Retail",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Amcal",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Ampol Retail",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Anaconda",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Appliances Online",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "BCF",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Best & Less",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Big W",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Blooms The Chemist",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Booktopia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "BP Retail Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Bunnings",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Catch",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Catch.com.au",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Chemist Warehouse",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "City Beach",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "City Chic Collective",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Coles Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Costco",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Costco Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Cotton On Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Country Road Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "David Jones",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Decathlon Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "eBay Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "EG Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Fantastic Furniture",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "FoodWorks",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Freedom Furniture",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Greencross Vets",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Gumtree Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "H&M Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Harris Farm Markets",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Harris Scarfe",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Harvey Norman",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Hype DC",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "IGA Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "IKEA",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "IKEA Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "JB Hi-Fi",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "JD Sports Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Kathmandu",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Kmart Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Kogan",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Kogan.com",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "L'Oréal Luxe Retail",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Levi Strauss Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Lorna Jane",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Lovisa",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Mecca",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Mecca Brands",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Metcash",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Michael Hill Jeweller",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Mountain Designs",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Myer",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Nick Scali",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Nike Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Officeworks",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Pandora Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Pet Circle",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Petbarn",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Platypus Shoes",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Priceline Pharmacy",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Puma Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Puma Energy Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "R.M.Williams",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Rebel",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Reece",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Rip Curl",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Sephora Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Skechers Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Spotlight Retail Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Super Retail Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Supercheap Auto",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Target Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Temple & Webster",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Temple & Webster Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "TerryWhite Chemmart",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "The Good Guys",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "The Iconic",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Under Armour Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Uniqlo Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Universal Store",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Wesfarmers",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Winning Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Woolworths Group",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Zara Australia",
+    "sector": "Retail & E-commerce",
+    "priority": 3
+  },
+  {
+    "company": "Adobe",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Airwallex Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Akamai Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Alteryx Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Altium",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Amazon Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Amazon Web Services",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "AMD Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Appen",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Apple",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Asana Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Assignar",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Atlassian",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Automation Anywhere Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Avaya Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Boomi Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Box Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "BrainChip",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Broadcom Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Brother International Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Buildkite",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Campaign Monitor",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Canon Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Canva",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "CAR Group",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Carsales",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Celonis Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Check Point Software Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Cisco",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Cloudera Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Cloudflare",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Cloudflare Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Codan",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Cohesity Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Computershare",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Computershare Technology Services",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Confluent",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Confluent Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "CrowdStrike Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Culture Amp",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Culture Amp Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "CyberArk Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Darktrace Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Databricks",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Datadog",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Dell EMC Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Dell Technologies Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Deputy",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Deputy Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "DocuSign Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Domain Group",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Dovetail",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Dropbox Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Dynatrace Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Elastic",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Elastic Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "ELMO Software",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Employment Hero",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Employment Hero Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Envato",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Epson Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Ericsson Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Fastly Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Figma Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Five9 Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Fortinet Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Freelancer.com",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Fujitsu",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Genesys Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "GitHub",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "GitHub Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "GitLab",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "GitLab Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Go1",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Google",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Hansen Technologies",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "HashiCorp Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Hewlett Packard Enterprise Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "HP Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Huawei Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "HubSpot Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Humanforce",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "IBM",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Ignition",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Immutable",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Informatica Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Intel Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "IREN",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Iress",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Karbon",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Lenovo Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "LG Electronics Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Linktree",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "LiveTiles",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Macquarie Technology Group",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Megaport",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Meta",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Microsoft",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Mimecast Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Miro Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Monday.com Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "MongoDB",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Morse Micro",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Motorola Solutions Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "MuleSoft Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "MYOB",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Nearmap",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "NEC Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "NetApp Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "New Relic Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "NextDC",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "NICE Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Nitro Software",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Nokia Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Notion Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Nuix",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Nutanix Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "NVIDIA Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Objective Corporation",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Octopus Deploy",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Okta Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Oracle",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Palantir Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Palo Alto Networks Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Proofpoint Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Pure Storage Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Q-CTRL",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Qlik Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Qualtrics Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Rapid7 Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "REA Group",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "ReadyTech",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Red Hat",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Ricoh Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "RingCentral Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Rokt",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Rubrik Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SafetyCulture",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SafetyCulture Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Salesforce",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Samsung Electronics Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SAP",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SAS Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SEEK",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SentinelOne Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "ServiceNow",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "ServiceNow Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "SiteMinder",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Smartsheet Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Snowflake",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Sony Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Sophos Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Splunk Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Tableau Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "TechnologyOne",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Tenable Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Teradata Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Trend Micro Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Twilio Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Tyro Technology",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "UiPath Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Veeam Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Vow",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "WiseTech Global",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Wiz Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Workday Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Xero",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Zendesk Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Zoom Video Communications Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "ZoomInfo Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "Zscaler Australia",
+    "sector": "Tech Software Cyber",
+    "priority": 3
+  },
+  {
+    "company": "AGL Energy",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "APA Group",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Ausgrid",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Aussie Broadband",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Cleanaway Waste Management",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Endeavour Energy",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "EnergyAustralia",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "NBN Co",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Optus",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Origin Energy",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Red Energy",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Superloop",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Water",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Telstra",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "TPG Telecom",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Transgrid",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Vocus",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Vodafone Australia",
+    "sector": "Telecom & Utilities",
+    "priority": 3
+  },
+  {
+    "company": "Air Canada Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Air New Zealand Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Airbnb Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "American Airlines Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Aramex Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Aurizon",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Australia Post",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Avis Budget Group Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Booking.com Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Brambles",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Busways",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Cathay Pacific Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "CDC NSW",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "CEVA Logistics Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "CHEP Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "CMA CGM Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "ComfortDelGro Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Corporate Travel Management",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DB Schenker Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Delta Air Lines Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DHL Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DHL Express Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DHL Supply Chain Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DiDi Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "dnata Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "DP World Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Emirates Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Etihad Airways Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Europcar Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Expedia Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "FedEx Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "FedEx Express Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Flight Centre",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Hapag-Lloyd Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Hertz Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Jetstar",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Jetstar Airways",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Kelsian Group",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Keolis Downer",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Kuehne+Nagel Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Linfox",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Maersk Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Menzies Aviation Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Metro Trains Sydney",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "MSC Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "NRMA Motoring & Services",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "NSW Ports",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "NSW TrainLink",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Ofload",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Ola Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Patrick Terminals",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Port Botany Operations",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Qantas",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Qatar Airways Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Qube Holdings",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Rex Airlines",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Shippit",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Singapore Airlines Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "SIXT Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Airport",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Sydney Trains",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Team Global Express",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Toll Global Express",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Toll Group",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Transdev",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Transdev Australasia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Transport for NSW",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "U-Go Mobility",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Uber Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "United Airlines Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "UPS Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Virgin Australia",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Webjet",
+    "sector": "Transport & Logistics",
+    "priority": 3
+  },
+  {
+    "company": "Adzuna Australia",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "APS Jobs",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Careerjet Australia",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "CareerOne",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "EthicalJobs",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "GradConnection",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Hatch",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "I Work for NSW",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Indeed Australia",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Jora",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "LinkedIn Jobs",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Prosple",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Wellfound",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Workforce Australia",
+    "sector": "Job Providers",
+    "priority": 3
+  },
+  {
+    "company": "Y Combinator Jobs",
+    "sector": "Job Providers",
+    "priority": 3
+  }
+]

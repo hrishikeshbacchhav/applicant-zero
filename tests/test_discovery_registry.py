@@ -22,7 +22,7 @@ def test_recruitee_public_careers_url_is_recognised():
 
 def test_target_universe_is_deduplicated_and_prioritised():
     targets = load_targets(ROOT / "data" / "target_companies.starter.json")
-    assert len(targets) >= 75
+    assert len(targets) >= 1_500
     assert len({item.company.casefold() for item in targets}) == len(targets)
     assert targets[0].priority == 1
     coverage = board_coverage(targets, ROOT / "data" / "company_boards.starter.json")
@@ -36,7 +36,8 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         ROOT / "data" / "target_companies.starter.json",
         ROOT / "data" / "company_boards.starter.json",
     )
-    assert overview["target_count"] >= 80
+    assert overview["target_count"] >= 1_500
+    assert overview["sectors"] >= 20
     assert "Lever career boards" in overview["automated_sources"]
     assert overview["configured_count"] >= 6
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))

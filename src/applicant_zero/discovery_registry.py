@@ -119,8 +119,21 @@ def load_sources(path: Path) -> list[DiscoverySource]:
     return [DiscoverySource(row["id"], row["label"], row["mode"], row["cadence"], tuple(row["role_lanes"])) for row in _load(path)]
 
 
-def load_targets(path: Path) -> list[TargetCompany]:
+def load_targets(path: Path, expansion_path: Path | None = None) -> list[TargetCompany]:
+    """Load maintained priority targets plus the optional employer universe.
+
+    The employer universe is a research registry, not a list of live feeds.
+    Shipping it separately keeps the carefully curated P1/P2 targets readable
+    while allowing discovery coverage to grow to thousands of employers.
+    """
     rows = [TargetCompany(row["company"], row["sector"], int(row["priority"])) for row in _load(path)]
+    universe = expansion_path if expansion_path is not None else path.with_name("sydney_employer_universe.json")
+    if universe.exists():
+        rows.extend(
+            TargetCompany(row["company"], row["sector"], int(row.get("priority", 3)))
+            for row in _load(universe)
+            if isinstance(row, dict) and row.get("company")
+        )
     unique: dict[str, TargetCompany] = {}
     for item in rows:
         key = item.company.casefold()
@@ -184,6 +197,7 @@ def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path)
         "configured_count": len(coverage["configured"]),
         "configured": coverage["configured"],
         "research_needed": coverage["research_needed"],
+        "sectors": len({target.sector for target in targets}),
     }
 
 
