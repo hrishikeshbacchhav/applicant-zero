@@ -15,7 +15,7 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
-from .discovery_measurements import measure_sources
+from .discovery_measurements import canonical_unique_jobs, measure_sources
 from .storage import (
     deactivate_stale_broad_feed_jobs,
     initialise_database,
@@ -136,8 +136,9 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
             request_counts=request_counts, failure_counts=failure_counts,
         ),
     )
-    record_refresh_run(database, "Daily discovery refresh", len(jobs), len(visible), checked, unavailable, detail)
-    return len(jobs), len(visible), detail
+    visible_unique = canonical_unique_jobs([job for job, _ in visible])
+    record_refresh_run(database, "Daily discovery refresh", len(jobs), len(visible_unique), checked, unavailable, detail)
+    return len(jobs), len(visible_unique), detail
 
 
 def main() -> None:

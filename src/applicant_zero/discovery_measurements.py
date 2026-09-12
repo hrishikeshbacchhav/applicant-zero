@@ -13,6 +13,19 @@ def canonical_listing_key(job: Job) -> str:
     return "|".join((clean(job.company), clean(job.title), clean(job.location)))
 
 
+def canonical_unique_jobs(jobs: list[Job]) -> list[Job]:
+    """Keep one representative per likely syndicated listing.
+
+    Raw source records are retained in the inventory. This helper is only for
+    honest user-facing counts, where the same role should appear once even if
+    an ATS feed and a broad provider both returned it.
+    """
+    preferred: dict[str, Job] = {}
+    for job in jobs:
+        preferred.setdefault(canonical_listing_key(job), job)
+    return list(preferred.values())
+
+
 def measure_sources(
     jobs: list[Job],
     visible_external_ids: set[str],
