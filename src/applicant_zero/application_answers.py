@@ -31,12 +31,12 @@ def advertised_salary_range(description: str) -> tuple[int, int] | None:
         r"between\s+\$?\s*(\d{2,3}(?:,\d{3})?|\d{2,3}\s*k)\s+and\s+\$?\s*(\d{2,3}(?:,\d{3})?|\d{2,3}\s*k)",
     )
     for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if not match:
-            continue
-        low, high = _number(match.group(1)), _number(match.group(2))
-        if low and high and 50_000 <= low <= high <= 300_000:
-            return low, high
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            low, high = _number(match.group(1)), _number(match.group(2))
+            if low and high and 50_000 <= low <= high <= 300_000:
+                return low, high
+            # Dates, version numbers and identifiers can resemble a short
+            # numeric range. Keep scanning for an actual salary expression.
     return None
 
 

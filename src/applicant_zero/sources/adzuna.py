@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from ..scoring import Job
+from .metadata import append_listing_metadata
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,15 @@ def build_search_url(app_id: str, app_key: str, query: str, where: str, page: in
 def _job_from_result(result: dict) -> Job:
     company = result.get("company", {}).get("display_name", "Unknown company")
     location = result.get("location", {}).get("display_name", "Unknown location")
+    salary_min, salary_max = result.get("salary_min"), result.get("salary_max")
+    salary = ""
+    if salary_min is not None and salary_max is not None:
+        salary = f"AUD {float(salary_min):,.0f} - {float(salary_max):,.0f}"
+    employment_type = " ".join(
+        str(result.get(key, "")).replace("_", " ")
+        for key in ("contract_time", "contract_type")
+        if result.get(key)
+    )
     return Job(
         external_id=f"adzuna:{result['id']}",
         title=result.get("title", "Untitled role"),
@@ -63,7 +73,10 @@ def _job_from_result(result: dict) -> Job:
         location=location,
         source="Adzuna",
         url=result.get("redirect_url", ""),
-        description=result.get("description", ""),
+        description=append_listing_metadata(
+            result.get("description", ""), posted_at=result.get("created", ""),
+            employment_type=employment_type, salary=salary,
+        ),
     )
 
 

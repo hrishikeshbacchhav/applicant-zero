@@ -27,6 +27,18 @@ def test_adzuna_result_maps_to_job():
     assert job.company == "Example"
 
 
+def test_adzuna_mapping_keeps_source_freshness_and_structured_listing_metadata():
+    job = _job_from_result({
+        "id": "124", "title": "Data Analyst", "description": "SQL",
+        "company": {"display_name": "Example"}, "location": {"display_name": "Sydney, NSW"},
+        "created": "2026-09-17T10:30:00Z", "salary_min": 90000, "salary_max": 110000,
+        "contract_time": "full_time", "contract_type": "permanent",
+    })
+    assert "Published: 2026-09-17T10:30:00Z" in job.description
+    assert "Employment type: full time permanent" in job.description
+    assert "Compensation: AUD 90,000 - 110,000" in job.description
+
+
 def test_query_batch_collapses_repeated_listings_and_keeps_going_after_one_error(tmp_path):
     first = _job_from_result({"id": "1", "title": "Data Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})
     second = _job_from_result({"id": "2", "title": "BI Analyst", "company": {"display_name": "Example"}, "location": {"display_name": "Sydney"}})

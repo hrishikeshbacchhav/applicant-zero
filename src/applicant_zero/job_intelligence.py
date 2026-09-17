@@ -13,6 +13,8 @@ CLOSING_PATTERN = re.compile(
     r"(?:applications?\s+(?:close|closing|must\s+be\s+received(?:\s+by)?)|apply\s+by|closing\s+date)\s*[:\-]?\s*([^\n.]{3,90})",
     re.IGNORECASE,
 )
+SOURCE_PUBLISHED_PATTERN = re.compile(r"(?:source metadata:\s*)?published:\s*([^;\n]+)", re.IGNORECASE)
+SOURCE_EMPLOYMENT_PATTERN = re.compile(r"employment type:\s*([^;\n]+)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -21,20 +23,31 @@ class JobIntelligence:
     contacts: tuple[str, ...]
     closing_detail: str
     employment_type: str
+    published_detail: str
     location_signal: str
 
 
 def inspect_job(title: str, location: str, description: str) -> JobIntelligence:
     text = description or ""
-    salary_range = advertised_salary_range(text)
+    # API feeds sometimes prefix source compensation with "AUD" rather than
+    # a dollar sign. Normalise only for recognition; retain a clear AU label
+    # in the review output.
+    salary_range = advertised_salary_range(text) or advertised_salary_range(text.replace("AUD ", ""))
     salary = ""
     if salary_range:
         salary = f"AUD {salary_range[0]:,}–{salary_range[1]:,} base salary, where stated in the listing"
     contacts = tuple(dict.fromkeys(match.group(0) for match in EMAIL_PATTERN.finditer(text)))[:3]
     closing = CLOSING_PATTERN.search(text)
     closing_detail = " ".join(closing.group(1).split()) if closing else ""
+    published = SOURCE_PUBLISHED_PATTERN.search(text)
+    published_detail = " ".join(published.group(1).split()) if published else ""
     lowered = f"{title} {text}".lower()
-    employment_type = "Full-time" if re.search(r"\bfull[ -]?time\b", lowered) else "Contract" if re.search(r"\b(?:fixed.term|contract)\b", lowered) else "Not stated"
+    employment = SOURCE_EMPLOYMENT_PATTERN.search(text)
+    employment_type = (
+        " ".join(employment.group(1).split()) if employment else
+        "Full-time" if re.search(r"\bfull[ -]?time\b", lowered) else
+        "Contract" if re.search(r"\b(?:fixed.term|contract)\b", lowered) else "Not stated"
+    )
     lowered_location = location.lower()
     if "sydney" in lowered_location:
         location_signal = "Sydney specified"
@@ -44,4 +57,4 @@ def inspect_job(title: str, location: str, description: str) -> JobIntelligence:
         location_signal = "Remote or hybrid"
     else:
         location_signal = "Check the listed workplace"
-    return JobIntelligence(salary, contacts, closing_detail, employment_type, location_signal)
+    return JobIntelligence(salary, contacts, closing_detail, employment_type, published_detail, location_signal)

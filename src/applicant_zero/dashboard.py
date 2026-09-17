@@ -511,6 +511,7 @@ def build_brief_page(database_path: Path, external_id: str) -> str:
         f"<p><strong>Location:</strong> {html.escape(intelligence.location_signal)}</p>"
         f"<p><strong>Employment type:</strong> {html.escape(intelligence.employment_type)}</p>"
         f"<p><strong>Salary:</strong> {html.escape(intelligence.salary or 'Not stated in the imported listing.')}</p>"
+        f"<p><strong>Published:</strong> {html.escape(intelligence.published_detail or 'No source publication date was supplied.')}</p>"
         f"<p><strong>Closing information:</strong> {html.escape(intelligence.closing_detail or 'No closing date was detected; check the original listing.')}</p>"
         f"<p><strong>Contact:</strong> {contact_html}</p>"
     )

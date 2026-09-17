@@ -63,6 +63,7 @@ def create_material_manifest(database_path: Path, external_id: str) -> Path:
             "contacts": intelligence.contacts,
             "closing_detail": intelligence.closing_detail,
             "employment_type": intelligence.employment_type,
+            "published_detail": intelligence.published_detail,
             "location_signal": intelligence.location_signal,
         },
         "eligibility_review": {

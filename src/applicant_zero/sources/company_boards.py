@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from ..scoring import Job
+from .metadata import append_listing_metadata
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ def _greenhouse_jobs(company: str, token: str) -> list[Job]:
             location=item.get("location", {}).get("name", "Unknown location"),
             source="Greenhouse",
             url=item.get("absolute_url", ""),
-            description=item.get("content", ""),
+            description=append_listing_metadata(item.get("content", ""), posted_at=item.get("updated_at", item.get("created_at", ""))),
         )
         for item in payload.get("jobs", [])
     ]
@@ -52,7 +53,11 @@ def _lever_jobs(company: str, token: str) -> list[Job]:
             location=item.get("categories", {}).get("location", "Unknown location"),
             source="Lever",
             url=item.get("hostedUrl", ""),
-            description=item.get("descriptionPlain", item.get("description", "")),
+            description=append_listing_metadata(
+                item.get("descriptionPlain", item.get("description", "")),
+                posted_at=item.get("createdAt", item.get("created_at", "")),
+                employment_type=item.get("categories", {}).get("commitment", "") if isinstance(item.get("categories"), dict) else "",
+            ),
         )
         for item in payload
     ]
@@ -76,7 +81,10 @@ def _ashby_jobs(company: str, token: str) -> list[Job]:
             location=item.get("location", "Unknown location"),
             source="Ashby",
             url=item.get("applyUrl", item.get("jobUrl", "")),
-            description=description,
+            description=append_listing_metadata(
+                description, posted_at=item.get("publishedAt", item.get("createdAt", "")),
+                employment_type=item.get("employmentType", ""), salary=salary,
+            ),
         ))
     return jobs
 
@@ -120,7 +128,10 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
             location=location_text,
             source="SmartRecruiters",
             url=url,
-            description=description,
+            description=append_listing_metadata(
+                description, posted_at=item.get("releasedDate", item.get("createdOn", "")),
+                employment_type=detail_dict.get("employmentType", item.get("typeOfEmployment", "")),
+            ),
         ))
     return jobs
 
@@ -160,7 +171,10 @@ def _workable_jobs(company: str, token: str) -> list[Job]:
             location=location,
             source="Workable",
             url=str(item.get("url") or item.get("shortlink") or f"https://apply.workable.com/j/{shortcode}"),
-            description=description,
+            description=append_listing_metadata(
+                description, posted_at=item.get("created_at", item.get("published_at", "")),
+                employment_type=item.get("employment_type", ""),
+            ),
         ))
     return jobs
 
@@ -192,7 +206,11 @@ def _recruitee_jobs(company: str, token: str) -> list[Job]:
             location=location,
             source="Recruitee",
             url=str(item.get("careers_url") or item.get("careers_apply_url") or ""),
-            description=str(item.get("description") or item.get("description_html") or ""),
+            description=append_listing_metadata(
+                str(item.get("description") or item.get("description_html") or ""),
+                posted_at=item.get("created_at", item.get("published_at", "")),
+                employment_type=item.get("employment_type", ""),
+            ),
         ))
     return jobs
 
