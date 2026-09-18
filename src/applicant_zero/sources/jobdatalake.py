@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 
 from ..scoring import Job
 from .adzuna import load_dotenv
+from .metadata import append_listing_metadata
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,12 @@ def build_search_url(api_key: str, query: str, *, page: int = 1, location: str =
     return f"https://api.jobdatalake.com/v1/jobs?{parameters}"
 
 
+def has_credentials(project_root: Path) -> bool:
+    """Check local configuration before a trial consumes its request allowance."""
+    load_dotenv(project_root)
+    return bool(os.getenv("JOBDATALAKE_API_KEY"))
+
+
 def _job_from_result(result: dict) -> Job:
     handle = str(result.get("job_handle") or result.get("id") or result.get("url") or result.get("title", "unknown"))
     locations = result.get("locations", [])
@@ -38,6 +45,17 @@ def _job_from_result(result: dict) -> Job:
     description = str(result.get("description") or result.get("requirements") or "")
     if skill_text:
         description = f"{description}\nRequired skills: {skill_text}".strip()
+    salary_min, salary_max = result.get("salary_min"), result.get("salary_max")
+    salary = ""
+    try:
+        if salary_min is not None and salary_max is not None:
+            salary = f"AUD {float(salary_min):,.0f} - {float(salary_max):,.0f}"
+    except (TypeError, ValueError):
+        salary = ""
+    description = append_listing_metadata(
+        description, posted_at=result.get("posted_at", result.get("date_posted", "")),
+        employment_type=result.get("employment_type", result.get("job_type", "")), salary=salary,
+    )
     company_value = result.get("company", {})
     company = company_value.get("name", "") if isinstance(company_value, dict) else str(company_value or "")
     return Job(
@@ -70,6 +88,11 @@ def run_trial(project_root: Path, queries: list[str], *, max_requests: int = 5) 
     """Run a small no-retry provider evaluation, never an unbounded backfill."""
     jobs_by_id: dict[str, Job] = {}
     reports: list[LicensedFetchReport] = []
+    if not has_credentials(project_root):
+        return [], [LicensedFetchReport(
+            "provider setup", 0, 0,
+            "Missing JOBDATALAKE_API_KEY. Add it locally to .env before running a provider trial.",
+        )]
     for query in [value.strip() for value in queries if value.strip()][:max(0, min(max_requests, 20))]:
         try:
             jobs = fetch_jobs(project_root, query)
