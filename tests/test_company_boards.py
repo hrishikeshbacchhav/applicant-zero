@@ -179,6 +179,17 @@ def test_workday_mapping_reads_the_public_careers_search_response():
     assert post.call_args.args[0].endswith("/wday/cxs/example/Careers/jobs")
 
 
+def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
+    first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(100)]
+    second = [{"title": "Role 101", "externalPath": "/job/101", "locationsText": "Sydney"}]
+    with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
+        {"total": 101, "jobPostings": first}, {"total": 101, "jobPostings": second},
+    ]) as post:
+        jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert len(jobs) == 101
+    assert [call.args[1]["offset"] for call in post.call_args_list] == [0, 100]
+
+
 def test_workday_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{

@@ -193,27 +193,38 @@ def _workable_jobs(company: str, token: str) -> list[Job]:
 
 
 def _workday_jobs(company: str, token: str) -> list[Job]:
-    """Read a Workday public careers search endpoint.
+    """Read a Workday public careers search endpoint with a bounded page cap.
 
     The token is ``host/site`` (for example
     ``example.wd3.myworkdayjobs.com/ExampleCareers``), derived from an
     employer's public Workday URL. This route uses the same read-only public
     endpoint that the careers page uses. It does not accept a login, session
-    cookie or employer API credential.
+    cookie or employer API credential. A five-page cap avoids one unusually
+    large board consuming an unbounded discovery run.
     """
     host, separator, site = token.partition("/")
     tenant = host.split(".", 1)[0]
     if not separator or not host.endswith("myworkdayjobs.com") or not site or not tenant:
         raise ValueError("Workday board token must be host/site from a public careers URL.")
     endpoint = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
-    payload = _post_json(endpoint, {"limit": 100, "offset": 0, "searchText": ""})
-    rows = payload.get("jobPostings", []) if isinstance(payload, dict) else []
+    rows: list[dict] = []
+    total = 0
+    for offset in range(0, 500, 100):
+        payload = _post_json(endpoint, {"limit": 100, "offset": offset, "searchText": ""})
+        page = payload.get("jobPostings", []) if isinstance(payload, dict) else []
+        page_rows = [item for item in page if isinstance(item, dict)]
+        rows.extend(page_rows)
+        if offset == 0 and isinstance(payload, dict):
+            try:
+                total = max(0, int(payload.get("total", len(page_rows))))
+            except (TypeError, ValueError):
+                total = len(page_rows)
+        if len(page_rows) < 100 or len(rows) >= total:
+            break
     jobs: list[Job] = []
     for item in rows:
-        if not isinstance(item, dict):
-            continue
         external_path = str(item.get("externalPath", "")).strip()
-        identifier = str(item.get("bulletFields", "")).strip() or external_path or str(item.get("title", ""))
+        identifier = external_path or str(item.get("title", "")).strip()
         if not identifier:
             continue
         detail = append_listing_metadata(
