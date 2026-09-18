@@ -432,6 +432,53 @@ def get_match(connection: sqlite3.Connection, external_id: str) -> dict | None:
     return result
 
 
+def mark_company_inventory_jobs_inactive(
+    connection: sqlite3.Connection, company: str, source: str, active_external_ids: list[str]
+) -> int:
+    """Retire listings absent from a successful authoritative board snapshot.
+
+    A completed public ATS board is authoritative only for that employer and
+    source. It must never retire a matching listing from a broad feed or a
+    different ATS. Candidate tracker history lives in ``job_matches`` and is
+    intentionally untouched here.
+    """
+    parameters: list[object] = [company, source]
+    exclusion = ""
+    if active_external_ids:
+        placeholders = ", ".join("?" for _ in active_external_ids)
+        exclusion = f" AND external_id NOT IN ({placeholders})"
+        parameters.extend(active_external_ids)
+    cursor = connection.execute(
+        """
+        UPDATE discovery_inventory SET is_active = 0
+        WHERE company = ? AND lower(source) = lower(?) AND is_active = 1
+        """ + exclusion,
+        parameters,
+    )
+    connection.commit()
+    return cursor.rowcount
+
+
+def deactivate_stale_broad_feed_inventory_records(connection: sqlite3.Connection, days: int = 21) -> int:
+    """Hide old Adzuna inventory records while retaining them for audit.
+
+    Broad search is sampled by rotating queries, so listings are only retired
+    after a conservative unseen window. This keeps dashboard inventory, source
+    coverage and the review queue aligned without deleting discovery history.
+    """
+    cursor = connection.execute(
+        """
+        UPDATE discovery_inventory SET is_active = 0
+        WHERE lower(source) = 'adzuna'
+          AND is_active = 1
+          AND last_seen_at < datetime('now', ?)
+        """,
+        (f"-{max(1, int(days))} days",),
+    )
+    connection.commit()
+    return cursor.rowcount
+
+
 def mark_company_jobs_inactive(
     connection: sqlite3.Connection, company: str, active_external_ids: list[str]
 ) -> int:

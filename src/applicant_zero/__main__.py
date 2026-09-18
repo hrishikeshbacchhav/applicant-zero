@@ -18,7 +18,9 @@ from .sources.company_boards import fetch_company_boards_with_report
 from .discovery_measurements import canonical_unique_jobs, measure_sources
 from .storage import (
     deactivate_stale_broad_feed_jobs,
+    deactivate_stale_broad_feed_inventory_records,
     initialise_database,
+    mark_company_inventory_jobs_inactive,
     mark_company_jobs_inactive,
     prune_inactive_discovery_records,
     record_refresh_run,
@@ -103,17 +105,24 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state), persist_skips=False)
     record_query_measurements(database, query_reports, {job.external_id for job, _ in visible})
+    retired_board_inventory = 0
     for report in reports:
         if report.status == "checked":
+            report_source = getattr(report, "ats", "")
+            board_ids = [job.external_id for job in board_jobs if job.company == report.company and job.source.casefold() == report_source.casefold()]
+            retired_board_inventory += mark_company_inventory_jobs_inactive(database, report.company, report_source, board_ids)
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
     checked = sum(report.status == "checked" for report in reports)
     unavailable = sum(report.status == "unavailable" for report in reports)
     stale_broad = deactivate_stale_broad_feed_jobs(database)
+    stale_broad_inventory = deactivate_stale_broad_feed_inventory_records(database)
     pruned = prune_inactive_discovery_records(database)
     skipped = len(jobs) - len(visible)
     detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); {query_status['remaining_today']} broad-feed calls remained before this run; {skipped} hard skips not stored"
-    if stale_broad:
-        detail += f"; {stale_broad} old broad-feed listing(s) marked inactive"
+    if stale_broad or stale_broad_inventory:
+        detail += f"; {stale_broad} old review record(s) and {stale_broad_inventory} old broad-feed inventory record(s) marked inactive"
+    if retired_board_inventory:
+        detail += f"; {retired_board_inventory} listing(s) retired from successful public-board snapshots"
     if pruned:
         detail += f"; {pruned} old inactive discovery record(s) removed"
     if query_errors:
@@ -275,11 +284,16 @@ def main() -> None:
         print(f"Career boards checked: {sum(report.status == 'checked' for report in reports)}. Unavailable boards skipped: {sum(report.status == 'unavailable' for report in reports)}.")
     backup_database(ROOT, "collection")
     database = initialise_database(database)
+    save_discovery_inventory(database, jobs)
     if args.company_boards: save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, args.show_all)
     if args.company_boards:
         for report in reports:
-            if report.status == "checked": mark_company_jobs_inactive(database, report.company, [job.external_id for job in jobs if job.company == report.company])
+            if report.status == "checked":
+                source = getattr(report, "ats", "")
+                active_ids = [job.external_id for job in jobs if job.company == report.company and job.source == source]
+                mark_company_inventory_jobs_inactive(database, report.company, source, active_ids)
+                mark_company_jobs_inactive(database, report.company, [job.external_id for job in jobs if job.company == report.company])
         record_refresh_run(database, "Company career boards", len(jobs), len(visible), sum(report.status == "checked" for report in reports), sum(report.status == "unavailable" for report in reports))
     elif args.adzuna:
         record_refresh_run(database, "Adzuna", len(jobs), len(visible))
