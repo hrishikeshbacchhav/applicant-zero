@@ -128,6 +128,7 @@ def test_supported_public_careers_urls_produce_an_ats_and_board_token(tmp_path):
     assert public_board_from_url("https://boards.greenhouse.io/example/jobs/7") == ("greenhouse", "example")
     assert public_board_from_url("https://jobs.ashbyhq.com/example") == ("ashby", "example")
     assert public_board_from_url("https://jobs.smartrecruiters.com/Example") == ("smartrecruiters", "Example")
+    assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     with pytest.raises(ValueError, match="supported public"):
         public_board_from_url("https://example.com/careers")
 

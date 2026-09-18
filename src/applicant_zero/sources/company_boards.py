@@ -27,6 +27,19 @@ def _get_json(url: str) -> dict | list:
         return json.loads(response.read().decode("utf-8"))
 
 
+def _post_json(url: str, payload: dict) -> dict | list:
+    """Read a documented public careers endpoint using its ordinary JSON POST."""
+    request = Request(
+        url, data=json.dumps(payload).encode("utf-8"), method="POST",
+        headers={
+            "User-Agent": "Applicant-Zero/0.1 (private job discovery)",
+            "Content-Type": "application/json",
+        },
+    )
+    with urlopen(request, timeout=12) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def _greenhouse_jobs(company: str, token: str) -> list[Job]:
     payload = _get_json(f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs?content=true")
     return [
@@ -179,6 +192,46 @@ def _workable_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _workday_jobs(company: str, token: str) -> list[Job]:
+    """Read a Workday public careers search endpoint.
+
+    The token is ``host/site`` (for example
+    ``example.wd3.myworkdayjobs.com/ExampleCareers``), derived from an
+    employer's public Workday URL. This route uses the same read-only public
+    endpoint that the careers page uses. It does not accept a login, session
+    cookie or employer API credential.
+    """
+    host, separator, site = token.partition("/")
+    tenant = host.split(".", 1)[0]
+    if not separator or not host.endswith("myworkdayjobs.com") or not site or not tenant:
+        raise ValueError("Workday board token must be host/site from a public careers URL.")
+    endpoint = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
+    payload = _post_json(endpoint, {"limit": 100, "offset": 0, "searchText": ""})
+    rows = payload.get("jobPostings", []) if isinstance(payload, dict) else []
+    jobs: list[Job] = []
+    for item in rows:
+        if not isinstance(item, dict):
+            continue
+        external_path = str(item.get("externalPath", "")).strip()
+        identifier = str(item.get("bulletFields", "")).strip() or external_path or str(item.get("title", ""))
+        if not identifier:
+            continue
+        detail = append_listing_metadata(
+            "", posted_at=item.get("postedOn", ""),
+            employment_type=item.get("timeType", item.get("workerSubType", "")),
+        )
+        jobs.append(Job(
+            external_id=f"workday:{host}:{site}:{identifier}",
+            title=str(item.get("title", "Untitled role")),
+            company=company,
+            location=str(item.get("locationsText", "Unknown location")),
+            source="Workday",
+            url=f"https://{host}{external_path}" if external_path.startswith("/") else f"https://{host}",
+            description=detail,
+        ))
+    return jobs
+
+
 def _recruitee_jobs(company: str, token: str) -> list[Job]:
     """Read currently-public Recruitee offer feeds.
 
@@ -242,7 +295,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -263,6 +316,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "smartrecruiters": _smartrecruiters_jobs,
         "workable": _workable_jobs,
         "recruitee": _recruitee_jobs,
+        "workday": _workday_jobs,
     }
     try:
         handler = handlers[ats.lower()]

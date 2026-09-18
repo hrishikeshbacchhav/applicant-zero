@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import json
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _smartrecruiters_jobs, _workable_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -162,5 +162,28 @@ def test_recruitee_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{ "company": "Example", "ats": "recruitee", "token": "example" }]), encoding="utf-8")
     with patch("applicant_zero.sources.company_boards._recruitee_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert reports[0].status == "checked"
+
+
+def test_workday_mapping_reads_the_public_careers_search_response():
+    payload = {"jobPostings": [{
+        "title": "Service Desk Analyst", "externalPath": "/en-US/Careers/job/Sydney/Service-Desk-Analyst_123",
+        "locationsText": "Sydney, NSW, Australia", "postedOn": "Posted Today", "timeType": "Full time",
+    }]}
+    with patch("applicant_zero.sources.company_boards._post_json", return_value=payload) as post:
+        jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert jobs[0].external_id.startswith("workday:example.wd3.myworkdayjobs.com:Careers:")
+    assert jobs[0].url.endswith("Service-Desk-Analyst_123")
+    assert "Published: Posted Today" in jobs[0].description
+    assert post.call_args.args[0].endswith("/wday/cxs/example/Careers/jobs")
+
+
+def test_workday_board_is_an_accepted_public_board_type(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([{
+        "company": "Example", "ats": "workday", "token": "example.wd3.myworkdayjobs.com/Careers"
+    }]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._workday_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
