@@ -135,7 +135,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     failure_counts.update(licensed_failures)
     for report in reports:
         source = getattr(report, "ats", "") or "Public board"
-        request_counts[source] = request_counts.get(source, 0) + 1
+        request_counts[source] = request_counts.get(source, 0) + max(1, int(getattr(report, "request_count", 1)))
         if report.status == "unavailable":
             failure_counts[source] = failure_counts.get(source, 0) + 1
     record_source_measurements(

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import json
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -198,3 +198,11 @@ def test_workday_board_is_an_accepted_public_board_type(tmp_path):
     with patch("applicant_zero.sources.company_boards._workday_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
+
+
+def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
+    assert _request_count_for_board("workday", 0) == 1
+    assert _request_count_for_board("workday", 101) == 2
+    assert _request_count_for_board("workday", 501) == 5
+    assert _request_count_for_board("smartrecruiters", 3) == 4
+    assert _request_count_for_board("lever", 40) == 1

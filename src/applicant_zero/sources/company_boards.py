@@ -16,6 +16,7 @@ class BoardReport:
     job_count: int
     message: str = ""
     ats: str = ""
+    request_count: int = 0
 
 
 def _get_json(url: str) -> dict | list:
@@ -336,6 +337,19 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
     return handler(company, token)
 
 
+def _request_count_for_board(ats: str, job_count: int) -> int:
+    """Return a transparent bounded request estimate for public board reads."""
+    normalized = ats.casefold()
+    if normalized == "workday":
+        # Workday requests 100 jobs per public search page, with at least one
+        # read for an empty board and a hard 500-job cap.
+        return max(1, min(5, (max(0, job_count) + 99) // 100))
+    if normalized == "smartrecruiters":
+        # One listing request plus one public detail request per returned job.
+        return 1 + max(0, job_count)
+    return 1
+
+
 def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
     boards, configuration_reports = _load_valid_boards(path)
     def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
@@ -343,8 +357,11 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
         try:
             board_jobs = fetch_public_board(company, board["ats"], board["token"])
         except (OSError, ValueError, KeyError, TypeError) as error:
-            return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title())
-        return board_jobs, BoardReport(company, "checked", len(board_jobs), "", board["ats"].title())
+            return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title(), 1)
+        return board_jobs, BoardReport(
+            company, "checked", len(board_jobs), "", board["ats"].title(),
+            _request_count_for_board(board["ats"], len(board_jobs)),
+        )
 
     # Board APIs are independent. Parallel requests keep one slow employer
     # endpoint from holding up every other source during scheduled refreshes.
