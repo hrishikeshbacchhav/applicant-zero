@@ -20,3 +20,15 @@ def test_source_contracts_include_every_supported_public_board_provider():
     from applicant_zero.taxonomy import SOURCE_CONTRACTS
     identifiers = {item.identifier for item in SOURCE_CONTRACTS}
     assert {"greenhouse", "lever", "ashby", "smartrecruiters", "workable"} <= identifiers
+
+
+def test_taxonomy_covers_broader_real_world_titles_from_each_active_lane():
+    assert classify_lane("Reporting Officer").identifier == "data_bi"
+    assert classify_lane("Business Operations Analyst").identifier == "business_analysis"
+    assert classify_lane("IT Support Coordinator").identifier == "it_support"
+    assert classify_lane("Operations Coordinator").identifier == "administration"
+
+
+def test_source_contracts_include_workday():
+    from applicant_zero.taxonomy import SOURCE_CONTRACTS
+    assert "workday" in {item.identifier for item in SOURCE_CONTRACTS}

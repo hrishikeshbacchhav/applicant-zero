@@ -46,7 +46,15 @@
         "workforce analyst",
         "product analyst",
         "finance analyst",
-        "data migration analyst"
+        "data migration analyst",
+        "reporting officer",
+        "analytics officer",
+        "data specialist",
+        "business operations analyst",
+        "functional analyst",
+        "business transformation analyst",
+        "revenue analyst",
+        "sales operations analyst"
       ],
       "active": true
     },
@@ -77,7 +85,11 @@
         "ICT service desk",
         "service delivery coordinator",
         "IT operations officer",
-        "systems support analyst"
+        "systems support analyst",
+        "IT support coordinator",
+        "IT technician",
+        "technical service desk",
+        "IT service delivery analyst"
       ],
       "active": true
     },
@@ -108,7 +120,9 @@
         "graduate software tester",
         "technology implementation analyst",
         "IT project support officer",
-        "junior systems engineer"
+        "junior systems engineer",
+        "technology analyst",
+        "junior IT coordinator"
       ],
       "active": false
     },
@@ -139,7 +153,8 @@
         "office administrator",
         "program administrator",
         "clerical officer",
-        "reception and administration"
+        "reception and administration",
+        "team coordinator"
       ],
       "active": false
     }

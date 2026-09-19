@@ -193,3 +193,10 @@ def test_broader_supported_title_vocabulary_keeps_discoverable_roles_visible():
 def test_unrelated_analyst_work_is_still_kept_out_of_broader_vocabulary():
     result = score_job(Job("noise", "SEO Analyst", "Example", "Sydney", "test", "https://example.invalid", "Analytics and reporting."), RISHI_PROFILE)
     assert result.recommendation == "Skip"
+
+
+def test_broader_taxonomy_title_is_held_for_review_instead_of_discarded():
+    job = Job("reporting-officer", "Reporting Officer", "Example", "Sydney", "test", "https://example.test", "Build SQL reports and dashboards.")
+    result = score_job(job, RISHI_PROFILE)
+    assert result.recommendation != "Skip"
+    assert result.lane == "data_bi"
