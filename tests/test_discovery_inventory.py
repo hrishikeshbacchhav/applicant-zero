@@ -1,7 +1,8 @@
 from applicant_zero.scoring import Job
 from applicant_zero.storage import (
     deactivate_stale_broad_feed_inventory_records, discovery_inventory_summary, initialise_database,
-    list_inventory_employers, mark_company_inventory_jobs_inactive, save_discovery_inventory,
+    list_inventory_employers, mark_company_inventory_jobs_inactive, query_performance_summary,
+    record_query_measurements, save_discovery_inventory,
 )
 
 
@@ -60,3 +61,15 @@ def test_old_broad_feed_inventory_is_retired_without_deleting_it(tmp_path):
     assert deactivate_stale_broad_feed_inventory_records(database) == 1
     assert database.execute("SELECT is_active FROM discovery_inventory WHERE external_id = 'old'").fetchone()[0] == 0
     assert database.execute("SELECT is_active FROM discovery_inventory WHERE external_id = 'board'").fetchone()[0] == 1
+
+
+def test_query_performance_aggregates_relevant_yield_without_changing_inventory(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    report = type("Report", (), {"query": "data analyst", "location": "Sydney", "requests": 1, "returned": 10, "external_ids": ("one",), "error": ""})()
+    record_query_measurements(database, [report], {"one"})
+    record_query_measurements(database, [report], set())
+    row = query_performance_summary(database)[0]
+    assert row["runs"] == 2
+    assert row["returned"] == 20
+    assert row["relevant"] == 1
+    assert row["relevance_rate"] == 5.0

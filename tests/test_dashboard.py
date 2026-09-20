@@ -55,6 +55,7 @@ def test_discovery_page_shows_latest_source_contribution(tmp_path):
     assert "source records in inventory" in page
     assert "Employers observed in the discovery index" in page
     assert "Adzuna" in page
+    assert "30-day query performance" in page
 
 
 def test_search_campaigns_page_exposes_candidate_controlled_role_groups(tmp_path):

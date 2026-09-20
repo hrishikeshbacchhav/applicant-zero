@@ -707,6 +707,36 @@ def recent_query_measurements(connection: sqlite3.Connection, limit: int = 24) -
     return [dict(row) for row in rows]
 
 
+def query_performance_summary(connection: sqlite3.Connection, days: int = 30, limit: int = 20) -> list[dict]:
+    """Aggregate query yield for practical campaign tuning.
+
+    This uses only local measurements. It does not change a campaign, trigger
+    a provider call or imply that a high-volume query is a good candidate fit.
+    """
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        """
+        SELECT query, location, COUNT(*) AS runs, SUM(request_count) AS requests,
+               SUM(returned_count) AS returned, SUM(relevant_count) AS relevant,
+               SUM(CASE WHEN error != '' THEN 1 ELSE 0 END) AS issues,
+               MAX(completed_at) AS last_checked
+        FROM query_measurements
+        WHERE completed_at >= datetime('now', ?)
+        GROUP BY query, location
+        ORDER BY relevant DESC, returned DESC, last_checked DESC, query
+        LIMIT ?
+        """,
+        (f"-{max(1, int(days))} days", max(1, limit)),
+    ).fetchall()
+    summary = []
+    for row in rows:
+        item = dict(row)
+        returned = int(item["returned"] or 0)
+        item["relevance_rate"] = round((int(item["relevant"] or 0) / returned) * 100, 1) if returned else 0.0
+        summary.append(item)
+    return summary
+
+
 def latest_refresh_run(connection: sqlite3.Connection) -> dict | None:
     connection.row_factory = sqlite3.Row
     row = connection.execute(
