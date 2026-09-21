@@ -35,7 +35,7 @@ from .runtime import backup_database, database_path, prepare_state, recover_data
 from .resume_evidence import ResumeEvidenceError, create_resume_evidence_inventory
 from .gmail_sync import GmailSetupError, connect_gmail, sync_gmail
 from .provider_trials import ProviderTrialError, assess_trial_sample, load_trial_sample
-from .sources.jobdatalake import run_trial as run_jobdatalake_trial
+from .sources.jobdatalake import run_trial as run_jobdatalake_trial, run_trial_plan as run_jobdatalake_trial_plan
 from .licensed_providers import enabled_licensed_providers, provider_remaining_today, record_provider_requests
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -82,7 +82,6 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     licensed_requests: dict[str, int] = {}
     licensed_failures: dict[str, int] = {}
     provider_notes: list[str] = []
-    unique_queries = list(dict.fromkeys(query for query, _ in query_plan))
     for provider in enabled_licensed_providers(state):
         allowance = min(provider.max_requests_per_refresh, provider_remaining_today(state, provider))
         if allowance <= 0:
@@ -91,7 +90,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         if provider.identifier != "jobdatalake":
             provider_notes.append(f"{provider.label} has no adapter installed")
             continue
-        provider_jobs, provider_reports = run_jobdatalake_trial(state, unique_queries, max_requests=allowance)
+        provider_jobs, provider_reports = run_jobdatalake_trial_plan(state, query_plan, max_requests=allowance)
         used = sum(report.requests for report in provider_reports)
         record_provider_requests(state, provider, used)
         licensed_jobs.extend(provider_jobs)

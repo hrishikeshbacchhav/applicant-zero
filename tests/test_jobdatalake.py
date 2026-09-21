@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from applicant_zero.sources.jobdatalake import _job_from_result, build_search_url, run_trial
+from applicant_zero.sources.jobdatalake import _job_from_result, build_search_url, run_trial, run_trial_plan
 
 
 def test_jobdatalake_url_is_australia_and_full_time_scoped():
@@ -43,3 +43,12 @@ def test_trial_with_no_local_key_is_reported_without_consuming_a_request(tmp_pat
     assert jobs == []
     assert reports[0].requests == 0
     assert "Missing JOBDATALAKE_API_KEY" in reports[0].error
+
+
+def test_provider_trial_plan_preserves_each_bounded_search_location(tmp_path, monkeypatch):
+    monkeypatch.setenv("JOBDATALAKE_API_KEY", "test-key")
+    job = _job_from_result({"job_handle": "one", "title": "Data Analyst", "company_name": "Example", "locations": ["NSW"]})
+    with patch("applicant_zero.sources.jobdatalake.fetch_jobs", return_value=[job]) as fetch:
+        _, reports = run_trial_plan(tmp_path, [("data analyst", "Sydney"), ("data analyst", "NSW")], max_requests=2)
+    assert [call.kwargs["location"] for call in fetch.call_args_list] == ["Sydney", "NSW"]
+    assert [report.location for report in reports] == ["Sydney", "NSW"]

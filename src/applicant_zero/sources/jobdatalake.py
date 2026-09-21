@@ -18,6 +18,7 @@ class LicensedFetchReport:
     requests: int
     returned: int
     error: str = ""
+    location: str = "Sydney"
 
 
 def build_search_url(api_key: str, query: str, *, page: int = 1, location: str = "Sydney", country: str = "AU") -> str:
@@ -84,22 +85,37 @@ def fetch_jobs(project_root: Path, query: str, *, page: int = 1, location: str =
     return [_job_from_result(row) for row in rows if isinstance(row, dict)]
 
 
-def run_trial(project_root: Path, queries: list[str], *, max_requests: int = 5) -> tuple[list[Job], list[LicensedFetchReport]]:
-    """Run a small no-retry provider evaluation, never an unbounded backfill."""
+def run_trial_plan(
+    project_root: Path, query_plan: list[tuple[str, str]], *, max_requests: int = 5
+) -> tuple[list[Job], list[LicensedFetchReport]]:
+    """Run a bounded provider trial while retaining each search location.
+
+    The provider is optional, but if enabled it must use the same Sydney/NSW
+    discovery policy as the primary broad feed. Collapsing a plan to just
+    query text silently drops state-labelled listings, so this function keeps
+    the pair intact.
+    """
     jobs_by_id: dict[str, Job] = {}
     reports: list[LicensedFetchReport] = []
     if not has_credentials(project_root):
         return [], [LicensedFetchReport(
             "provider setup", 0, 0,
             "Missing JOBDATALAKE_API_KEY. Add it locally to .env before running a provider trial.",
+            "",
         )]
-    for query in [value.strip() for value in queries if value.strip()][:max(0, min(max_requests, 20))]:
+    selected = [(query.strip(), location.strip() or "Sydney") for query, location in query_plan if query.strip()]
+    for query, location in selected[:max(0, min(max_requests, 20))]:
         try:
-            jobs = fetch_jobs(project_root, query)
+            jobs = fetch_jobs(project_root, query, location=location)
         except (OSError, RuntimeError, ValueError) as error:
-            reports.append(LicensedFetchReport(query, 1, 0, str(error)))
+            reports.append(LicensedFetchReport(query, 1, 0, str(error), location))
             continue
         for job in jobs:
             jobs_by_id[job.external_id] = job
-        reports.append(LicensedFetchReport(query, 1, len(jobs)))
+        reports.append(LicensedFetchReport(query, 1, len(jobs), "", location))
     return list(jobs_by_id.values()), reports
+
+
+def run_trial(project_root: Path, queries: list[str], *, max_requests: int = 5) -> tuple[list[Job], list[LicensedFetchReport]]:
+    """Compatibility wrapper for a one-location manual provider trial."""
+    return run_trial_plan(project_root, [(query, "Sydney") for query in queries], max_requests=max_requests)
