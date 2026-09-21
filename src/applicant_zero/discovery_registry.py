@@ -133,6 +133,34 @@ def load_sources(path: Path) -> list[DiscoverySource]:
     return [DiscoverySource(row["id"], row["label"], row["mode"], row["cadence"], tuple(row["role_lanes"])) for row in _load(path)]
 
 
+def add_public_board_urls(
+    state_root: Path, starter_path: Path, rows: list[dict[str, str]]
+) -> tuple[int, int, list[str]]:
+    """Import a reviewed batch of employer public-careers URLs.
+
+    This is deliberately a registry operation, not a crawler: each row must
+    name its employer and provide the employer's own public ATS URL. Valid
+    board identifiers are saved locally; malformed and unsupported URLs are
+    returned to the caller without blocking the remainder of the batch.
+    """
+    created = existing = 0
+    rejected: list[str] = []
+    for index, row in enumerate(rows, start=2):
+        company = str(row.get("company", "")).strip()
+        url = str(row.get("careers_url", row.get("board_url", ""))).strip()
+        try:
+            _, was_created = add_public_board_url(state_root, starter_path, company, url)
+        except (TypeError, ValueError) as error:
+            label = company or f"row {index}"
+            rejected.append(f"{label}: {error}")
+            continue
+        if was_created:
+            created += 1
+        else:
+            existing += 1
+    return created, existing, rejected
+
+
 def load_targets(path: Path, expansion_path: Path | None = None) -> list[TargetCompany]:
     """Load maintained priority targets plus the optional employer universe.
 

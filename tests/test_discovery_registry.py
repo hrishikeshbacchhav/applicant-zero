@@ -2,7 +2,7 @@ import json
 import pytest
 from pathlib import Path
 
-from applicant_zero.discovery_registry import add_public_board, add_public_board_url, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_recruitment_source_targets, load_sources, load_targets, public_board_from_url
+from applicant_zero.discovery_registry import add_public_board, add_public_board_url, add_public_board_urls, board_coverage, board_health_summary, discovery_overview, employer_coverage_rows, load_recruitment_source_targets, load_sources, load_targets, public_board_from_url
 from applicant_zero.discovery_priority import prioritise_targets
 
 
@@ -139,3 +139,16 @@ def test_candidate_can_save_a_public_board_from_its_url(tmp_path):
     entry, created = add_public_board_url(tmp_path / "state", starter, "Example", "https://jobs.lever.co/example")
     assert created is True
     assert entry == {"company": "Example", "ats": "lever", "token": "example"}
+
+
+def test_batch_public_board_import_keeps_valid_rows_and_reports_bad_urls(tmp_path):
+    starter = tmp_path / "starter.json"
+    starter.write_text("[]", encoding="utf-8")
+    created, existing, rejected = add_public_board_urls(tmp_path / "state", starter, [
+        {"company": "Lever Example", "careers_url": "https://jobs.lever.co/example"},
+        {"company": "Unsupported", "careers_url": "https://example.com/careers"},
+        {"company": "Duplicate", "careers_url": "https://jobs.lever.co/example"},
+    ])
+    assert (created, existing) == (1, 1)
+    assert len(rejected) == 1
+    assert "Unsupported" in rejected[0]

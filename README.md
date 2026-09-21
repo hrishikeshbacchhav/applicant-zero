@@ -64,7 +64,14 @@ python -m applicant_zero --company-boards data/company_boards.json
 
 The private company-board list is excluded from Git. This command only reads public job listings and records matching results locally; it does not open or submit an application.
 
-For the Sydney pilot, a public starter list of 20 currently verified company boards is already included. Run:
+For a larger reviewed list, create a CSV with `company,careers_url` columns and import the public ATS URLs in one step. Unsupported URLs are reported and skipped; the next normal refresh validates the saved public boards.
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/import_public_board_urls.py C:\path\to\public_boards.csv
+```
+
+For the Sydney pilot, a public starter list of verified company boards is already included. Run:
 
 ```powershell
 $env:PYTHONPATH = "src"
