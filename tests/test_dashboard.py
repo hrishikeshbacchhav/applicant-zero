@@ -54,6 +54,7 @@ def test_discovery_page_shows_latest_source_contribution(tmp_path):
     assert "Latest source contribution" in page
     assert "source records in inventory" in page
     assert "Employers observed in the discovery index" in page
+    assert "Download active discovery index CSV" in page
     assert "Adzuna" in page
     assert "30-day query performance" in page
 

@@ -91,3 +91,31 @@ def tracker_csv(database_path: Path) -> str:
             "follow_up_status": followup.get("status", ""), "notes": job["notes"],
         })
     return output.getvalue()
+
+
+def discovery_inventory_csv(database_path: Path) -> str:
+    """Export current raw discovery records without mixing in tracker data."""
+    with initialise_database(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+        records = connection.execute(
+            """SELECT external_id, title, company, location, source, url,
+                      canonical_key, first_seen_at, last_seen_at
+               FROM discovery_inventory
+               WHERE is_active = 1
+               ORDER BY last_seen_at DESC, company, title"""
+        ).fetchall()
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(output, fieldnames=[
+        "external_id", "role", "company", "location", "source", "listing_url",
+        "canonical_listing_key", "first_seen", "last_seen",
+    ])
+    writer.writeheader()
+    for record in records:
+        writer.writerow({
+            "external_id": record["external_id"], "role": record["title"],
+            "company": record["company"], "location": record["location"],
+            "source": record["source"], "listing_url": record["url"],
+            "canonical_listing_key": record["canonical_key"],
+            "first_seen": record["first_seen_at"], "last_seen": record["last_seen_at"],
+        })
+    return output.getvalue()

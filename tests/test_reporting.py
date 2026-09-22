@@ -1,7 +1,7 @@
 from applicant_zero.profile import RISHI_PROFILE
-from applicant_zero.reporting import outcome_summary, progress_breakdown, tracker_csv
+from applicant_zero.reporting import discovery_inventory_csv, outcome_summary, progress_breakdown, tracker_csv
 from applicant_zero.scoring import Job, score_job
-from applicant_zero.storage import initialise_database, save_match, save_submission_proof, update_workflow
+from applicant_zero.storage import initialise_database, save_discovery_inventory, save_match, save_submission_proof, update_workflow
 
 
 def test_tracker_export_contains_job_status_and_followup(tmp_path):
@@ -16,6 +16,21 @@ def test_tracker_export_contains_job_status_and_followup(tmp_path):
     assert "Data Analyst" in export
     assert "Applied" in export
     assert "Due" in export
+
+
+def test_discovery_inventory_export_only_contains_current_source_records(tmp_path):
+    database_path = tmp_path / "jobs.sqlite3"
+    database = initialise_database(database_path)
+    current = Job("current", "Data Analyst", "Example", "Sydney", "Adzuna", "https://example.invalid/current", "SQL")
+    expired = Job("expired", "Old Analyst", "Old Co", "Sydney", "Lever", "https://example.invalid/expired", "")
+    save_discovery_inventory(database, [current, expired])
+    database.execute("UPDATE discovery_inventory SET is_active = 0 WHERE external_id = ?", ("expired",))
+    database.commit()
+    export = discovery_inventory_csv(database_path)
+    assert "canonical_listing_key" in export
+    assert "Data Analyst" in export
+    assert "Old Analyst" not in export
+    assert "https://example.invalid/current" in export
 
 
 def test_outcome_summary_reports_submissions_and_interviews(tmp_path):
