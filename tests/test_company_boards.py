@@ -54,6 +54,19 @@ def test_smartrecruiters_mapping_reads_public_listing_and_detail():
     assert "technical support" in jobs[0].description
 
 
+def test_smartrecruiters_mapping_pages_a_large_public_board_with_a_bounded_cap():
+    first = [{"id": str(index), "name": f"Role {index}", "location": {"city": "Sydney"}} for index in range(100)]
+    second = [{"id": "101", "name": "Role 101", "location": {"city": "Sydney"}}]
+    listing_first = {"totalFound": 101, "content": first}
+    listing_second = {"totalFound": 101, "content": second}
+    detail = {"jobAd": {"sections": {"jobDescription": {"text": "Role detail"}}}}
+    with patch("applicant_zero.sources.company_boards._get_json", side_effect=[listing_first, listing_second, *([detail] * 101)]) as get:
+        jobs = _smartrecruiters_jobs("Example", "Example")
+    assert len(jobs) == 101
+    assert "offset=0" in get.call_args_list[0].args[0]
+    assert "offset=100" in get.call_args_list[1].args[0]
+
+
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([
@@ -205,4 +218,5 @@ def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 101) == 2
     assert _request_count_for_board("workday", 501) == 5
     assert _request_count_for_board("smartrecruiters", 3) == 4
+    assert _request_count_for_board("smartrecruiters", 101) == 103
     assert _request_count_for_board("lever", 40) == 1

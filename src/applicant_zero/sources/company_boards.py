@@ -115,9 +115,29 @@ def _plain_text(value: object) -> str:
 
 
 def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
-    """Read an employer's public SmartRecruiters board and its detail records."""
-    payload = _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings?limit=100&offset=0")
-    postings = payload.get("content", []) if isinstance(payload, dict) else []
+    """Read an employer's public SmartRecruiters board and detail records.
+
+    SmartRecruiters returns a page of up to one hundred postings.  Large
+    employers commonly have more than one page, so read up to five public
+    pages (five hundred postings) before following the per-listing detail
+    records.  The cap keeps a single company from turning a scheduled refresh
+    into an unbounded crawl.
+    """
+    postings: list[dict] = []
+    total: int | None = None
+    for offset in range(0, 500, 100):
+        payload = _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings?limit=100&offset={offset}")
+        if not isinstance(payload, dict):
+            break
+        page = [item for item in payload.get("content", []) if isinstance(item, dict)]
+        postings.extend(page)
+        if total is None:
+            try:
+                total = max(0, int(payload.get("totalFound", payload.get("total", len(page)))))
+            except (TypeError, ValueError):
+                total = len(page)
+        if len(page) < 100 or len(postings) >= total:
+            break
     jobs: list[Job] = []
     for item in postings:
         if not isinstance(item, dict) or not item.get("id"):
@@ -345,8 +365,10 @@ def _request_count_for_board(ats: str, job_count: int) -> int:
         # read for an empty board and a hard 500-job cap.
         return max(1, min(5, (max(0, job_count) + 99) // 100))
     if normalized == "smartrecruiters":
-        # One listing request plus one public detail request per returned job.
-        return 1 + max(0, job_count)
+        # One request for each 100-posting public listing page (capped at five)
+        # plus one ordinary public detail request per returned job.
+        listing_pages = max(1, min(5, (max(0, job_count) + 99) // 100))
+        return listing_pages + max(0, job_count)
     return 1
 
 
