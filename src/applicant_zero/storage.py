@@ -281,6 +281,22 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     measurement_columns = {row[1] for row in connection.execute("PRAGMA table_info(source_measurements)")}
     if "batch_id" not in measurement_columns:
         connection.execute("ALTER TABLE source_measurements ADD COLUMN batch_id TEXT NOT NULL DEFAULT ''")
+    # Canonical keys are derived data used only for coverage and duplicate
+    # reporting. Refresh older rows here when the normalisation improves, so a
+    # dashboard opened before the next source refresh does not retain stale
+    # duplicate counts.
+    inventory_rows = connection.execute(
+        "SELECT external_id, company, title, location, canonical_key FROM discovery_inventory"
+    ).fetchall()
+    corrected_keys = [
+        (_inventory_key(Job(row[0], row[2], row[1], row[3], "", "", "")), row[0])
+        for row in inventory_rows
+        if row[4] != _inventory_key(Job(row[0], row[2], row[1], row[3], "", "", ""))
+    ]
+    if corrected_keys:
+        connection.executemany(
+            "UPDATE discovery_inventory SET canonical_key = ? WHERE external_id = ?", corrected_keys
+        )
     connection.commit()
     return connection
 
@@ -306,8 +322,36 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
 
 
 def _inventory_key(job: Job) -> str:
-    values = (job.company, job.title, job.location)
-    return "|".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip() for value in values)
+    """Build a cautious cross-source listing identity for coverage reporting.
+
+    Providers regularly vary an employer's legal suffix and format a Greater
+    Sydney location as a suburb, ``Sydney`` or ``Sydney, NSW``.  Those are
+    syndicated copies of the same likely listing far more often than distinct
+    openings.  The raw source records remain separate; this key only improves
+    the distinct-listing count and source-overlap analysis.
+    """
+    def normalise(value: object) -> str:
+        return re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
+
+    company = normalise(job.company)
+    company = re.sub(r"\b(?:pty|ltd|limited|inc|llc|plc)\b", "", company)
+    company = re.sub(r"\s+", " ", company).strip()
+    title = normalise(job.title)
+    location = normalise(job.location)
+    greater_sydney = (
+        "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
+        "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
+        "ryde", "rhodes", "homebush", "olympic park", "strathfield", "burwood",
+        "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
+        "bella vista", "milsons point", "circular quay", "botany", "waterloo",
+    )
+    if "sydney" in location or any(place in location for place in greater_sydney):
+        location = "greater sydney"
+    elif "remote" in location and "australia" in location:
+        location = "remote australia"
+    elif "nsw" in location or "new south wales" in location:
+        location = "nsw"
+    return "|".join((company, title, location))
 
 
 def save_discovery_inventory(connection: sqlite3.Connection, jobs: list[Job]) -> None:

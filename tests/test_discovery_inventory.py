@@ -38,6 +38,17 @@ def test_inventory_groups_employers_across_sources(tmp_path):
     assert {"Adzuna", "Lever"}.issubset(set(employer["sources"].split(",")))
 
 
+def test_inventory_groups_syndicated_sydney_variants_without_removing_raw_records(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_discovery_inventory(database, [
+        Job("adzuna", "Data Analyst", "Example Pty Ltd", "Sydney, NSW", "Adzuna", "https://one", ""),
+        Job("board", "Data Analyst", "Example", "Parramatta", "Lever", "https://two", ""),
+    ])
+    assert discovery_inventory_summary(database) == {"collected": 2, "canonical": 1, "companies": 2}
+    raw = database.execute("SELECT COUNT(*) FROM discovery_inventory").fetchone()[0]
+    assert raw == 2
+
+
 def test_successful_board_snapshot_retires_only_that_company_and_source(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     save_discovery_inventory(database, [
