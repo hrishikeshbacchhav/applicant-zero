@@ -138,18 +138,27 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
                 total = len(page)
         if len(page) < 100 or len(postings) >= total:
             break
-    jobs: list[Job] = []
-    for item in postings:
-        if not isinstance(item, dict) or not item.get("id"):
-            continue
+    valid_postings = [item for item in postings if item.get("id")]
+
+    def detail_for(item: dict) -> dict | list:
         posting_id = str(item["id"])
-        detail: dict | list = {}
         try:
-            detail = _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings/{posting_id}")
+            return _get_json(f"https://api.smartrecruiters.com/v1/companies/{token}/postings/{posting_id}")
         except (OSError, ValueError, KeyError, TypeError):
             # The public listing is still useful for title and location review
             # when a single detail record is unavailable.
-            detail = {}
+            return {}
+
+    # Detail records carry the descriptions needed for accurate local scoring.
+    # Read a small bounded group concurrently: it makes a 500-listing public
+    # board viable while staying far below an unbounded or evasive request
+    # pattern. ``map`` preserves the listing order for stable local results.
+    with ThreadPoolExecutor(max_workers=min(6, len(valid_postings) or 1), thread_name_prefix="applicant-zero-sr") as executor:
+        details = list(executor.map(detail_for, valid_postings))
+
+    jobs: list[Job] = []
+    for item, detail in zip(valid_postings, details):
+        posting_id = str(item["id"])
         location = item.get("location", {}) if isinstance(item.get("location"), dict) else {}
         location_text = ", ".join(str(location.get(key, "")).strip() for key in ("city", "region", "country") if str(location.get(key, "")).strip()) or "Unknown location"
         detail_dict = detail if isinstance(detail, dict) else {}
