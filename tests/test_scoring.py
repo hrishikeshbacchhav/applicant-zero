@@ -107,6 +107,23 @@ def test_remote_australia_is_kept_for_location_arrangement_review():
     assert "location-flexible" in " ".join(result.reasons)
 
 
+def test_generic_provider_location_can_use_explicit_remote_australia_description():
+    result = score_job(Job("remote-description", "Data Analyst", "Example", "Australia", "test", "https://example.invalid", "This is a remote role available anywhere in Australia. SQL and Power BI."), RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "location-flexible" in " ".join(result.reasons)
+
+
+def test_generic_provider_location_can_use_explicit_sydney_workplace_description():
+    result = score_job(Job("sydney-description", "Data Analyst", "Example", "Unknown location", "test", "https://example.invalid", "This hybrid role is based in Sydney, NSW. SQL and Power BI."), RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "generic location" in " ".join(result.reasons)
+
+
+def test_named_interstate_location_is_not_overridden_by_description_city_mentions():
+    result = score_job(Job("interstate-description", "Data Analyst", "Example", "Melbourne, VIC", "test", "https://example.invalid", "Our Sydney office also has reporting teams using SQL and Power BI."), RISHI_PROFILE)
+    assert result.recommendation == "Skip"
+
+
 def test_inactive_campaign_lane_does_not_clutter_the_active_queue():
     job = Job("admin", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid", "Administration and customer service")
     result = score_job(job, RISHI_PROFILE, {"data_bi"})

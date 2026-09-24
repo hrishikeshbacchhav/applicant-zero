@@ -122,6 +122,32 @@ def _evidence_gaps(description: str) -> tuple[str, ...]:
     return tuple(label for pattern, label in EVIDENCE_CHECK_PATTERNS if re.search(pattern, description))
 
 
+def _location_signals(location: str, description: str) -> tuple[bool, bool, bool, bool]:
+    """Classify location without losing a provider's generic Australia label.
+
+    Broad and ATS providers sometimes put ``Australia`` or ``Remote`` in the
+    location field while giving the actual Sydney or Australia-remote
+    arrangement only in the public description.  Use that description only
+    when the provider label is generic; a named interstate location still wins
+    and cannot be overwritten by incidental wording elsewhere in the ad.
+    """
+    named_sydney = "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
+    interstate = any(place in location for place in (
+        "melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia",
+    ))
+    nsw_only = "nsw" in location or "new south wales" in location
+    remote_australia = "remote" in location and not interstate
+    generic_location = not named_sydney and not interstate and not nsw_only and location.strip() in {
+        "", "unknown location", "australia", "remote", "hybrid", "australia remote",
+    }
+    if generic_location:
+        # These phrases express the role's work arrangement rather than merely
+        # mentioning a city in a company overview.
+        remote_australia = remote_australia or bool(re.search(r"\bremote\b.{0,50}\baustralia\b|\baustralia\b.{0,50}\bremote\b", description))
+        named_sydney = named_sydney or bool(re.search(r"\b(?:based|located|office|workplace|hybrid)\b.{0,40}\bsydney\b|\bsydney\b.{0,40}\b(?:office|workplace|hybrid)\b", description))
+    return named_sydney, remote_australia, nsw_only, generic_location
+
+
 def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None = None) -> MatchResult:
     title = _normalise(job.title)
     description = _normalise(job.description)
@@ -133,10 +159,8 @@ def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None
         family = lane.resume_family
     reasons: list[str] = []
 
-    named_sydney_location = "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
-    remote_australia = "remote" in location and not any(place in location for place in ("melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia"))
+    named_sydney_location, remote_australia, nsw_only, description_location_used = _location_signals(location, description)
     exact_location = named_sydney_location or remote_australia
-    nsw_only = "nsw" in location or "new south wales" in location
     if not exact_location and not nsw_only:
         return MatchResult("Skip", 0, None, None, (), (), ("Location is outside the current Sydney, hybrid or remote policy.",))
 
@@ -229,6 +253,8 @@ def score_job(job: Job, profile: CandidateProfile, active_lanes: set[str] | None
         reasons.insert(0, "The listing is located in Greater Sydney and is included in the Sydney search area.")
     elif remote_australia:
         reasons.insert(0, "The listing is marked remote or location-flexible; confirm the Australian work-location arrangement before applying.")
+    elif description_location_used:
+        reasons.insert(0, "The provider gave only a generic location; the public description indicates a Sydney work arrangement. Confirm it on the original listing before applying.")
 
     recommendation = "Strong apply" if score >= 78 else "Apply" if score >= 62 else "Review"
     if not matched:
