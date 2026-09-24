@@ -1,4 +1,4 @@
-from applicant_zero.discovery_measurements import canonical_unique_jobs, measure_sources
+from applicant_zero.discovery_measurements import canonical_listing_key, canonical_unique_jobs, measure_sources
 from applicant_zero.provider_trials import assess_trial_sample
 from applicant_zero.scoring import Job
 from applicant_zero.sources.adzuna import QueryFetchReport
@@ -25,6 +25,12 @@ def test_canonical_unique_jobs_does_not_inflate_syndicated_listing_counts():
     jobs = [job("a", "Adzuna"), job("b", "Lever"), job("c", "Lever", title="Support Analyst")]
     unique = canonical_unique_jobs(jobs)
     assert [item.external_id for item in unique] == ["a", "c"]
+
+
+def test_canonical_key_aligns_suburb_and_legal_company_variants():
+    broad = job("broad", "Adzuna", company="Example Pty Ltd", location="Sydney, NSW")
+    direct = job("direct", "Lever", company="Example", location="Parramatta")
+    assert canonical_listing_key(broad) == canonical_listing_key(direct)
 
 
 def test_latest_source_measurements_are_persisted(tmp_path):

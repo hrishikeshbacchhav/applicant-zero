@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from .scoring import Job, MatchResult
+from .discovery_measurements import canonical_listing_key
 
 
 def initialise_database(path: Path) -> sqlite3.Connection:
@@ -322,36 +323,8 @@ def save_match(connection: sqlite3.Connection, job: Job, result: MatchResult) ->
 
 
 def _inventory_key(job: Job) -> str:
-    """Build a cautious cross-source listing identity for coverage reporting.
-
-    Providers regularly vary an employer's legal suffix and format a Greater
-    Sydney location as a suburb, ``Sydney`` or ``Sydney, NSW``.  Those are
-    syndicated copies of the same likely listing far more often than distinct
-    openings.  The raw source records remain separate; this key only improves
-    the distinct-listing count and source-overlap analysis.
-    """
-    def normalise(value: object) -> str:
-        return re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
-
-    company = normalise(job.company)
-    company = re.sub(r"\b(?:pty|ltd|limited|inc|llc|plc)\b", "", company)
-    company = re.sub(r"\s+", " ", company).strip()
-    title = normalise(job.title)
-    location = normalise(job.location)
-    greater_sydney = (
-        "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
-        "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
-        "ryde", "rhodes", "homebush", "olympic park", "strathfield", "burwood",
-        "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
-        "bella vista", "milsons point", "circular quay", "botany", "waterloo",
-    )
-    if "sydney" in location or any(place in location for place in greater_sydney):
-        location = "greater sydney"
-    elif "remote" in location and "australia" in location:
-        location = "remote australia"
-    elif "nsw" in location or "new south wales" in location:
-        location = "nsw"
-    return "|".join((company, title, location))
+    """Use the shared listing identity for inventory and refresh telemetry."""
+    return canonical_listing_key(job)
 
 
 def save_discovery_inventory(connection: sqlite3.Connection, jobs: list[Job]) -> None:

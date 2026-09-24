@@ -7,10 +7,33 @@ from .scoring import Job
 
 
 def canonical_listing_key(job: Job) -> str:
-    """A conservative cross-source key for detecting likely syndication."""
-    def clean(value: str) -> str:
-        return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
-    return "|".join((clean(job.company), clean(job.title), clean(job.location)))
+    """Return the shared source-overlap identity used across discovery.
+
+    Source providers routinely differ on legal company suffixes and whether a
+    Greater Sydney listing is labelled with a suburb or city.  Keep raw source
+    records unchanged, but treat those forms as one likely syndicated listing
+    for counts, source contribution and duplicate analysis.
+    """
+    def clean(value: object) -> str:
+        return re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip()
+
+    company = re.sub(r"\b(?:pty|ltd|limited|inc|llc|plc)\b", "", clean(job.company))
+    company = re.sub(r"\s+", " ", company).strip()
+    location = clean(job.location)
+    greater_sydney = (
+        "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
+        "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
+        "ryde", "rhodes", "homebush", "olympic park", "strathfield", "burwood",
+        "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
+        "bella vista", "milsons point", "circular quay", "botany", "waterloo",
+    )
+    if "sydney" in location or any(place in location for place in greater_sydney):
+        location = "greater sydney"
+    elif "remote" in location and "australia" in location:
+        location = "remote australia"
+    elif "nsw" in location or "new south wales" in location:
+        location = "nsw"
+    return "|".join((company, clean(job.title), location))
 
 
 def canonical_unique_jobs(jobs: list[Job]) -> list[Job]:
