@@ -13,6 +13,7 @@ from .candidate_facts import ensure_fact_library
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
+from .sources.jobicy import fetch_jobs as fetch_jobicy_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .discovery_measurements import canonical_unique_jobs, measure_sources
@@ -78,6 +79,14 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     request_count = sum(report.requests for report in query_reports)
     query_errors = [report for report in query_reports if report.error]
     consume_discovery_query_plan(state, len(query_plan), request_count)
+    jobicy_jobs: list[Job] = []
+    jobicy_error = ""
+    try:
+        # One APAC page per normal refresh is well within the source's public
+        # fair-use guidance and adds an attributed remote-work supplement.
+        jobicy_jobs = fetch_jobicy_jobs()
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        jobicy_error = str(error)
     licensed_jobs: list[Job] = []
     licensed_requests: dict[str, int] = {}
     licensed_failures: dict[str, int] = {}
@@ -98,7 +107,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         failures = sum(bool(report.error) for report in provider_reports)
         licensed_failures[provider.label] = failures
         provider_notes.append(f"{provider.label} used {used} licensed request(s), {len(provider_jobs)} role(s) returned")
-    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *licensed_jobs]}.values())
+    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *licensed_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_discovery_inventory(database, jobs)
     save_board_checks(database, reports)
@@ -126,10 +135,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += f"; {pruned} old inactive discovery record(s) removed"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
+    if jobicy_error:
+        detail += "; Jobicy public remote feed issue skipped"
     if provider_notes:
         detail += "; " + "; ".join(provider_notes)
-    request_counts = {"Adzuna": request_count}
-    failure_counts = {"Adzuna": len(query_errors)}
+    request_counts = {"Adzuna": request_count, "Jobicy": 1}
+    failure_counts = {"Adzuna": len(query_errors), "Jobicy": int(bool(jobicy_error))}
     request_counts.update(licensed_requests)
     failure_counts.update(licensed_failures)
     for report in reports:

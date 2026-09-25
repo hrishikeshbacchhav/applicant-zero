@@ -41,6 +41,7 @@ SOURCE_CONTRACTS = (
     SourceContract("recruitee", "Recruitee", "transitional public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("workday", "Workday", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "prepare and open listing"),
+    SourceContract("jobicy", "Jobicy remote jobs", "public attributed API", "daily", "open the Jobicy listing"),
     SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "prepare and open listing"),
     SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "prepare and open listing"),
 )

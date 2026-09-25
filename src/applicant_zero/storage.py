@@ -477,7 +477,7 @@ def mark_company_inventory_jobs_inactive(
 
 
 def deactivate_stale_broad_feed_inventory_records(connection: sqlite3.Connection, days: int = 21) -> int:
-    """Hide old Adzuna inventory records while retaining them for audit.
+    """Hide old broad-feed inventory records while retaining them for audit.
 
     Broad search is sampled by rotating queries, so listings are only retired
     after a conservative unseen window. This keeps dashboard inventory, source
@@ -486,7 +486,7 @@ def deactivate_stale_broad_feed_inventory_records(connection: sqlite3.Connection
     cursor = connection.execute(
         """
         UPDATE discovery_inventory SET is_active = 0
-        WHERE lower(source) = 'adzuna'
+        WHERE lower(source) IN ('adzuna', 'jobicy')
           AND is_active = 1
           AND last_seen_at < datetime('now', ?)
         """,
@@ -522,7 +522,7 @@ def deactivate_stale_broad_feed_jobs(connection: sqlite3.Connection, days: int =
 
     Company boards have an authoritative snapshot on each successful refresh.
     A broad feed is query-based, so it cannot safely make that claim each run.
-    After a conservative window, untouched Adzuna listings are marked inactive
+    After a conservative window, untouched broad-feed listings are marked inactive
     until a later query sees them again. Candidate tracker stages are never
     changed by this maintenance step.
     """
@@ -530,7 +530,7 @@ def deactivate_stale_broad_feed_jobs(connection: sqlite3.Connection, days: int =
         """
         UPDATE job_matches
         SET is_active = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE lower(source) = 'adzuna'
+        WHERE lower(source) IN ('adzuna', 'jobicy')
           AND is_active = 1
           AND workflow_status = 'New'
           AND last_seen_at < datetime('now', ?)

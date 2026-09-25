@@ -48,6 +48,10 @@ python -m applicant_zero --adzuna --query "data analyst" --where "Sydney"
 
 The API's default documented access limit is 2,500 requests each month, which is sufficient for the local discovery-and-matching validation stage. Do not share the `.env` file or either API credential in chat or GitHub.
 
+## Public APAC remote supplement: Jobicy
+
+Each normal refresh also reads one capped, public Jobicy APAC remote-job page. It needs no account or API key and retains Jobicy’s own listing URL as the source link. Applicant Zero only promotes roles when the listing explicitly supports a Sydney or Australia-remote work arrangement; APAC eligibility alone stays out of the active review queue until the original listing confirms it.
+
 ## Company career-board discovery
 
 The preferred first live source is public company career boards. Greenhouse, Lever, Ashby, SmartRecruiters, Workable and Workday publish public job-board reads, so no candidate account or employer application credential is used to discover roles.
