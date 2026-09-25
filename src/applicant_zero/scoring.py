@@ -136,9 +136,9 @@ def _location_signals(location: str, description: str) -> tuple[bool, bool, bool
         "melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia",
     ))
     nsw_only = "nsw" in location or "new south wales" in location
-    remote_australia = "remote" in location and "australia" in location and not interstate
+    remote_australia = "remote" in location and ("australia" in location or "worldwide" in location) and not interstate
     generic_location = not named_sydney and not interstate and not nsw_only and location.strip() in {
-        "", "unknown location", "australia", "remote", "hybrid", "australia remote", "remote apac",
+        "", "unknown location", "australia", "remote", "hybrid", "australia remote", "remote apac", "worldwide", "remote worldwide",
     }
     if generic_location:
         # These phrases express the role's work arrangement rather than merely

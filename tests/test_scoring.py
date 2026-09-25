@@ -107,6 +107,12 @@ def test_remote_australia_is_kept_for_location_arrangement_review():
     assert "location-flexible" in " ".join(result.reasons)
 
 
+def test_remote_worldwide_is_kept_for_location_arrangement_review():
+    result = score_job(Job("remote-worldwide", "Data Analyst", "Example", "Remote, Worldwide", "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
+    assert result.recommendation in {"Apply", "Strong apply", "Review"}
+    assert "location-flexible" in " ".join(result.reasons)
+
+
 def test_generic_provider_location_can_use_explicit_remote_australia_description():
     result = score_job(Job("remote-description", "Data Analyst", "Example", "Australia", "test", "https://example.invalid", "This is a remote role available anywhere in Australia. SQL and Power BI."), RISHI_PROFILE)
     assert result.recommendation in {"Apply", "Strong apply", "Review"}
