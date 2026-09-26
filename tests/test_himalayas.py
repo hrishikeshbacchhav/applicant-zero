@@ -17,7 +17,7 @@ def test_himalayas_mapping_preserves_attribution_and_application_detail():
     })
     assert job.external_id == "himalayas:42"
     assert job.location == "Remote, Australia"
-    assert job.url == "https://himalayas.app/jobs"
+    assert job.url == "https://example.test/apply"
     assert "Application link: https://example.test/apply" in job.description
     assert "Compensation: 90000–100000 AUD per annual" in job.description
 

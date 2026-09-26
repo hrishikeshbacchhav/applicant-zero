@@ -165,6 +165,21 @@
     ]
   },
   {
+    "id": "weworkremotely",
+    "label": "We Work Remotely (Australia/worldwide supplement)",
+    "mode": "public_rss",
+    "cadence": "daily",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
     "id": "seek",
     "label": "SEEK",
     "mode": "manual_link",

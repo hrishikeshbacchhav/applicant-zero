@@ -60,6 +60,10 @@ Each normal refresh also reads one capped, public Remotive remote-jobs page. The
 
 Each normal refresh reads at most five small public Himalayas pages (100 roles maximum), following only cursors returned by its API. It keeps the Himalayas source link visible and retains the listing's published, employment and salary details plus the supplied application link for the candidate to verify. Only roles available in Australia or worldwide progress to review.
 
+## Public remote supplement: We Work Remotely
+
+Each normal refresh reads one public We Work Remotely RSS document and retains up to 100 current, attributed listing links. Only listings that explicitly state Australia or worldwide eligibility can progress to the review queue; all others remain out of scope.
+
 ## Company career-board discovery
 
 The preferred first live source is public company career boards. Greenhouse, Lever, Ashby, SmartRecruiters, Workable and Workday publish public job-board reads, so no candidate account or employer application credential is used to discover roles.

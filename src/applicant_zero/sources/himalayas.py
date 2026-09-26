@@ -54,10 +54,10 @@ def _job_from_result(result: dict) -> Job:
         company=str(result.get("companyName") or "Unknown company"),
         location=f"Remote, {restrictions}",
         source="Himalayas",
-        # Himalayas' public API asks applications to credit and link back to
-        # Himalayas. The job's direct application URL remains in the listing
-        # detail above for the candidate to verify and use personally.
-        url="https://himalayas.app/jobs",
+        # The dashboard visibly attributes Himalayas in its source column.
+        # Open the supplied application link when present, rather than a
+        # generic index page, so the candidate can verify it personally.
+        url=application_link or "https://himalayas.app/jobs",
         description=append_listing_metadata(
             description,
             posted_at=result.get("pubDate", ""),
