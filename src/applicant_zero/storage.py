@@ -486,7 +486,7 @@ def deactivate_stale_broad_feed_inventory_records(connection: sqlite3.Connection
     cursor = connection.execute(
         """
         UPDATE discovery_inventory SET is_active = 0
-        WHERE lower(source) IN ('adzuna', 'jobicy', 'remotive')
+        WHERE lower(source) IN ('adzuna', 'jobicy', 'remotive', 'himalayas')
           AND is_active = 1
           AND last_seen_at < datetime('now', ?)
         """,
@@ -530,7 +530,7 @@ def deactivate_stale_broad_feed_jobs(connection: sqlite3.Connection, days: int =
         """
         UPDATE job_matches
         SET is_active = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE lower(source) IN ('adzuna', 'jobicy', 'remotive')
+        WHERE lower(source) IN ('adzuna', 'jobicy', 'remotive', 'himalayas')
           AND is_active = 1
           AND workflow_status = 'New'
           AND last_seen_at < datetime('now', ?)

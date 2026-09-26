@@ -15,6 +15,7 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
 from .sources.jobicy import fetch_jobs as fetch_jobicy_jobs
 from .sources.remotive import fetch_jobs as fetch_remotive_jobs
+from .sources.himalayas import fetch_jobs_with_report as fetch_himalayas_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .discovery_measurements import canonical_unique_jobs, measure_sources
@@ -96,6 +97,16 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         remotive_jobs = fetch_remotive_jobs()
     except (OSError, ValueError, json.JSONDecodeError) as error:
         remotive_error = str(error)
+    himalayas_jobs: list[Job] = []
+    himalayas_requests = 0
+    himalayas_error = ""
+    try:
+        # Himalayas refreshes its public source daily. This bounded 100-role
+        # slice follows only API-supplied cursors and retains attribution.
+        himalayas_jobs, himalayas_report = fetch_himalayas_jobs()
+        himalayas_requests = himalayas_report.requests
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        himalayas_error = str(error)
     licensed_jobs: list[Job] = []
     licensed_requests: dict[str, int] = {}
     licensed_failures: dict[str, int] = {}
@@ -116,7 +127,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         failures = sum(bool(report.error) for report in provider_reports)
         licensed_failures[provider.label] = failures
         provider_notes.append(f"{provider.label} used {used} licensed request(s), {len(provider_jobs)} role(s) returned")
-    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *remotive_jobs, *licensed_jobs]}.values())
+    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *remotive_jobs, *himalayas_jobs, *licensed_jobs]}.values())
     database = initialise_database(database_path(ROOT))
     save_discovery_inventory(database, jobs)
     save_board_checks(database, reports)
@@ -148,10 +159,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += "; Jobicy public remote feed issue skipped"
     if remotive_error:
         detail += "; Remotive public remote feed issue skipped"
+    if himalayas_error:
+        detail += "; Himalayas public remote feed issue skipped"
     if provider_notes:
         detail += "; " + "; ".join(provider_notes)
-    request_counts = {"Adzuna": request_count, "Jobicy": 1, "Remotive": 1}
-    failure_counts = {"Adzuna": len(query_errors), "Jobicy": int(bool(jobicy_error)), "Remotive": int(bool(remotive_error))}
+    request_counts = {"Adzuna": request_count, "Jobicy": 1, "Remotive": 1, "Himalayas": himalayas_requests}
+    failure_counts = {"Adzuna": len(query_errors), "Jobicy": int(bool(jobicy_error)), "Remotive": int(bool(remotive_error)), "Himalayas": int(bool(himalayas_error))}
     request_counts.update(licensed_requests)
     failure_counts.update(licensed_failures)
     for report in reports:

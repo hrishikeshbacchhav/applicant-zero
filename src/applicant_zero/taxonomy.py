@@ -43,6 +43,7 @@ SOURCE_CONTRACTS = (
     SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "prepare and open listing"),
     SourceContract("jobicy", "Jobicy remote jobs", "public attributed API", "daily", "open the Jobicy listing"),
     SourceContract("remotive", "Remotive remote jobs", "public attributed API", "daily", "open the Remotive listing"),
+    SourceContract("himalayas", "Himalayas remote jobs", "public attributed API", "daily", "open the Himalayas listing"),
     SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "prepare and open listing"),
     SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "prepare and open listing"),
 )

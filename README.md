@@ -56,6 +56,10 @@ Each normal refresh also reads one capped, public Jobicy APAC remote-job page. I
 
 Each normal refresh also reads one capped, public Remotive remote-jobs page. The original Remotive listing URL and source attribution are retained. The dashboard only promotes roles explicitly open to Australia or worldwide remote candidates; every remote work arrangement remains a review point on the original listing.
 
+## Public remote supplement: Himalayas
+
+Each normal refresh reads at most five small public Himalayas pages (100 roles maximum), following only cursors returned by its API. It keeps the Himalayas source link visible and retains the listing's published, employment and salary details plus the supplied application link for the candidate to verify. Only roles available in Australia or worldwide progress to review.
+
 ## Company career-board discovery
 
 The preferred first live source is public company career boards. Greenhouse, Lever, Ashby, SmartRecruiters, Workable and Workday publish public job-board reads, so no candidate account or employer application credential is used to discover roles.
