@@ -113,6 +113,8 @@ The queue starts with **Current listings** and **Live sources** enabled, so expi
 
 Applicant Zero records when each role was first and last seen. Repeated copies with the same company, title and location are combined in the queue, while their underlying records remain available locally. During the normal daily refresh, hard-skip results are counted but not added to the local tracker. Old inactive, untouched discovery records are removed after 60 days; imported roles and any role you have saved, prepared or tracked are retained. Tracker notes survive every refresh, and the first move to **Applied** records the submission time. The Insights cards show current listings, roles worth reviewing, strong matches, submitted applications and interviews. **Company boards checked** shows the number of employer boards that completed during the latest refresh, rather than the number of job-site types.
 
+Remote providers often label the same eligible role differently, such as “Australia” versus “Worldwide”. Applicant Zero combines those variants for the queue and reporting when the employer and title agree, while retaining each original source record in the discovery export.
+
 The dashboard also records the last completed discovery refresh and provides a **New this week** filter. Use it after the daily refresh to focus on newly collected current listings instead of scanning the entire queue again.
 
 ## Daily operations

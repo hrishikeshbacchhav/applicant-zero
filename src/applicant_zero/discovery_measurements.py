@@ -29,8 +29,12 @@ def canonical_listing_key(job: Job) -> str:
     )
     if "sydney" in location or any(place in location for place in greater_sydney):
         location = "greater sydney"
-    elif "remote" in location and "australia" in location:
-        location = "remote australia"
+    elif "remote" in location and any(term in location for term in ("australia", "worldwide", "anywhere")):
+        # Syndicated remote listings often say either Australia, worldwide or
+        # work-from-anywhere. They represent the same candidate-eligible
+        # remote area for this local search, so do not inflate source counts
+        # when the title and employer also agree.
+        location = "remote candidate eligible"
     elif "nsw" in location or "new south wales" in location:
         location = "nsw"
     return "|".join((company, clean(job.title), location))

@@ -33,6 +33,12 @@ def test_canonical_key_aligns_suburb_and_legal_company_variants():
     assert canonical_listing_key(broad) == canonical_listing_key(direct)
 
 
+def test_canonical_key_combines_eligible_remote_location_variants():
+    australia = job("au", "Jobicy", company="Example Pty Ltd", title="Data Analyst", location="Remote, Australia")
+    worldwide = job("world", "Remotive", company="Example", title="Data Analyst", location="Remote, Worldwide")
+    assert canonical_listing_key(australia) == canonical_listing_key(worldwide)
+
+
 def test_latest_source_measurements_are_persisted(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     record_source_measurements(database, [{"source": "Adzuna", "collected_count": 3, "relevant_count": 2, "distinct_count": 2, "repeated_count": 1, "request_count": 2}])
