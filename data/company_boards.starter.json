@@ -98,11 +98,20 @@
     "company": "Blinq",
     "ats": "lever",
     "token": "blinq"
-  }
-,
+  },
   {
     "company": "Freelancer.com",
     "ats": "workable",
     "token": "freelancer"
+  },
+  {
+    "company": "Constantinople",
+    "ats": "lever",
+    "token": "cxnpl"
+  },
+  {
+    "company": "Palantir Australia",
+    "ats": "lever",
+    "token": "palantir"
   }
 ]

@@ -70,6 +70,16 @@ The preferred first live source is public company career boards. Greenhouse, Lev
 
 From the local dashboard, open **Discovery coverage** and use **Add a verified public employer board** after you have opened an employer's own public careers page. Select the provider and enter the public board token from that URL. This is the simplest option: it saves no password, login or API key, and it adds the board to your private local registry for the next discovery refresh.
 
+If an employer-research workbook already contains public careers links, extract only its explicit supported ATS URLs for review first:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/extract_research_boards.py C:\path\to\research.xlsx C:\path\to\candidate_boards.json
+python scripts/import_public_board_urls.py C:\path\to\candidate_boards.json
+```
+
+The extractor never searches companies or invents an address. It accepts only Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee and Workday URLs that are already in the workbook.
+
 1. Add only companies whose public careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file. Use the starter example as the schema reference; supported values for `ats` are `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workable`, `recruitee` and `workday`. Workable uses the public account subdomain from its `apply.workable.com` link. Workday stores a public `host/site` identifier derived from the employer careers URL; it never stores a login or employer API credential.
 2. Run:
 
