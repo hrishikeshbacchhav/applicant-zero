@@ -112,14 +112,20 @@ def max_pages_per_query(project_root: Path) -> int:
 
 def _cursor(project_root: Path) -> dict[str, int | str]:
     path = query_cursor_path(project_root)
-    today = date.today().isoformat()
+    current_date = date.today()
+    today = current_date.isoformat()
+    month = current_date.strftime("%Y-%m")
     try:
         cursor = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     except (OSError, ValueError, TypeError):
         cursor = {}
-    if cursor.get("day") != today:
-        return {"day": today, "offset": int(cursor.get("offset", 0) or 0), "calls_today": 0}
-    return {"day": today, "offset": int(cursor.get("offset", 0) or 0), "calls_today": int(cursor.get("calls_today", 0) or 0)}
+    return {
+        "day": today,
+        "month": month,
+        "offset": int(cursor.get("offset", 0) or 0),
+        "calls_today": int(cursor.get("calls_today", 0) or 0) if cursor.get("day") == today else 0,
+        "calls_this_month": int(cursor.get("calls_this_month", 0) or 0) if cursor.get("month") == month else 0,
+    }
 
 
 def discovery_query_status(project_root: Path, max_queries: int | None = None) -> dict[str, object]:
@@ -130,8 +136,11 @@ def discovery_query_status(project_root: Path, max_queries: int | None = None) -
     # result page can use a second request, so reserve that possibility before
     # selecting the next group of campaign queries.
     daily_limit = max(0, int(raw.get("max_api_calls_per_day", raw.get("max_queries_per_day", 60))))
+    monthly_limit = max(0, int(raw.get("max_api_calls_per_month", 2_400)))
     cursor = _cursor(project_root)
-    remaining_today = max(0, daily_limit - int(cursor["calls_today"]))
+    daily_remaining = max(0, daily_limit - int(cursor["calls_today"]))
+    monthly_remaining = max(0, monthly_limit - int(cursor["calls_this_month"]))
+    remaining_today = min(daily_remaining, monthly_remaining)
     planned_count = min(
         _configured_refresh_limit(project_root, max_queries),
         remaining_today // max_pages_per_query(project_root),
@@ -143,7 +152,10 @@ def discovery_query_status(project_root: Path, max_queries: int | None = None) -
         "cycle_size": len(full_plan),
         "cycle_offset": offset % len(full_plan) if full_plan else 0,
         "daily_limit": daily_limit,
+        "monthly_limit": monthly_limit,
         "calls_today": int(cursor["calls_today"]),
+        "calls_this_month": int(cursor["calls_this_month"]),
+        "monthly_remaining": monthly_remaining,
         "remaining_today": remaining_today,
         "max_pages_per_query": max_pages_per_query(project_root),
         "planned_api_calls": planned_count * max_pages_per_query(project_root),
@@ -161,6 +173,7 @@ def consume_discovery_query_plan(project_root: Path, attempted_queries: int, api
     cursor = _cursor(project_root)
     cursor["offset"] = int(cursor["offset"]) + attempted
     cursor["calls_today"] = int(cursor["calls_today"]) + requests
+    cursor["calls_this_month"] = int(cursor["calls_this_month"]) + requests
     path = query_cursor_path(project_root)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cursor, indent=2), encoding="utf-8")

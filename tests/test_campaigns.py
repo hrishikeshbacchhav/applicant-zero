@@ -63,3 +63,23 @@ def test_rotation_advances_after_a_bounded_refresh_and_respects_daily_cap(tmp_pa
     path.write_text(json.dumps(payload), encoding="utf-8")
     assert discovery_query_status(tmp_path)["remaining_today"] == 0
     assert next_discovery_query_plan(tmp_path) == []
+
+
+def test_monthly_cap_limits_queries_even_when_daily_allowance_remains(tmp_path):
+    _write_starter(tmp_path)
+    path = tmp_path / "data" / "search_campaigns.starter.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["max_api_calls_per_day"] = 10
+    payload["max_api_calls_per_month"] = 4
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    consume_discovery_query_plan(tmp_path, attempted_queries=3, api_calls=3)
+    status = discovery_query_status(tmp_path)
+    assert status["remaining_today"] == 1
+    assert status["monthly_remaining"] == 1
+    assert status["planned_api_calls"] == 1
+
+    consume_discovery_query_plan(tmp_path, attempted_queries=1, api_calls=1)
+    status = discovery_query_status(tmp_path)
+    assert status["calls_this_month"] == 4
+    assert next_discovery_query_plan(tmp_path) == []

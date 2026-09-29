@@ -154,7 +154,11 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     stale_broad_inventory = deactivate_stale_broad_feed_inventory_records(database)
     pruned = prune_inactive_discovery_records(database)
     skipped = len(jobs) - len(visible)
-    detail = f"{checked} company boards checked; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); {query_status['remaining_today']} broad-feed calls remained before this run; {skipped} hard skips not stored"
+    detail = (
+        f"{checked} company boards checked; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); "
+        f"{query_status['remaining_today']} calls remained before this run within the daily/monthly cap "
+        f"({query_status['monthly_remaining']} monthly calls remaining); {skipped} hard skips not stored"
+    )
     if stale_broad or stale_broad_inventory:
         detail += f"; {stale_broad} old review record(s) and {stale_broad_inventory} old broad-feed inventory record(s) marked inactive"
     if retired_board_inventory:
