@@ -113,5 +113,25 @@
     "company": "Palantir Australia",
     "ats": "lever",
     "token": "palantir"
+  },
+  {
+    "company": "Q-CTRL",
+    "ats": "lever",
+    "token": "q-ctrl"
+  },
+  {
+    "company": "WalkMe",
+    "ats": "lever",
+    "token": "walkme"
+  },
+  {
+    "company": "Objective Corporation",
+    "ats": "lever",
+    "token": "objective"
+  },
+  {
+    "company": "ServiceRocket",
+    "ats": "lever",
+    "token": "servicerocket"
   }
 ]

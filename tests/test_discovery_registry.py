@@ -43,7 +43,10 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert overview["configured_count"] >= 6
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18
-    assert {"Omni", "Lime", "Qualtrics", "Constantinople", "Palantir Australia"} <= {board["company"] for board in boards}
+    assert {
+        "Omni", "Lime", "Qualtrics", "Constantinople", "Palantir Australia",
+        "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket",
+    } <= {board["company"] for board in boards}
 
 
 def test_recruitment_provider_targets_are_kept_separate_from_employer_targets():
