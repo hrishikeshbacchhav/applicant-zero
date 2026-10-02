@@ -45,7 +45,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert len(boards) >= 18
     assert {
         "Omni", "Lime", "Qualtrics", "Constantinople", "Palantir Australia",
-        "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket",
+        "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket", "Lorikeet", "Relevance AI",
     } <= {board["company"] for board in boards}
 
 

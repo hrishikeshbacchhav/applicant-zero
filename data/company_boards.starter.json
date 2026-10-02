@@ -133,5 +133,15 @@
     "company": "ServiceRocket",
     "ats": "lever",
     "token": "servicerocket"
+  },
+  {
+    "company": "Lorikeet",
+    "ats": "ashby",
+    "token": "lorikeet"
+  },
+  {
+    "company": "Relevance AI",
+    "ats": "ashby",
+    "token": "relevanceai"
   }
 ]
