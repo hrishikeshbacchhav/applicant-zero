@@ -80,6 +80,14 @@ python scripts/import_public_board_urls.py C:\path\to\candidate_boards.json
 
 The extractor never searches companies or invents an address. It accepts only Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee and Workday URLs that are already in the workbook.
 
+For a larger reviewed URL list, validate up to 60 explicit public boards before importing them. This checks each provider's ordinary public board endpoint, retains successful empty boards for future refreshes, and never crawls an employer website or changes your private registry itself:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/validate_public_board_urls.py C:\path\to\reviewed_boards.csv C:\path\to\validated_boards.json
+python scripts/import_public_board_urls.py C:\path\to\validated_boards.json
+```
+
 1. Add only companies whose public careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file. Use the starter example as the schema reference; supported values for `ats` are `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workable`, `recruitee` and `workday`. Workable uses the public account subdomain from its `apply.workable.com` link. Workday stores a public `host/site` identifier derived from the employer careers URL; it never stores a login or employer API credential.
 2. Run:
 
