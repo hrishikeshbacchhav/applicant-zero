@@ -328,11 +328,11 @@ def _inventory_key(job: Job) -> str:
 
 
 def save_discovery_inventory(connection: sqlite3.Connection, jobs: list[Job]) -> None:
-    """Retain every collected listing, including roles outside the review queue.
+    """Retain candidate-scope listings separately from the active review queue.
 
-    This is deliberately separate from ``job_matches``. The inventory can grow
-    to thousands of source records without diluting the candidate's action
-    queue with jobs that score as out of scope.
+    This is deliberately separate from ``job_matches``. It can grow to
+    thousands of listings in the candidate's configured role families without
+    diluting the action queue or retaining unrelated source-board vacancies.
     """
     for job in jobs:
         connection.execute(

@@ -68,6 +68,19 @@ def _save_jobs(
     return queue if show_all else [(job, result) for job, result in queue if result.recommendation != "Skip"]
 
 
+def _inventory_scope_jobs(jobs: list[Job]) -> list[Job]:
+    """Keep the long-lived inventory broad, but relevant to this candidate.
+
+    Source telemetry still records every returned role. Persisting every
+    unrelated vacancy from a very large employer board would make the local
+    database grow rapidly without improving discovery, though. Score against
+    all known role lanes here (rather than only the currently enabled
+    campaigns) so a temporarily disabled IT or administration lane remains
+    available for a later campaign change.
+    """
+    return [job for job in jobs if score_job(job, RISHI_PROFILE).recommendation != "Skip"]
+
+
 def _board_path(state: Path) -> Path:
     return synchronise_board_registry(ROOT)
 
@@ -136,8 +149,9 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         licensed_failures[provider.label] = failures
         provider_notes.append(f"{provider.label} used {used} licensed request(s), {len(provider_jobs)} role(s) returned")
     jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *remotive_jobs, *himalayas_jobs, *weworkremotely_jobs, *licensed_jobs]}.values())
+    inventory_jobs = _inventory_scope_jobs(jobs)
     database = initialise_database(database_path(ROOT))
-    save_discovery_inventory(database, jobs)
+    save_discovery_inventory(database, inventory_jobs)
     save_board_checks(database, reports)
     visible = _save_jobs(database, jobs, enabled_lanes=active_lanes(state), persist_skips=False)
     record_query_measurements(database, query_reports, {job.external_id for job, _ in visible})
@@ -145,7 +159,10 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     for report in reports:
         if report.status == "checked":
             report_source = getattr(report, "ats", "")
-            board_ids = [job.external_id for job in board_jobs if job.company == report.company and job.source.casefold() == report_source.casefold()]
+            board_ids = [
+                job.external_id for job in inventory_jobs
+                if job.company == report.company and job.source.casefold() == report_source.casefold()
+            ]
             retired_board_inventory += mark_company_inventory_jobs_inactive(database, report.company, report_source, board_ids)
             mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
     checked = sum(report.status == "checked" for report in reports)
@@ -165,6 +182,9 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += f"; {retired_board_inventory} listing(s) retired from successful public-board snapshots"
     if pruned:
         detail += f"; {pruned} old inactive discovery record(s) removed"
+    excluded_from_inventory = len(jobs) - len(inventory_jobs)
+    if excluded_from_inventory:
+        detail += f"; {excluded_from_inventory} out-of-scope source record(s) excluded from the retained inventory"
     if query_errors:
         detail += f"; {len(query_errors)} query source issue(s) skipped"
     if jobicy_error:
