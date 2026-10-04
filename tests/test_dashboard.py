@@ -67,6 +67,9 @@ def test_search_campaigns_page_exposes_candidate_controlled_role_groups(tmp_path
     assert "Save discovery campaigns" in page
     assert "Next refresh:" in page
     assert "shares its broad-feed calls" in page
+    assert "Current discovery capacity" in page
+    assert "This month:" in page
+    assert "Next searches:" in page
 
 
 def test_email_updates_page_explains_the_optional_read_only_connection(tmp_path):

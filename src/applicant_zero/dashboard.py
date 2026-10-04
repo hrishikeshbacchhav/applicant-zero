@@ -310,7 +310,15 @@ def build_campaigns_page(database_path: Path, rescore_message: str = "") -> str:
         for campaign in campaigns
     )
     success = f"<p class='success'>{html.escape(rescore_message)}</p>" if rescore_message else ""
-    content = f"""{success}<p class='notice'>Sydney and NSW are searched separately. Each refresh shares its broad-feed calls across active campaigns and rotates through the full active vocabulary instead of repeatedly searching the first few phrases. This computer is configured for up to {query_status['daily_limit']} broad-feed calls per day; {query_status['remaining_today']} remain today, and the next slice contains {len(query_status['planned'])} calls.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
+    scheduled_terms = " · ".join(
+        f"{query} ({location})" for _, query, location in query_status["planned"]
+    ) or "No broad-feed calls are available in the current budget window."
+    capacity = f"""<section class='section-card'><h2>Current discovery capacity</h2>
+<p>Today: <strong>{query_status['calls_today']} of {query_status['daily_limit']}</strong> broad-feed API calls used; <strong>{query_status['remaining_today']}</strong> remain within both the daily and monthly allowance.</p>
+<p>This month: <strong>{query_status['calls_this_month']} of {query_status['monthly_limit']}</strong> calls used; <strong>{query_status['monthly_remaining']}</strong> remain.</p>
+<p>The next refresh is reserved for <strong>{len(query_status['planned'])}</strong> rotating searches, using up to <strong>{query_status['planned_api_calls']}</strong> API calls ({query_status['max_pages_per_query']} page{'s' if query_status['max_pages_per_query'] != 1 else ''} per search). It is currently at position {query_status['cycle_offset'] + 1 if query_status['cycle_size'] else 0} of {query_status['cycle_size']} in the active vocabulary cycle.</p>
+<p class='muted'>Next searches: {html.escape(scheduled_terms)}</p></section>"""
+    content = f"""{success}{capacity}<p class='notice'>Sydney and NSW are searched separately. Each refresh shares its broad-feed calls across active campaigns and rotates through the full active vocabulary instead of repeatedly searching the first few phrases. The campaign cards show the next refresh allocation and standard cycle allocation.</p><form method='post' action='/campaigns'><section class='grid'>{rows}</section><p><button type='submit'>Save discovery campaigns</button></p></form>"""
     return _workspace_page(
         "campaigns", "Discovery control", "Search campaigns",
         "Choose the role groups included in future discovery runs. Your choice stays private on this computer.", content,
