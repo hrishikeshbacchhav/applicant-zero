@@ -50,7 +50,7 @@ The API's default documented access limit is 2,500 requests each month, which is
 
 ## Public APAC remote supplement: Jobicy
 
-Each normal refresh also reads one capped, public Jobicy APAC remote-job page. It needs no account or API key and retains Jobicy’s own listing URL as the source link. Applicant Zero only promotes roles when the listing explicitly supports a Sydney or Australia-remote work arrangement; APAC eligibility alone stays out of the active review queue until the original listing confirms it.
+Each normal refresh reads a bounded public Jobicy APAC batch across its documented data-science, engineering, support and management categories. It needs no account or API key and retains Jobicy’s own listing URL as the source link. Applicant Zero only promotes roles when the listing explicitly supports a Sydney or Australia-remote work arrangement; APAC eligibility alone stays out of the active review queue until the original listing confirms it.
 
 ## Public remote supplement: Remotive
 

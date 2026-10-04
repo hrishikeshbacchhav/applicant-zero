@@ -14,7 +14,7 @@ from .candidate_facts import ensure_fact_library
 from .profile import RISHI_PROFILE
 from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
-from .sources.jobicy import fetch_jobs as fetch_jobicy_jobs
+from .sources.jobicy import fetch_targeted_jobs as fetch_jobicy_jobs
 from .sources.remotive import fetch_jobs as fetch_remotive_jobs
 from .sources.himalayas import fetch_jobs_with_report as fetch_himalayas_jobs
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
@@ -96,14 +96,11 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     request_count = sum(report.requests for report in query_reports)
     query_errors = [report for report in query_reports if report.error]
     consume_discovery_query_plan(state, len(query_plan), request_count)
-    jobicy_jobs: list[Job] = []
-    jobicy_error = ""
-    try:
-        # One APAC page per normal refresh is well within the source's public
-        # fair-use guidance and adds an attributed remote-work supplement.
-        jobicy_jobs = fetch_jobicy_jobs()
-    except (OSError, ValueError, json.JSONDecodeError) as error:
-        jobicy_error = str(error)
+    # Jobicy's public API supports documented role-category filters. A small,
+    # bounded APAC batch improves the chance that the seven-day feed contains
+    # candidate-relevant data, support, engineering and operations roles.
+    jobicy_jobs, jobicy_report = fetch_jobicy_jobs()
+    jobicy_error = "; ".join(jobicy_report.errors)
     remotive_jobs: list[Job] = []
     remotive_error = ""
     try:
@@ -197,8 +194,8 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += "; We Work Remotely public RSS issue skipped"
     if provider_notes:
         detail += "; " + "; ".join(provider_notes)
-    request_counts = {"Adzuna": request_count, "Jobicy": 1, "Remotive": 1, "Himalayas": himalayas_requests, "We Work Remotely": 1}
-    failure_counts = {"Adzuna": len(query_errors), "Jobicy": int(bool(jobicy_error)), "Remotive": int(bool(remotive_error)), "Himalayas": int(bool(himalayas_error)), "We Work Remotely": int(bool(weworkremotely_error))}
+    request_counts = {"Adzuna": request_count, "Jobicy": jobicy_report.requests, "Remotive": 1, "Himalayas": himalayas_requests, "We Work Remotely": 1}
+    failure_counts = {"Adzuna": len(query_errors), "Jobicy": len(jobicy_report.errors), "Remotive": int(bool(remotive_error)), "Himalayas": int(bool(himalayas_error)), "We Work Remotely": int(bool(weworkremotely_error))}
     request_counts.update(licensed_requests)
     failure_counts.update(licensed_failures)
     for report in reports:

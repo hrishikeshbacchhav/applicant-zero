@@ -1,12 +1,14 @@
 from unittest.mock import patch
 
-from applicant_zero.sources.jobicy import _job_from_result, build_jobs_url, fetch_jobs
+from applicant_zero.sources.jobicy import TARGET_INDUSTRIES, _job_from_result, build_jobs_url, fetch_jobs, fetch_targeted_jobs
 
 
 def test_jobicy_request_is_bounded_to_public_apac_feed():
     url = build_jobs_url(count=999, geo="APAC")
     assert "count=200" in url
     assert "geo=apac" in url
+    assert "industry=" not in url
+    assert "industry=data-science" in build_jobs_url(count=10, industry="Data-Science")
 
 
 def test_jobicy_mapping_preserves_attribution_and_listing_metadata():
@@ -30,3 +32,23 @@ def test_jobicy_fetch_maps_public_response():
     with patch("applicant_zero.sources.jobicy.urlopen", return_value=Response()):
         jobs = fetch_jobs(count=1)
     assert [(job.external_id, job.source) for job in jobs] == [("jobicy:1", "Jobicy")]
+
+
+def test_jobicy_targeted_batch_keeps_successful_categories_when_one_fails():
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def read(self): return b'{"jobs":[{"id":1,"jobTitle":"Data Analyst"}]}'
+
+    with patch(
+        "applicant_zero.sources.jobicy.urlopen",
+        side_effect=[Response(), OSError("temporary source issue")],
+    ):
+        jobs, report = fetch_targeted_jobs(industries=("data-science", "engineering"), count=50)
+    assert [job.external_id for job in jobs] == ["jobicy:1"]
+    assert report.requests == 2
+    assert report.errors == ("engineering: temporary source issue",)
+
+
+def test_jobicy_targeted_batch_uses_small_candidate_relevant_category_set():
+    assert TARGET_INDUSTRIES == ("data-science", "engineering", "supporting", "management")
