@@ -16,7 +16,7 @@ from .scoring import Job, score_job
 from .sources.adzuna import fetch_jobs, fetch_query_plan, fetch_query_plan_paged
 from .sources.jobicy import fetch_targeted_jobs as fetch_jobicy_jobs
 from .sources.remotive import fetch_jobs as fetch_remotive_jobs
-from .sources.himalayas import fetch_jobs_with_report as fetch_himalayas_jobs
+from .sources.himalayas import fetch_targeted_jobs_with_report as fetch_himalayas_jobs
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
@@ -109,16 +109,14 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         remotive_jobs = fetch_remotive_jobs()
     except (OSError, ValueError, json.JSONDecodeError) as error:
         remotive_error = str(error)
-    himalayas_jobs: list[Job] = []
-    himalayas_requests = 0
-    himalayas_error = ""
-    try:
-        # Himalayas refreshes its public source daily. This bounded 100-role
-        # slice follows only API-supplied cursors and retains attribution.
-        himalayas_jobs, himalayas_report = fetch_himalayas_jobs()
-        himalayas_requests = himalayas_report.requests
-    except (OSError, ValueError, json.JSONDecodeError) as error:
-        himalayas_error = str(error)
+    # Himalayas publishes a daily-refreshed public API with documented
+    # Australia-aware search. Reuse this run's rotating campaign terms so the
+    # bounded source reads cover more than the first generic feed pages.
+    himalayas_jobs, himalayas_report = fetch_himalayas_jobs(
+        [query for query, _ in query_plan], country="AU"
+    )
+    himalayas_requests = himalayas_report.requests
+    himalayas_error = "; ".join(himalayas_report.errors)
     weworkremotely_jobs: list[Job] = []
     weworkremotely_error = ""
     try:

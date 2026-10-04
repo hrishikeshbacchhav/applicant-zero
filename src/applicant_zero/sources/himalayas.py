@@ -12,6 +12,7 @@ from .metadata import append_listing_metadata
 @dataclass(frozen=True)
 class HimalayasReport:
     requests: int
+    errors: tuple[str, ...] = ()
 
 
 def build_jobs_url(*, cursor: str = "", limit: int = 20) -> str:
@@ -20,6 +21,17 @@ def build_jobs_url(*, cursor: str = "", limit: int = 20) -> str:
     if cursor:
         params["cursor"] = cursor
     return "https://himalayas.app/jobs/api?" + urlencode(params)
+
+
+def build_search_url(*, query: str, country: str = "AU", page: int = 1) -> str:
+    """Build one documented, country-aware Himalayas search request."""
+    params = {
+        "q": query.strip(),
+        "country": country.strip() or "AU",
+        "sort": "recent",
+        "page": max(1, int(page)),
+    }
+    return "https://himalayas.app/jobs/api/search?" + urlencode(params)
 
 
 def _text_list(value: object) -> str:
@@ -93,3 +105,42 @@ def fetch_jobs(*, max_pages: int = 5, page_size: int = 20) -> list[Job]:
     """Convenience reader for a capped public API slice."""
     jobs, _ = fetch_jobs_with_report(max_pages=max_pages, page_size=page_size)
     return jobs
+
+
+def fetch_targeted_jobs_with_report(
+    queries: list[str] | tuple[str, ...], *, country: str = "AU", max_queries: int = 5
+) -> tuple[list[Job], HimalayasReport]:
+    """Search a small, rotating set of candidate terms with Australia eligibility.
+
+    Himalayas documents country-aware search and refreshes its source once per
+    day. This keeps the existing five-request cap while spending those reads on
+    the active campaign vocabulary instead of the first unfiltered feed pages.
+    The country filter includes roles explicitly open to Australia and does not
+    force an unsupported location inference. A failed term leaves successful
+    term results intact.
+    """
+    selected: list[str] = []
+    for query in queries:
+        normalized = str(query).strip()
+        if normalized and normalized.casefold() not in {item.casefold() for item in selected}:
+            selected.append(normalized)
+        if len(selected) >= max(1, min(5, int(max_queries))):
+            break
+    if not selected:
+        return fetch_jobs_with_report(max_pages=max_queries)
+
+    jobs: list[Job] = []
+    errors: list[str] = []
+    for query in selected:
+        try:
+            request = Request(
+                build_search_url(query=query, country=country),
+                headers={"Accept": "application/json", "User-Agent": "Applicant-Zero/0.1 (private job discovery)"},
+            )
+            with urlopen(request, timeout=20) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            rows = payload.get("jobs", []) if isinstance(payload, dict) else []
+            jobs.extend(_job_from_result(row) for row in rows if isinstance(row, dict))
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            errors.append(f"{query}: {error}")
+    return jobs, HimalayasReport(requests=len(selected), errors=tuple(errors))
