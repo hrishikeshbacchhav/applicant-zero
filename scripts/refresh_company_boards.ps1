@@ -1,6 +1,6 @@
 param(
-    [ValidateRange(0, 7)]
-    [int]$MaxQueries = 0,
+    [ValidateRange(-1, 14)]
+    [int]$MaxQueries = -1,
     [switch]$SyncGmail
 )
 
@@ -15,9 +15,31 @@ $logFile = Join-Path $logDirectory "refresh_$timestamp.log"
 New-Item -ItemType Directory -Force $logDirectory | Out-Null
 $env:PYTHONPATH = Join-Path $projectRoot "src"
 
+function Test-ConfiguredAdzuna {
+    param([string]$StateRoot, [string]$ProjectRoot)
+    if ($env:ADZUNA_APP_ID -and $env:ADZUNA_APP_KEY -and $env:ADZUNA_APP_ID -notlike "replace_*" -and $env:ADZUNA_APP_KEY -notlike "replace_*") {
+        return $true
+    }
+    foreach ($candidate in @((Join-Path $StateRoot ".env"), (Join-Path $ProjectRoot ".env"))) {
+        if (-not (Test-Path -LiteralPath $candidate)) { continue }
+        $contents = Get-Content -LiteralPath $candidate -Raw
+        $hasId = $contents -match "(?m)^ADZUNA_APP_ID=(?!replace_)[^\s#]+"
+        $hasKey = $contents -match "(?m)^ADZUNA_APP_KEY=(?!replace_)[^\s#]+"
+        if ($hasId -and $hasKey) { return $true }
+    }
+    return $false
+}
+
+$effectiveMaxQueries = $MaxQueries
+if ($MaxQueries -eq -1) {
+    # Use the app's controlled 14-query refresh ceiling only once local Adzuna
+    # credentials are genuinely configured. A new install stays board-only.
+    $effectiveMaxQueries = if (Test-ConfiguredAdzuna -StateRoot $stateRoot -ProjectRoot $projectRoot) { 14 } else { 0 }
+}
+
 "Applicant Zero discovery refresh started: $(Get-Date)" | Tee-Object -FilePath $logFile
 try {
-    python -m applicant_zero --daily-refresh --max-queries $MaxQueries 2>&1 |
+    python -m applicant_zero --daily-refresh --max-queries $effectiveMaxQueries 2>&1 |
         Tee-Object -FilePath $logFile -Append
     if ($LASTEXITCODE -ne 0) {
         throw "Applicant Zero discovery returned exit code $LASTEXITCODE."

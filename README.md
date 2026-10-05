@@ -274,7 +274,7 @@ To create the default 8:00 AM, 1:00 PM and 6:00 PM local schedule while this com
 .\scripts\create_daily_refresh_task.ps1
 ```
 
-The default schedule checks public company boards only. If you have chosen to configure the optional Adzuna broad job-feed API, create the schedule with up to three controlled queries per run:
+The default schedule automatically uses the controlled 14-query broad-feed slice when valid local Adzuna credentials are present; without them it remains board-only. The existing daily and monthly campaign caps still limit the actual API requests. Use `-MaxQueries 0` to force board-only mode, or a lower positive value when you want a smaller trial:
 
 ```powershell
 .\scripts\create_daily_refresh_task.ps1 -MaxQueries 3
@@ -283,7 +283,7 @@ The default schedule checks public company boards only. If you have chosen to co
 After you have completed the separate Gmail read-only setup, you can add that local check to the same schedule. It is skipped safely when no private Gmail token exists:
 
 ```powershell
-.\scripts\create_daily_refresh_task.ps1 -MaxQueries 3 -SyncGmail
+.\scripts\create_daily_refresh_task.ps1 -SyncGmail
 ```
 
 Check the local schedule at any time:

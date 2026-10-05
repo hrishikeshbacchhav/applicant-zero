@@ -19,3 +19,17 @@ def test_bulk_public_board_import_script_is_local_and_csv_based():
     assert "careers_url" in script
     assert "add_public_board_urls" in script
     assert "csv.DictReader" in script
+
+
+def test_scheduled_refresh_auto_uses_bounded_adzuna_search_only_when_configured():
+    root = Path(__file__).resolve().parents[1]
+    refresh = (root / "scripts" / "refresh_company_boards.ps1").read_text(encoding="utf-8")
+    schedule = (root / "scripts" / "create_daily_refresh_task.ps1").read_text(encoding="utf-8")
+
+    assert "Test-ConfiguredAdzuna" in refresh
+    assert "$effectiveMaxQueries" in refresh
+    assert "ADZUNA_APP_ID" in refresh
+    assert "{ 14 } else { 0 }" in refresh
+    assert "[ValidateRange(-1, 14)]" in refresh
+    assert "[ValidateRange(-1, 14)]" in schedule
+    assert "automatically uses the controlled 14-query" in schedule
