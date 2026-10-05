@@ -18,6 +18,7 @@ from .sources.jobicy import fetch_targeted_jobs as fetch_jobicy_jobs
 from .sources.remotive import fetch_jobs as fetch_remotive_jobs
 from .sources.himalayas import fetch_targeted_jobs_with_report as fetch_himalayas_jobs
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
+from .sources.remoteok import fetch_jobs as fetch_remoteok_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .source_schedule import due_today as source_due_today, record_attempt as record_source_attempt
@@ -130,6 +131,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         weworkremotely_jobs = fetch_weworkremotely_jobs()
     except (OSError, ValueError, ElementTree.ParseError) as error:
         weworkremotely_error = str(error)
+    remoteok_jobs: list[Job] = []
+    remoteok_error = ""
+    try:
+        remoteok_jobs = fetch_remoteok_jobs()
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        remoteok_error = str(error)
     licensed_jobs: list[Job] = []
     licensed_requests: dict[str, int] = {}
     licensed_failures: dict[str, int] = {}
@@ -150,7 +157,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         failures = sum(bool(report.error) for report in provider_reports)
         licensed_failures[provider.label] = failures
         provider_notes.append(f"{provider.label} used {used} licensed request(s), {len(provider_jobs)} role(s) returned")
-    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *remotive_jobs, *himalayas_jobs, *weworkremotely_jobs, *licensed_jobs]}.values())
+    jobs = list({job.external_id: job for job in [*board_jobs, *query_jobs, *jobicy_jobs, *remotive_jobs, *himalayas_jobs, *weworkremotely_jobs, *remoteok_jobs, *licensed_jobs]}.values())
     inventory_jobs = _inventory_scope_jobs(jobs)
     database = initialise_database(database_path(ROOT))
     save_discovery_inventory(database, inventory_jobs)
@@ -199,10 +206,12 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += "; Himalayas skipped because its documented public data refreshes once daily"
     if weworkremotely_error:
         detail += "; We Work Remotely public RSS issue skipped"
+    if remoteok_error:
+        detail += "; Remote OK public feed issue skipped"
     if provider_notes:
         detail += "; " + "; ".join(provider_notes)
-    request_counts = {"Adzuna": request_count, "Jobicy": jobicy_report.requests, "Remotive": 1, "Himalayas": himalayas_requests, "We Work Remotely": 1}
-    failure_counts = {"Adzuna": len(query_errors), "Jobicy": len(jobicy_report.errors), "Remotive": int(bool(remotive_error)), "Himalayas": int(bool(himalayas_error)), "We Work Remotely": int(bool(weworkremotely_error))}
+    request_counts = {"Adzuna": request_count, "Jobicy": jobicy_report.requests, "Remotive": 1, "Himalayas": himalayas_requests, "We Work Remotely": 1, "Remote OK": 1}
+    failure_counts = {"Adzuna": len(query_errors), "Jobicy": len(jobicy_report.errors), "Remotive": int(bool(remotive_error)), "Himalayas": int(bool(himalayas_error)), "We Work Remotely": int(bool(weworkremotely_error)), "Remote OK": int(bool(remoteok_error))}
     request_counts.update(licensed_requests)
     failure_counts.update(licensed_failures)
     for report in reports:

@@ -56,6 +56,10 @@ Each normal refresh reads a bounded public Jobicy APAC batch across its document
 
 Each normal refresh also reads one capped, public Remotive remote-jobs page. The original Remotive listing URL and source attribution are retained. The dashboard only promotes roles explicitly open to Australia or worldwide remote candidates; every remote work arrangement remains a review point on the original listing.
 
+## Public remote supplement: Remote OK
+
+Each normal refresh reads one bounded public Remote OK JSON feed. Its canonical listing link and Remote OK attribution stay with every stored record. Only listings explicitly open to Australia or worldwide remote candidates progress to review.
+
 ## Public remote supplement: Himalayas
 
 The first refresh each day sends up to five of the current rotating campaign terms to Himalayas’ documented Australia-aware public search API. Later local refreshes that day skip Himalayas because its public data is cached daily. This uses the same bounded five-request allowance as the former generic browse slice, keeps the Himalayas source link visible, and retains the listing's published, employment and salary details plus the supplied application link for the candidate to verify. Only roles available in Australia or worldwide progress to review.
