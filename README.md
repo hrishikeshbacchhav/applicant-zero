@@ -58,7 +58,7 @@ Each normal refresh also reads one capped, public Remotive remote-jobs page. The
 
 ## Public remote supplement: Himalayas
 
-Each normal refresh sends up to five of the current rotating campaign terms to Himalayas’ documented Australia-aware public search API. This uses the same bounded five-request allowance as the former generic browse slice, keeps the Himalayas source link visible, and retains the listing's published, employment and salary details plus the supplied application link for the candidate to verify. Only roles available in Australia or worldwide progress to review.
+The first refresh each day sends up to five of the current rotating campaign terms to Himalayas’ documented Australia-aware public search API. Later local refreshes that day skip Himalayas because its public data is cached daily. This uses the same bounded five-request allowance as the former generic browse slice, keeps the Himalayas source link visible, and retains the listing's published, employment and salary details plus the supplied application link for the candidate to verify. Only roles available in Australia or worldwide progress to review.
 
 ## Public remote supplement: We Work Remotely
 

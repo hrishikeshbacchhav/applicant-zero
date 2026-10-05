@@ -20,6 +20,7 @@ from .sources.himalayas import fetch_targeted_jobs_with_report as fetch_himalaya
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
+from .source_schedule import due_today as source_due_today, record_attempt as record_source_attempt
 from .discovery_measurements import canonical_unique_jobs, measure_sources
 from .storage import (
     deactivate_stale_broad_feed_jobs,
@@ -109,14 +110,20 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         remotive_jobs = fetch_remotive_jobs()
     except (OSError, ValueError, json.JSONDecodeError) as error:
         remotive_error = str(error)
-    # Himalayas publishes a daily-refreshed public API with documented
-    # Australia-aware search. Reuse this run's rotating campaign terms so the
-    # bounded source reads cover more than the first generic feed pages.
-    himalayas_jobs, himalayas_report = fetch_himalayas_jobs(
-        [query for query, _ in query_plan], country="AU"
-    )
-    himalayas_requests = himalayas_report.requests
-    himalayas_error = "; ".join(himalayas_report.errors)
+    # Himalayas publishes its free public source once per day. Keep the normal
+    # three-times-daily local schedule compliant by making only one bounded
+    # Australia-aware batch per day; other sources can still refresh normally.
+    himalayas_jobs: list[Job] = []
+    himalayas_requests = 0
+    himalayas_error = ""
+    himalayas_skipped_for_cadence = not source_due_today(state, "himalayas")
+    if not himalayas_skipped_for_cadence:
+        himalayas_jobs, himalayas_report = fetch_himalayas_jobs(
+            [query for query, _ in query_plan], country="AU"
+        )
+        himalayas_requests = himalayas_report.requests
+        himalayas_error = "; ".join(himalayas_report.errors)
+        record_source_attempt(state, "himalayas")
     weworkremotely_jobs: list[Job] = []
     weworkremotely_error = ""
     try:
@@ -188,6 +195,8 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
         detail += "; Remotive public remote feed issue skipped"
     if himalayas_error:
         detail += "; Himalayas public remote feed issue skipped"
+    elif himalayas_skipped_for_cadence:
+        detail += "; Himalayas skipped because its documented public data refreshes once daily"
     if weworkremotely_error:
         detail += "; We Work Remotely public RSS issue skipped"
     if provider_notes:
