@@ -46,7 +46,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert {
         "Omni", "Lime", "Qualtrics", "Constantinople", "Palantir Australia",
         "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket", "Lorikeet", "Relevance AI",
-        "Culture Amp", "Airwallex", "Easygo", "Intercom",
+        "Culture Amp", "Airwallex", "Easygo", "Intercom", "Verkada", "Vanta", "Sentry", "DoorDash Australia",
     } <= {board["company"] for board in boards}
 
 

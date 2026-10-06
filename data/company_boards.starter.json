@@ -163,5 +163,25 @@
     "company": "Intercom",
     "ats": "greenhouse",
     "token": "intercom"
+  },
+  {
+    "company": "Verkada",
+    "ats": "greenhouse",
+    "token": "verkada"
+  },
+  {
+    "company": "Vanta",
+    "ats": "ashby",
+    "token": "vanta"
+  },
+  {
+    "company": "Sentry",
+    "ats": "ashby",
+    "token": "sentry"
+  },
+  {
+    "company": "DoorDash Australia",
+    "ats": "greenhouse",
+    "token": "doordashaustralia"
   }
 ]
