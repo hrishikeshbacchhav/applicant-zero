@@ -153,5 +153,15 @@
     "company": "Airwallex",
     "ats": "ashby",
     "token": "airwallex"
+  },
+  {
+    "company": "Easygo",
+    "ats": "greenhouse",
+    "token": "easygo"
+  },
+  {
+    "company": "Intercom",
+    "ats": "greenhouse",
+    "token": "intercom"
   }
 ]
