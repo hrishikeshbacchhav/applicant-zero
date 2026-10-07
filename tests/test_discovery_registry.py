@@ -48,6 +48,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket", "Lorikeet", "Relevance AI",
         "Culture Amp", "Airwallex", "Easygo", "Intercom", "Verkada", "Vanta", "Sentry", "DoorDash Australia",
         "Brighte", "Prospa", "Buildkite", "Sitemate", "NCS Australia", "Bilue", "Hastha Solutions",
+        "Geotab", "Appian", "ROLLER", "PAR Technology",
     } <= {board["company"] for board in boards}
 
 

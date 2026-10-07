@@ -218,5 +218,25 @@
     "company": "Hastha Solutions",
     "ats": "smartrecruiters",
     "token": "HasthaSolutions"
+  },
+  {
+    "company": "Geotab",
+    "ats": "greenhouse",
+    "token": "geotab"
+  },
+  {
+    "company": "Appian",
+    "ats": "greenhouse",
+    "token": "appian"
+  },
+  {
+    "company": "ROLLER",
+    "ats": "greenhouse",
+    "token": "roller"
+  },
+  {
+    "company": "PAR Technology",
+    "ats": "ashby",
+    "token": "PAR%20Technology"
   }
 ]
