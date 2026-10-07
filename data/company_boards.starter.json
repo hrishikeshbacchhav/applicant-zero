@@ -203,5 +203,20 @@
     "company": "Sitemate",
     "ats": "ashby",
     "token": "sitemate"
+  },
+  {
+    "company": "NCS Australia",
+    "ats": "smartrecruiters",
+    "token": "NCSAustralia"
+  },
+  {
+    "company": "Bilue",
+    "ats": "smartrecruiters",
+    "token": "Bilue"
+  },
+  {
+    "company": "Hastha Solutions",
+    "ats": "smartrecruiters",
+    "token": "HasthaSolutions"
   }
 ]
