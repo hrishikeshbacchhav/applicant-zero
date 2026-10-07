@@ -183,5 +183,25 @@
     "company": "DoorDash Australia",
     "ats": "greenhouse",
     "token": "doordashaustralia"
+  },
+  {
+    "company": "Brighte",
+    "ats": "lever",
+    "token": "brighte"
+  },
+  {
+    "company": "Prospa",
+    "ats": "greenhouse",
+    "token": "prospa"
+  },
+  {
+    "company": "Buildkite",
+    "ats": "greenhouse",
+    "token": "buildkite"
+  },
+  {
+    "company": "Sitemate",
+    "ats": "ashby",
+    "token": "sitemate"
   }
 ]
