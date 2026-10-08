@@ -238,5 +238,20 @@
     "company": "PAR Technology",
     "ats": "ashby",
     "token": "PAR%20Technology"
+  },
+  {
+    "company": "Atomi",
+    "ats": "lever",
+    "token": "atomi"
+  },
+  {
+    "company": "Secure Code Warrior",
+    "ats": "lever",
+    "token": "securecodewarrior"
+  },
+  {
+    "company": "Maincode",
+    "ats": "ashby",
+    "token": "maincode"
   }
 ]
