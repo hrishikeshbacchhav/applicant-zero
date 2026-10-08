@@ -253,5 +253,20 @@
     "company": "Maincode",
     "ats": "ashby",
     "token": "maincode"
+  },
+  {
+    "company": "Firmus Technologies",
+    "ats": "greenhouse",
+    "token": "firmus"
+  },
+  {
+    "company": "Neara",
+    "ats": "ashby",
+    "token": "neara"
+  },
+  {
+    "company": "d-Matrix",
+    "ats": "ashby",
+    "token": "d-Matrix"
   }
 ]
