@@ -55,7 +55,17 @@
         "functional analyst",
         "business transformation analyst",
         "revenue analyst",
-        "sales operations analyst"
+        "sales operations analyst",
+        "technical business analyst",
+        "digital business analyst",
+        "requirements analyst",
+        "workflow analyst",
+        "data integrity analyst",
+        "data assurance analyst",
+        "data migration analyst",
+        "data reconciliation analyst",
+        "analytics specialist",
+        "reporting and insights analyst"
       ],
       "active": true
     },
@@ -90,7 +100,16 @@
         "IT support coordinator",
         "IT technician",
         "technical service desk",
-        "IT service delivery analyst"
+        "IT service delivery analyst",
+        "IT support specialist",
+        "IT support analyst",
+        "customer support engineer",
+        "service desk technician",
+        "field support technician",
+        "IT service management analyst",
+        "workplace technology support",
+        "endpoint support analyst",
+        "software support analyst"
       ],
       "active": true
     },
@@ -123,7 +142,16 @@
         "IT project support officer",
         "junior systems engineer",
         "technology analyst",
-        "junior IT coordinator"
+        "junior IT coordinator",
+        "information security analyst",
+        "SOC analyst",
+        "security analyst",
+        "technical analyst",
+        "implementation specialist",
+        "software quality analyst",
+        "QA engineer",
+        "test engineer",
+        "IT project support officer"
       ],
       "active": false
     },
@@ -155,7 +183,13 @@
         "program administrator",
         "clerical officer",
         "reception and administration",
-        "team coordinator"
+        "team coordinator",
+        "business administrator",
+        "client services administrator",
+        "project support officer",
+        "administrative services officer",
+        "program support officer",
+        "business services officer"
       ],
       "active": false
     }

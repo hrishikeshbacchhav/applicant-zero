@@ -205,6 +205,11 @@ def test_broader_supported_title_vocabulary_keeps_discoverable_roles_visible():
         ("ICT Support Officer", "it_support"),
         ("Graduate Technology Analyst", "it_general"),
         ("Administration Assistant", "administration"),
+        ("Data Integrity Analyst", "data_bi"),
+        ("Technical Business Analyst", "business_analysis"),
+        ("IT Support Specialist", "it_support"),
+        ("Information Security Analyst", "it_general"),
+        ("Client Services Administrator", "administration"),
     ]
     enabled = {"data_bi", "business_analysis", "it_support", "it_general", "administration"}
     for index, (title, lane) in enumerate(examples):
