@@ -50,7 +50,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Brighte", "Prospa", "Buildkite", "Sitemate", "NCS Australia", "Bilue", "Hastha Solutions",
         "Geotab", "Appian", "ROLLER", "PAR Technology",
         "Atomi", "Secure Code Warrior", "Maincode",
-        "Firmus Technologies", "Neara", "d-Matrix",
+        "Firmus Technologies", "Neara", "d-Matrix", "Gilbert + Tobin",
     } <= {board["company"] for board in boards}
 
 
