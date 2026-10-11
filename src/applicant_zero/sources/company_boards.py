@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from ..scoring import Job
+from ..taxonomy import classify_lane
 from .metadata import append_listing_metadata
 
 
@@ -277,15 +278,35 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
         if identifier and identifier not in deduplicated:
             deduplicated[identifier] = item
     rows = list(deduplicated.values())
+    # Listing searches provide titles and locations but not requirements. Read
+    # details only for titles that already match a candidate role lane, with a
+    # hard cap so a large employer board remains bounded and courteous.
+    detail_by_path: dict[str, dict] = {}
+    detail_candidates = [
+        item for item in rows
+        if str(item.get("externalPath", "")).strip() and classify_lane(str(item.get("title", ""))) is not None
+    ][:12]
+    for item in detail_candidates:
+        external_path = str(item["externalPath"]).strip()
+        detail_path = _workday_detail_path(external_path, site)
+        try:
+            detail = _get_json(f"https://{host}/wday/cxs/{tenant}/{site}{detail_path}")
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        if isinstance(detail, dict):
+            detail_by_path[external_path] = detail
     jobs: list[Job] = []
     for item in rows:
         external_path = str(item.get("externalPath", "")).strip()
         identifier = external_path or str(item.get("title", "")).strip()
         if not identifier:
             continue
+        detail = detail_by_path.get(external_path, {})
+        info = detail.get("jobPostingInfo", {}) if isinstance(detail.get("jobPostingInfo"), dict) else {}
+        description = _plain_text(info.get("jobDescription", ""))
         detail = append_listing_metadata(
-            "", posted_at=item.get("postedOn", ""),
-            employment_type=item.get("timeType", item.get("workerSubType", "")),
+            description, posted_at=info.get("postedOn", item.get("postedOn", "")),
+            employment_type=info.get("timeType", item.get("timeType", item.get("workerSubType", ""))),
         )
         jobs.append(Job(
             external_id=f"workday:{host}:{site}:{identifier}",
@@ -297,6 +318,16 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
             description=detail,
         ))
     return jobs
+
+
+def _workday_detail_path(external_path: str, site: str) -> str:
+    """Normalise a public Workday job path for its CXS detail endpoint."""
+    parts = [part for part in external_path.split("/") if part]
+    # Most CXS responses already provide ``/job/...``. Some tenants return
+    # their visitor-facing ``/en-US/Site/job/...`` form instead.
+    if len(parts) >= 3 and re.fullmatch(r"[a-z]{2}-[A-Z]{2}", parts[0]) and parts[1] == site:
+        parts = parts[2:]
+    return "/" + "/".join(parts)
 
 
 def _recruitee_jobs(company: str, token: str) -> list[Job]:

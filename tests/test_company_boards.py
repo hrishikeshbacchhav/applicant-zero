@@ -184,13 +184,18 @@ def test_workday_mapping_reads_the_public_careers_search_response():
         "title": "Service Desk Analyst", "externalPath": "/en-US/Careers/job/Sydney/Service-Desk-Analyst_123",
         "locationsText": "Sydney, NSW, Australia", "postedOn": "Posted Today", "timeType": "Full time",
     }]}
-    with patch("applicant_zero.sources.company_boards._post_json", return_value=payload) as post:
+    detail = {"jobPostingInfo": {"jobDescription": "Resolve service desk requests.", "timeType": "Full time"}}
+    with patch("applicant_zero.sources.company_boards._post_json", return_value=payload) as post, patch(
+        "applicant_zero.sources.company_boards._get_json", return_value=detail
+    ) as get:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert jobs[0].external_id.startswith("workday:example.wd3.myworkdayjobs.com:Careers:")
     assert jobs[0].url.endswith("Service-Desk-Analyst_123")
     assert "Published: Posted Today" in jobs[0].description
     assert post.call_args.args[0].endswith("/wday/cxs/example/Careers/jobs")
     assert post.call_args.args[1] == {"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": ""}
+    assert get.call_args.args[0].endswith("/wday/cxs/example/Careers/job/Sydney/Service-Desk-Analyst_123")
+    assert "Resolve service desk requests" in jobs[0].description
 
 
 def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
@@ -217,6 +222,19 @@ def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
     ]):
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert [job.external_id for job in jobs].count("workday:example.wd3.myworkdayjobs.com:Careers:/job/analyst") == 1
+
+
+def test_workday_details_are_limited_to_candidate_lane_titles():
+    first = [
+        {"title": "IT Support Analyst", "externalPath": f"/job/{index}", "locationsText": "Sydney"}
+        for index in range(20)
+    ]
+    with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
+        {"total": 21, "jobPostings": first}, {"jobPostings": []}, {"jobPostings": []},
+        {"jobPostings": []}, {"jobPostings": []},
+    ]), patch("applicant_zero.sources.company_boards._get_json", return_value={"jobPostingInfo": {}}) as get:
+        _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert get.call_count == 12
 
 
 def test_workday_board_is_an_accepted_public_board_type(tmp_path):
