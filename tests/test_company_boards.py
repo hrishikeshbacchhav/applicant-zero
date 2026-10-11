@@ -195,13 +195,28 @@ def test_workday_mapping_reads_the_public_careers_search_response():
 
 def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
-    second = [{"title": "Role 21", "externalPath": "/job/21", "locationsText": "Sydney"}]
+    data = [{"title": "Data Analyst", "externalPath": "/job/data", "locationsText": "Sydney"}]
+    business = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
+    support = [{"title": "Support Analyst", "externalPath": "/job/support", "locationsText": "Sydney"}]
+    administrator = [{"title": "Administrator", "externalPath": "/job/admin", "locationsText": "Sydney"}]
     with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
-        {"total": 21, "jobPostings": first}, {"total": 21, "jobPostings": second},
+        {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": business},
+        {"jobPostings": support}, {"jobPostings": administrator},
     ]) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
-    assert len(jobs) == 21
-    assert [call.args[1]["offset"] for call in post.call_args_list] == [0, 20]
+    assert len(jobs) == 24
+    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "data", "business", "support", "administrator"]
+
+
+def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
+    first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
+    overlapping = {"title": "Business Data Analyst", "externalPath": "/job/analyst", "locationsText": "Sydney"}
+    with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
+        {"total": 21, "jobPostings": first}, {"jobPostings": [overlapping]}, {"jobPostings": [overlapping]},
+        {"jobPostings": []}, {"jobPostings": []},
+    ]):
+        jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert [job.external_id for job in jobs].count("workday:example.wd3.myworkdayjobs.com:Careers:/job/analyst") == 1
 
 
 def test_workday_board_is_an_accepted_public_board_type(tmp_path):
@@ -216,7 +231,7 @@ def test_workday_board_is_an_accepted_public_board_type(tmp_path):
 
 def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 0) == 1
-    assert _request_count_for_board("workday", 21) == 2
+    assert _request_count_for_board("workday", 21) == 5
     assert _request_count_for_board("workday", 101) == 5
     assert _request_count_for_board("smartrecruiters", 3) == 4
     assert _request_count_for_board("smartrecruiters", 101) == 103

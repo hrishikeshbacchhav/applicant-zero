@@ -244,20 +244,39 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     # or 500. Five ordinary pages keep the existing bounded-board policy while
     # making those boards usable again.
     page_size = 20
-    for offset in range(0, page_size * 5, page_size):
+    # A large global employer board often sorts the first page by its own
+    # default order, which can hide a Sydney analyst or support role far down
+    # the listing.  Use the remaining four bounded requests for the role
+    # families this private workspace actually searches.  This is a normal
+    # public-board query, not a crawl: it retains the same five-request limit.
+    queries = ("", "data", "business", "support", "administrator")
+    for query_index, search_text in enumerate(queries):
+        offset = 0
         payload = _post_json(endpoint, {
-            "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": "",
+            "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": search_text,
         })
         page = payload.get("jobPostings", []) if isinstance(payload, dict) else []
         page_rows = [item for item in page if isinstance(item, dict)]
         rows.extend(page_rows)
-        if offset == 0 and isinstance(payload, dict):
+        if query_index == 0 and isinstance(payload, dict):
             try:
                 total = max(0, int(payload.get("total", len(page_rows))))
             except (TypeError, ValueError):
                 total = len(page_rows)
-        if len(page_rows) < page_size or len(rows) >= total:
+        # A small board is complete after its ordinary first page, so avoid
+        # unnecessary searches. Large boards use all five bounded queries.
+        if query_index == 0 and (len(page_rows) < page_size or len(rows) >= total):
             break
+    # Searches overlap (for example "data" and "business" can both return a
+    # business-data analyst). Preserve first-seen order while keeping one
+    # canonical public posting per employer board.
+    deduplicated: dict[str, dict] = {}
+    for item in rows:
+        external_path = str(item.get("externalPath", "")).strip()
+        identifier = external_path or str(item.get("title", "")).strip()
+        if identifier and identifier not in deduplicated:
+            deduplicated[identifier] = item
+    rows = list(deduplicated.values())
     jobs: list[Job] = []
     for item in rows:
         external_path = str(item.get("externalPath", "")).strip()
@@ -377,9 +396,10 @@ def _request_count_for_board(ats: str, job_count: int) -> int:
     """Return a transparent bounded request estimate for public board reads."""
     normalized = ats.casefold()
     if normalized == "workday":
-        # Workday accepts at most 20 jobs per public search page, with at
-        # least one read for an empty board and a hard 100-job cap.
-        return max(1, min(5, (max(0, job_count) + 19) // 20))
+        # Workday accepts at most 20 jobs per public search page. Small boards
+        # finish in one request; a larger board uses four targeted role-family
+        # queries in addition to the ordinary first page.
+        return 1 if max(0, job_count) <= 20 else 5
     if normalized == "smartrecruiters":
         # One request for each 100-posting public listing page (capped at five)
         # plus one ordinary public detail request per returned job.
