@@ -52,6 +52,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Atomi", "Secure Code Warrior", "Maincode",
         "Firmus Technologies", "Neara", "d-Matrix", "Gilbert + Tobin", "Harvey", "Hawk-Eye Innovations",
         "RSM Australia", "Pacific Smiles Group", "Iress", "Live Nation Australasia", "ERM",
+        "Torrens University Australia", "Stryker", "Bain Capital",
     } <= {board["company"] for board in boards}
 
 

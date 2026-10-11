@@ -308,5 +308,20 @@
     "company": "ERM",
     "ats": "workday",
     "token": "erm.wd3.myworkdayjobs.com/ERM_Careers"
+  },
+  {
+    "company": "Torrens University Australia",
+    "ats": "workday",
+    "token": "strayer.wd1.myworkdayjobs.com/ANZ_TUA_External1"
+  },
+  {
+    "company": "Stryker",
+    "ats": "workday",
+    "token": "stryker.wd1.myworkdayjobs.com/StrykerCareers"
+  },
+  {
+    "company": "Bain Capital",
+    "ats": "workday",
+    "token": "baincapital.wd1.myworkdayjobs.com/External_Public"
   }
 ]
