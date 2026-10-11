@@ -283,5 +283,30 @@
     "company": "Hawk-Eye Innovations",
     "ats": "ashby",
     "token": "hawkeyeinnovations"
+  },
+  {
+    "company": "RSM Australia",
+    "ats": "workday",
+    "token": "rsmaus.wd105.myworkdayjobs.com/RSMCareers"
+  },
+  {
+    "company": "Pacific Smiles Group",
+    "ats": "workday",
+    "token": "pacificsmiles.wd105.myworkdayjobs.com/External_PSG"
+  },
+  {
+    "company": "Iress",
+    "ats": "workday",
+    "token": "iress.wd3.myworkdayjobs.com/IRESS_EXTERNAL"
+  },
+  {
+    "company": "Live Nation Australasia",
+    "ats": "workday",
+    "token": "livenation.wd503.myworkdayjobs.com/LNExternalSite"
+  },
+  {
+    "company": "ERM",
+    "ats": "workday",
+    "token": "erm.wd3.myworkdayjobs.com/ERM_Careers"
   }
 ]

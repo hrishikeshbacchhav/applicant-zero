@@ -119,7 +119,7 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
 
     SmartRecruiters returns a page of up to one hundred postings.  Large
     employers commonly have more than one page, so read up to five public
-    pages (five hundred postings) before following the per-listing detail
+    pages (one hundred postings) before following the per-listing detail
     records.  The cap keeps a single company from turning a scheduled refresh
     into an unbounded crawl.
     """
@@ -239,8 +239,15 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     endpoint = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
     rows: list[dict] = []
     total = 0
-    for offset in range(0, 500, 100):
-        payload = _post_json(endpoint, {"limit": 100, "offset": offset, "searchText": ""})
+    # The public CXS endpoint accepts at most 20 listings in one request.
+    # Asking for 100 makes many otherwise-working Workday boards return 400
+    # or 500. Five ordinary pages keep the existing bounded-board policy while
+    # making those boards usable again.
+    page_size = 20
+    for offset in range(0, page_size * 5, page_size):
+        payload = _post_json(endpoint, {
+            "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": "",
+        })
         page = payload.get("jobPostings", []) if isinstance(payload, dict) else []
         page_rows = [item for item in page if isinstance(item, dict)]
         rows.extend(page_rows)
@@ -249,7 +256,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
                 total = max(0, int(payload.get("total", len(page_rows))))
             except (TypeError, ValueError):
                 total = len(page_rows)
-        if len(page_rows) < 100 or len(rows) >= total:
+        if len(page_rows) < page_size or len(rows) >= total:
             break
     jobs: list[Job] = []
     for item in rows:
@@ -370,9 +377,9 @@ def _request_count_for_board(ats: str, job_count: int) -> int:
     """Return a transparent bounded request estimate for public board reads."""
     normalized = ats.casefold()
     if normalized == "workday":
-        # Workday requests 100 jobs per public search page, with at least one
-        # read for an empty board and a hard 500-job cap.
-        return max(1, min(5, (max(0, job_count) + 99) // 100))
+        # Workday accepts at most 20 jobs per public search page, with at
+        # least one read for an empty board and a hard 100-job cap.
+        return max(1, min(5, (max(0, job_count) + 19) // 20))
     if normalized == "smartrecruiters":
         # One request for each 100-posting public listing page (capped at five)
         # plus one ordinary public detail request per returned job.

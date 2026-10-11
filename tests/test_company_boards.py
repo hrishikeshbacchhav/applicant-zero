@@ -190,17 +190,18 @@ def test_workday_mapping_reads_the_public_careers_search_response():
     assert jobs[0].url.endswith("Service-Desk-Analyst_123")
     assert "Published: Posted Today" in jobs[0].description
     assert post.call_args.args[0].endswith("/wday/cxs/example/Careers/jobs")
+    assert post.call_args.args[1] == {"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": ""}
 
 
 def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
-    first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(100)]
-    second = [{"title": "Role 101", "externalPath": "/job/101", "locationsText": "Sydney"}]
+    first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
+    second = [{"title": "Role 21", "externalPath": "/job/21", "locationsText": "Sydney"}]
     with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
-        {"total": 101, "jobPostings": first}, {"total": 101, "jobPostings": second},
+        {"total": 21, "jobPostings": first}, {"total": 21, "jobPostings": second},
     ]) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
-    assert len(jobs) == 101
-    assert [call.args[1]["offset"] for call in post.call_args_list] == [0, 100]
+    assert len(jobs) == 21
+    assert [call.args[1]["offset"] for call in post.call_args_list] == [0, 20]
 
 
 def test_workday_board_is_an_accepted_public_board_type(tmp_path):
@@ -215,8 +216,8 @@ def test_workday_board_is_an_accepted_public_board_type(tmp_path):
 
 def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 0) == 1
-    assert _request_count_for_board("workday", 101) == 2
-    assert _request_count_for_board("workday", 501) == 5
+    assert _request_count_for_board("workday", 21) == 2
+    assert _request_count_for_board("workday", 101) == 5
     assert _request_count_for_board("smartrecruiters", 3) == 4
     assert _request_count_for_board("smartrecruiters", 101) == 103
     assert _request_count_for_board("lever", 40) == 1
