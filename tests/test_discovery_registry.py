@@ -53,6 +53,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Firmus Technologies", "Neara", "d-Matrix", "Gilbert + Tobin", "Harvey", "Hawk-Eye Innovations",
         "RSM Australia", "Pacific Smiles Group", "Iress", "Live Nation Australasia", "ERM",
         "Torrens University Australia", "Stryker", "Bain Capital",
+        "Nasdaq", "Cochlear", "EML", "Accenture", "LGT", "NTT", "HCF",
     } <= {board["company"] for board in boards}
 
 

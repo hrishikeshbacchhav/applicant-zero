@@ -323,5 +323,40 @@
     "company": "Bain Capital",
     "ats": "workday",
     "token": "baincapital.wd1.myworkdayjobs.com/External_Public"
+  },
+  {
+    "company": "Nasdaq",
+    "ats": "workday",
+    "token": "nasdaq.wd1.myworkdayjobs.com/Global_External_Site"
+  },
+  {
+    "company": "Cochlear",
+    "ats": "workday",
+    "token": "cochlear.wd3.myworkdayjobs.com/cochlear_careers"
+  },
+  {
+    "company": "EML",
+    "ats": "workday",
+    "token": "eml.wd105.myworkdayjobs.com/EML"
+  },
+  {
+    "company": "Accenture",
+    "ats": "workday",
+    "token": "accenture.wd103.myworkdayjobs.com/AccentureCareers"
+  },
+  {
+    "company": "LGT",
+    "ats": "workday",
+    "token": "lgt.wd3.myworkdayjobs.com/lgtcurrentvacancies"
+  },
+  {
+    "company": "NTT",
+    "ats": "workday",
+    "token": "nttlimited.wd3.myworkdayjobs.com/NTT_Careers"
+  },
+  {
+    "company": "HCF",
+    "ats": "workday",
+    "token": "hcf.wd105.myworkdayjobs.com/HCF_External_Career_Site"
   }
 ]
