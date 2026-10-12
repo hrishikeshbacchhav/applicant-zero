@@ -54,6 +54,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "RSM Australia", "Pacific Smiles Group", "Iress", "Live Nation Australasia", "ERM",
         "Torrens University Australia", "Stryker", "Bain Capital",
         "Nasdaq", "Cochlear", "EML", "Accenture", "LGT", "NTT", "HCF",
+        "Allens", "University of Sydney", "Mission Australia", "ING Australia",
     } <= {board["company"] for board in boards}
 
 

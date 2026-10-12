@@ -358,5 +358,25 @@
     "company": "HCF",
     "ats": "workday",
     "token": "hcf.wd105.myworkdayjobs.com/HCF_External_Career_Site"
+  },
+  {
+    "company": "Allens",
+    "ats": "workday",
+    "token": "allens.wd3.myworkdayjobs.com/Allens"
+  },
+  {
+    "company": "University of Sydney",
+    "ats": "workday",
+    "token": "usyd.wd105.myworkdayjobs.com/USYD_EXTERNAL_CAREER_SITE"
+  },
+  {
+    "company": "Mission Australia",
+    "ats": "workday",
+    "token": "missionaustralia.wd3.myworkdayjobs.com/MissionAustralia"
+  },
+  {
+    "company": "ING Australia",
+    "ats": "workday",
+    "token": "ing.wd3.myworkdayjobs.com/ICSGBLCOR"
   }
 ]
