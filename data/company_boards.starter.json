@@ -378,5 +378,30 @@
     "company": "ING Australia",
     "ats": "workday",
     "token": "ing.wd3.myworkdayjobs.com/ICSGBLCOR"
+  },
+  {
+    "company": "Beca",
+    "ats": "workday",
+    "token": "beca.wd105.myworkdayjobs.com/Beca"
+  },
+  {
+    "company": "HUB24",
+    "ats": "workday",
+    "token": "hub24management.wd105.myworkdayjobs.com/HUB24_Careers"
+  },
+  {
+    "company": "Toyota Automated Logistics",
+    "ats": "workday",
+    "token": "vanderlande.wd3.myworkdayjobs.com/TALExternalCareers"
+  },
+  {
+    "company": "Havas",
+    "ats": "workday",
+    "token": "havas.wd3.myworkdayjobs.com/GroupExternalCareerSite"
+  },
+  {
+    "company": "Cushman & Wakefield",
+    "ats": "workday",
+    "token": "cw.wd1.myworkdayjobs.com/External"
   }
 ]

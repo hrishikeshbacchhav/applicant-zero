@@ -55,6 +55,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Torrens University Australia", "Stryker", "Bain Capital",
         "Nasdaq", "Cochlear", "EML", "Accenture", "LGT", "NTT", "HCF",
         "Allens", "University of Sydney", "Mission Australia", "ING Australia",
+        "Beca", "HUB24", "Toyota Automated Logistics", "Havas", "Cushman & Wakefield",
     } <= {board["company"] for board in boards}
 
 
