@@ -60,12 +60,24 @@ def test_smartrecruiters_mapping_pages_a_large_public_board_with_a_bounded_cap()
     second = [{"id": "101", "name": "Role 101", "location": {"city": "Sydney"}}]
     listing_first = {"totalFound": 101, "content": first}
     listing_second = {"totalFound": 101, "content": second}
-    detail = {"jobAd": {"sections": {"jobDescription": {"text": "Role detail"}}}}
-    with patch("applicant_zero.sources.company_boards._get_json", side_effect=[listing_first, listing_second, *([detail] * 101)]) as get:
+    with patch("applicant_zero.sources.company_boards._get_json", side_effect=[listing_first, listing_second]) as get:
         jobs = _smartrecruiters_jobs("Example", "Example")
     assert len(jobs) == 101
     assert "offset=0" in get.call_args_list[0].args[0]
     assert "offset=100" in get.call_args_list[1].args[0]
+    assert get.call_count == 2
+
+
+def test_smartrecruiters_details_are_limited_to_candidate_lane_titles():
+    listing = {"content": [
+        {"id": str(index), "name": "IT Support Analyst", "location": {"city": "Sydney"}}
+        for index in range(20)
+    ]}
+    detail = {"jobAd": {"sections": {"jobDescription": {"text": "Support detail"}}}}
+    with patch("applicant_zero.sources.company_boards._get_json", side_effect=[listing, *([detail] * 12)]) as get:
+        jobs = _smartrecruiters_jobs("Example", "Example")
+    assert len(jobs) == 20
+    assert get.call_count == 13
 
 
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
@@ -264,3 +276,11 @@ def test_workday_request_estimate_includes_bounded_candidate_detail_reads():
         Job("three", "Unrelated role", "Example", "Sydney", "Workday", "https://example.test/three", ""),
     ]
     assert _request_count_for_board("workday", jobs) == 3
+
+
+def test_smartrecruiters_request_estimate_includes_only_candidate_detail_reads():
+    jobs = [
+        Job("one", "Data Analyst", "Example", "Sydney", "SmartRecruiters", "https://example.test/one", ""),
+        Job("two", "Unrelated role", "Example", "Sydney", "SmartRecruiters", "https://example.test/two", ""),
+    ]
+    assert _request_count_for_board("smartrecruiters", jobs) == 2

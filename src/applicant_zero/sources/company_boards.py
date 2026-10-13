@@ -120,9 +120,10 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
 
     SmartRecruiters returns a page of up to one hundred postings.  Large
     employers commonly have more than one page, so read up to five public
-    pages (one hundred postings) before following the per-listing detail
-    records.  The cap keeps a single company from turning a scheduled refresh
-    into an unbounded crawl.
+    pages (five hundred postings). Candidate-lane titles receive public detail
+    reads, capped at twelve per board; other listings retain their public
+    title and location for normal local filtering. This keeps a large board
+    from turning a scheduled refresh into an unbounded crawl.
     """
     postings: list[dict] = []
     total: int | None = None
@@ -150,16 +151,25 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
             # when a single detail record is unavailable.
             return {}
 
-    # Detail records carry the descriptions needed for accurate local scoring.
-    # Read a small bounded group concurrently: it makes a 500-listing public
-    # board viable while staying far below an unbounded or evasive request
-    # pattern. ``map`` preserves the listing order for stable local results.
-    with ThreadPoolExecutor(max_workers=min(6, len(valid_postings) or 1), thread_name_prefix="applicant-zero-sr") as executor:
-        details = list(executor.map(detail_for, valid_postings))
+    # Detail records carry the descriptions needed for accurate local scoring,
+    # but reading every detail from a 500-listing board would be disproportionate.
+    # The title is enough to choose which candidate-lane records merit a bounded
+    # public detail request. ``map`` preserves a stable local ordering.
+    detail_candidates = [
+        item for item in valid_postings
+        if classify_lane(str(item.get("name", ""))) is not None
+    ][:12]
+    with ThreadPoolExecutor(max_workers=min(6, len(detail_candidates) or 1), thread_name_prefix="applicant-zero-sr") as executor:
+        details = list(executor.map(detail_for, detail_candidates))
+    details_by_id = {
+        str(item["id"]): detail
+        for item, detail in zip(detail_candidates, details)
+    }
 
     jobs: list[Job] = []
-    for item, detail in zip(valid_postings, details):
+    for item in valid_postings:
         posting_id = str(item["id"])
+        detail = details_by_id.get(posting_id, {})
         location = item.get("location", {}) if isinstance(item.get("location"), dict) else {}
         location_text = ", ".join(str(location.get(key, "")).strip() for key in ("city", "region", "country") if str(location.get(key, "")).strip()) or "Unknown location"
         detail_dict = detail if isinstance(detail, dict) else {}
@@ -447,7 +457,12 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
         # One request for each 100-posting public listing page (capped at five)
         # plus one ordinary public detail request per returned job.
         listing_pages = max(1, min(5, (max(0, job_count) + 99) // 100))
-        return listing_pages + max(0, job_count)
+        if isinstance(jobs, int):
+            return listing_pages + max(0, job_count)
+        detail_requests = min(12, sum(
+            classify_lane(job.title) is not None for job in jobs
+        ))
+        return listing_pages + detail_requests
     return 1
 
 
