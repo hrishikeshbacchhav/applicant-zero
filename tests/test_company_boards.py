@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import json
 
+from applicant_zero.scoring import Job
 from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
@@ -254,3 +255,12 @@ def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("smartrecruiters", 3) == 4
     assert _request_count_for_board("smartrecruiters", 101) == 103
     assert _request_count_for_board("lever", 40) == 1
+
+
+def test_workday_request_estimate_includes_bounded_candidate_detail_reads():
+    jobs = [
+        Job("one", "Data Analyst", "Example", "Sydney", "Workday", "https://example.test/one", ""),
+        Job("two", "Service Desk Analyst", "Example", "Sydney", "Workday", "https://example.test/two", ""),
+        Job("three", "Unrelated role", "Example", "Sydney", "Workday", "https://example.test/three", ""),
+    ]
+    assert _request_count_for_board("workday", jobs) == 3

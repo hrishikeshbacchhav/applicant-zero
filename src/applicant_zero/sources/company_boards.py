@@ -423,14 +423,26 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
     return handler(company, token)
 
 
-def _request_count_for_board(ats: str, job_count: int) -> int:
-    """Return a transparent bounded request estimate for public board reads."""
+def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
+    """Return a transparent bounded request estimate for public board reads.
+
+    Callers that have the mapped listings can include Workday detail reads in
+    the count.  The integer form remains useful for configuration and tests
+    where only a listing count is available.
+    """
+    job_count = jobs if isinstance(jobs, int) else len(jobs)
     normalized = ats.casefold()
     if normalized == "workday":
         # Workday accepts at most 20 jobs per public search page. Small boards
         # finish in one request; a larger board uses four targeted role-family
         # queries in addition to the ordinary first page.
-        return 1 if max(0, job_count) <= 20 else 5
+        listing_requests = 1 if max(0, job_count) <= 20 else 5
+        if isinstance(jobs, int):
+            return listing_requests
+        detail_requests = min(12, sum(
+            classify_lane(job.title) is not None for job in jobs
+        ))
+        return listing_requests + detail_requests
     if normalized == "smartrecruiters":
         # One request for each 100-posting public listing page (capped at five)
         # plus one ordinary public detail request per returned job.
@@ -449,7 +461,7 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
             return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title(), 1)
         return board_jobs, BoardReport(
             company, "checked", len(board_jobs), "", board["ats"].title(),
-            _request_count_for_board(board["ats"], len(board_jobs)),
+            _request_count_for_board(board["ats"], board_jobs),
         )
 
     # Board APIs are independent. Parallel requests keep one slow employer
