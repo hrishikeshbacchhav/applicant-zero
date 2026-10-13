@@ -10,6 +10,16 @@ from ..taxonomy import classify_lane
 from .metadata import append_listing_metadata
 
 
+_LOCAL_DETAIL_MARKERS = (
+    "sydney", "nsw", "new south wales", "australia", "remote", "unknown location",
+    "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo", "pyrmont",
+    "surry hills", "redfern", "alexandria", "mascot", "st leonards", "ryde", "rhodes",
+    "homebush", "sydney olympic park", "strathfield", "burwood", "bankstown", "liverpool",
+    "blacktown", "penrith", "castle hill", "baulkham hills", "bella vista", "milsons point",
+    "circular quay", "botany", "waterloo",
+)
+
+
 @dataclass(frozen=True)
 class BoardReport:
     company: str
@@ -115,6 +125,21 @@ def _plain_text(value: object) -> str:
     return ""
 
 
+def _needs_candidate_detail(title: str, location: str) -> bool:
+    """Keep public detail reads for plausible candidate-lane Sydney roles.
+
+    Global ATS boards commonly expose hundreds of roles. A role with an
+    explicit overseas/interstate location is still retained long enough for
+    ordinary local scoring to reject it, but it does not need an extra public
+    description request. Generic Australia and unknown locations remain
+    eligible because their detail can contain the decisive Sydney arrangement.
+    """
+    if classify_lane(title) is None:
+        return False
+    normalized_location = location.casefold().strip()
+    return not normalized_location or any(marker in normalized_location for marker in _LOCAL_DETAIL_MARKERS)
+
+
 def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
     """Read an employer's public SmartRecruiters board and detail records.
 
@@ -155,9 +180,15 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
     # but reading every detail from a 500-listing board would be disproportionate.
     # The title is enough to choose which candidate-lane records merit a bounded
     # public detail request. ``map`` preserves a stable local ordering.
+    def listing_location(item: dict) -> str:
+        location = item.get("location", {})
+        if not isinstance(location, dict):
+            return str(location)
+        return ", ".join(str(location.get(key, "")) for key in ("city", "region", "country"))
+
     detail_candidates = [
         item for item in valid_postings
-        if classify_lane(str(item.get("name", ""))) is not None
+        if _needs_candidate_detail(str(item.get("name", "")), listing_location(item))
     ][:12]
     with ThreadPoolExecutor(max_workers=min(6, len(detail_candidates) or 1), thread_name_prefix="applicant-zero-sr") as executor:
         details = list(executor.map(detail_for, detail_candidates))
@@ -294,7 +325,9 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     detail_by_path: dict[str, dict] = {}
     detail_candidates = [
         item for item in rows
-        if str(item.get("externalPath", "")).strip() and classify_lane(str(item.get("title", ""))) is not None
+        if str(item.get("externalPath", "")).strip() and _needs_candidate_detail(
+            str(item.get("title", "")), str(item.get("locationsText", "")),
+        )
     ][:12]
     for item in detail_candidates:
         external_path = str(item["externalPath"]).strip()

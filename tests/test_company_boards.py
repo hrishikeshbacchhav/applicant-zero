@@ -3,7 +3,7 @@ from unittest.mock import patch
 import json
 
 from applicant_zero.scoring import Job
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -78,6 +78,14 @@ def test_smartrecruiters_details_are_limited_to_candidate_lane_titles():
         jobs = _smartrecruiters_jobs("Example", "Example")
     assert len(jobs) == 20
     assert get.call_count == 13
+
+
+def test_candidate_detail_read_keeps_local_and_generic_australian_roles_only():
+    assert _needs_candidate_detail("Data Analyst", "Sydney, NSW, Australia")
+    assert _needs_candidate_detail("Data Analyst", "Australia")
+    assert _needs_candidate_detail("Data Analyst", "Unknown location")
+    assert not _needs_candidate_detail("Data Analyst", "London, England")
+    assert not _needs_candidate_detail("Unrelated role", "Sydney, NSW")
 
 
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
