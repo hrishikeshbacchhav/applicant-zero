@@ -286,6 +286,14 @@ def test_workday_request_estimate_includes_bounded_candidate_detail_reads():
     assert _request_count_for_board("workday", jobs) == 3
 
 
+def test_request_estimate_excludes_explicitly_overseas_candidate_titles():
+    jobs = [
+        Job("one", "Data Analyst", "Example", "Sydney", "Workday", "https://example.test/one", ""),
+        Job("two", "Data Analyst", "Example", "London, England", "Workday", "https://example.test/two", ""),
+    ]
+    assert _request_count_for_board("workday", jobs) == 2
+
+
 def test_smartrecruiters_request_estimate_includes_only_candidate_detail_reads():
     jobs = [
         Job("one", "Data Analyst", "Example", "Sydney", "SmartRecruiters", "https://example.test/one", ""),

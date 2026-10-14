@@ -483,7 +483,7 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
         if isinstance(jobs, int):
             return listing_requests
         detail_requests = min(12, sum(
-            classify_lane(job.title) is not None for job in jobs
+            _needs_candidate_detail(job.title, job.location) for job in jobs
         ))
         return listing_requests + detail_requests
     if normalized == "smartrecruiters":
@@ -493,7 +493,7 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
         if isinstance(jobs, int):
             return listing_pages + max(0, job_count)
         detail_requests = min(12, sum(
-            classify_lane(job.title) is not None for job in jobs
+            _needs_candidate_detail(job.title, job.location) for job in jobs
         ))
         return listing_pages + detail_requests
     return 1
