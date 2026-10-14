@@ -30,10 +30,11 @@ SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "work
 def public_board_from_url(value: str) -> tuple[str, str]:
     """Recognise a supported public careers URL without following it or scraping.
 
-    Only the provider's hosted public-board URL shapes are accepted.  A normal
-    employer web page, individual job link, credential URL or arbitrary domain
-    is deliberately rejected so the candidate can choose the correct public
-    careers page instead.
+    Only supported hosted public-careers URL shapes are accepted. A normal
+    employer web page, credential URL or arbitrary domain is deliberately
+    rejected. Workday individual public job URLs are accepted because they
+    reliably carry the public career-site identifier needed to refresh that
+    employer's whole board.
     """
     url = urlparse(value.strip())
     host = url.netloc.casefold().split(":", 1)[0]
@@ -54,10 +55,20 @@ def public_board_from_url(value: str) -> tuple[str, str]:
         ats, token = "workable", parts[2]
     elif "myworkdayjobs.com" in host:
         # Workday uses a tenant subdomain and a career-site path. Ignore locale
-        # segments such as en-US and retain the final public site identifier.
+        # segments such as en-US. A public job URL has ``/<site>/job/...``;
+        # retain the site, rather than incorrectly treating the job slug as a
+        # board token.
         segments = [segment for segment in parts if segment.lower() not in {"en-us", "en-au", "en", "au"}]
-        if segments:
-            ats, token = "workday", f"{host}/{segments[-1]}"
+        if segments and segments[0].casefold() != "job":
+            site = segments[0]
+            if "job" in [segment.casefold() for segment in segments]:
+                job_index = next(index for index, segment in enumerate(segments) if segment.casefold() == "job")
+                if job_index == 0:
+                    site = ""
+                else:
+                    site = segments[job_index - 1]
+            if site:
+                ats, token = "workday", f"{host}/{site}"
     elif host.endswith(".recruitee.com") and host.count(".") >= 2:
         ats, token = "recruitee", host.split(".", 1)[0]
     token_valid = (
