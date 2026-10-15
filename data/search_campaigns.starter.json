@@ -3,7 +3,7 @@
     "Sydney",
     "NSW"
   ],
-  "max_queries_per_refresh": 14,
+  "max_queries_per_refresh": 20,
   "max_api_calls_per_day": 60,
   "max_api_calls_per_month": 2400,
   "max_pages_per_query": 2,

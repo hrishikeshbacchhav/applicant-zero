@@ -1,5 +1,5 @@
 param(
-    [ValidateRange(-1, 14)]
+    [ValidateRange(-1, 20)]
     [int]$MaxQueries = -1,
     [switch]$SyncGmail
 )
@@ -32,9 +32,9 @@ function Test-ConfiguredAdzuna {
 
 $effectiveMaxQueries = $MaxQueries
 if ($MaxQueries -eq -1) {
-    # Use the app's controlled 14-query refresh ceiling only once local Adzuna
+    # Use the app's controlled 20-query refresh ceiling only once local Adzuna
     # credentials are genuinely configured. A new install stays board-only.
-    $effectiveMaxQueries = if (Test-ConfiguredAdzuna -StateRoot $stateRoot -ProjectRoot $projectRoot) { 14 } else { 0 }
+    $effectiveMaxQueries = if (Test-ConfiguredAdzuna -StateRoot $stateRoot -ProjectRoot $projectRoot) { 20 } else { 0 }
 }
 
 "Applicant Zero discovery refresh started: $(Get-Date)" | Tee-Object -FilePath $logFile

@@ -11,6 +11,8 @@ def test_shipped_campaigns_cover_every_candidate_role_group_by_default():
     active = {campaign.identifier for campaign in load_campaigns(ROOT) if campaign.active}
 
     assert active == {"data_business", "it_support", "broader_it", "administration"}
+    payload = json.loads((ROOT / "data" / "search_campaigns.starter.json").read_text(encoding="utf-8"))
+    assert payload["max_queries_per_refresh"] == 20
 
 
 def _write_starter(root):

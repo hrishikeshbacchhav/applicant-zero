@@ -27,7 +27,7 @@ No private profile, résumé, credential, visa document, password or application
 
 Applicant Zero supports Adzuna's official Australian job-search API as its first live source. It searches and scores vacancies only; it does not submit applications.
 
-Broad-feed campaigns rotate through their active search terms across refreshes. The starter configuration permits 14 searches per refresh, at most two pages per search, and caps the local plan at 60 Adzuna calls per day and 2,400 per month. Both settings are candidate-controlled in the private search-campaign configuration; the monthly cap keeps the default schedule below Adzuna's documented 2,500-request monthly allowance.
+Broad-feed campaigns rotate through their active search terms across refreshes. The starter configuration permits 20 searches per refresh, at most two pages per search, and caps the local plan at 60 Adzuna calls per day and 2,400 per month. With the default three-run schedule, the request caps remain the final authority: sparse result pages can use up to 60 distinct searches a day, while full pages reserve a second page and stop once the daily allowance is reached. Both settings are candidate-controlled in the private search-campaign configuration; the monthly cap keeps the default schedule below Adzuna's documented 2,500-request monthly allowance.
 The role taxonomy covers data and BI, business/process analysis, IT support, junior IT and full-time administration, then keeps role-specific gaps and seniority requirements visible for review instead of hiding them.
 
 1. Register for a free API key at https://developer.adzuna.com/signup.
@@ -274,7 +274,7 @@ To create the default 8:00 AM, 1:00 PM and 6:00 PM local schedule while this com
 .\scripts\create_daily_refresh_task.ps1
 ```
 
-The default schedule automatically uses the controlled 14-query broad-feed slice when valid local Adzuna credentials are present; without them it remains board-only. The existing daily and monthly campaign caps still limit the actual API requests. Use `-MaxQueries 0` to force board-only mode, or a lower positive value when you want a smaller trial:
+The default schedule automatically uses the controlled 20-query broad-feed slice when valid local Adzuna credentials are present; without them it remains board-only. The existing daily and monthly campaign caps still limit the actual API requests. Use `-MaxQueries 0` to force board-only mode, or a lower positive value when you want a smaller trial:
 
 ```powershell
 .\scripts\create_daily_refresh_task.ps1 -MaxQueries 3

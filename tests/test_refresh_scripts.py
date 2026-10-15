@@ -29,7 +29,7 @@ def test_scheduled_refresh_auto_uses_bounded_adzuna_search_only_when_configured(
     assert "Test-ConfiguredAdzuna" in refresh
     assert "$effectiveMaxQueries" in refresh
     assert "ADZUNA_APP_ID" in refresh
-    assert "{ 14 } else { 0 }" in refresh
-    assert "[ValidateRange(-1, 14)]" in refresh
-    assert "[ValidateRange(-1, 14)]" in schedule
-    assert "automatically uses the controlled 14-query" in schedule
+    assert "{ 20 } else { 0 }" in refresh
+    assert "[ValidateRange(-1, 20)]" in refresh
+    assert "[ValidateRange(-1, 20)]" in schedule
+    assert "automatically uses the controlled 20-query" in schedule

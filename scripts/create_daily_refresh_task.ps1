@@ -1,6 +1,6 @@
 param(
     [string[]]$Times = @("08:00", "13:00", "18:00"),
-    [ValidateRange(-1, 14)]
+    [ValidateRange(-1, 20)]
     [int]$MaxQueries = -1,
     [switch]$SyncGmail
 )
@@ -18,4 +18,4 @@ foreach ($time in $Times) {
     schtasks.exe /Create /TN $taskName /TR $taskCommand /SC DAILY /ST $time /F | Out-Null
     Write-Host "Created $taskName."
 }
-Write-Host "Applicant Zero will refresh while this computer is on and you are signed in. With the default -1 setting, it automatically uses the controlled 14-query broad-feed slice only when real local Adzuna credentials are present; otherwise it remains board-only. Use -MaxQueries 0 to force board-only or a lower positive value to reduce broad-feed calls. Gmail sync runs only when you opt in and a private read-only connection already exists."
+Write-Host "Applicant Zero will refresh while this computer is on and you are signed in. With the default -1 setting, it automatically uses the controlled 20-query broad-feed slice only when real local Adzuna credentials are present; otherwise it remains board-only. The app's daily and monthly request caps still apply. Use -MaxQueries 0 to force board-only or a lower positive value to reduce broad-feed calls. Gmail sync runs only when you opt in and a private read-only connection already exists."
