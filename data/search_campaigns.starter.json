@@ -153,7 +153,7 @@
         "test engineer",
         "IT project support officer"
       ],
-      "active": false
+      "active": true
     },
     {
       "id": "administration",
@@ -191,7 +191,7 @@
         "program support officer",
         "business services officer"
       ],
-      "active": false
+      "active": true
     }
   ]
 }

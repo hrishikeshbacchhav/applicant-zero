@@ -1,6 +1,16 @@
 import json
+from pathlib import Path
 
 from applicant_zero.campaigns import active_lanes, campaign_query_allocation, consume_discovery_query_plan, discovery_query_plan, discovery_query_status, load_campaigns, next_discovery_query_plan, save_enabled_campaigns
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_shipped_campaigns_cover_every_candidate_role_group_by_default():
+    active = {campaign.identifier for campaign in load_campaigns(ROOT) if campaign.active}
+
+    assert active == {"data_business", "it_support", "broader_it", "administration"}
 
 
 def _write_starter(root):
