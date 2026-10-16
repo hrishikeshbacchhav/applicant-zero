@@ -423,5 +423,30 @@
     "company": "Duck Creek Technologies",
     "ats": "workday",
     "token": "duckcreek.wd1.myworkdayjobs.com/duckcreekcareers"
+  },
+  {
+    "company": "Astreya",
+    "ats": "workday",
+    "token": "astreya.wd5.myworkdayjobs.com/life-at-astreya-opportunities"
+  },
+  {
+    "company": "Hargreaves Lansdown",
+    "ats": "workday",
+    "token": "hl.wd1.myworkdayjobs.com/Corporate"
+  },
+  {
+    "company": "Roche",
+    "ats": "workday",
+    "token": "roche.wd3.myworkdayjobs.com/roche-ext"
+  },
+  {
+    "company": "KBR",
+    "ats": "workday",
+    "token": "kbr.wd5.myworkdayjobs.com/KBR_Careers"
+  },
+  {
+    "company": "TaskUs",
+    "ats": "workday",
+    "token": "taskus.wd1.myworkdayjobs.com/Careers"
   }
 ]
