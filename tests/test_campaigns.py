@@ -53,6 +53,23 @@ def test_capped_refresh_shares_queries_across_active_campaigns(tmp_path):
     assert campaign_query_allocation(tmp_path) == {"data": 2, "admin": 1}
 
 
+def test_overlapping_campaign_queries_do_not_consume_broad_feed_capacity_twice(tmp_path):
+    _write_starter(tmp_path)
+    path = tmp_path / "data" / "search_campaigns.starter.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["max_queries_per_refresh"] = 8
+    payload["campaigns"][0]["queries"] = ["Data Analyst", " data   analyst "]
+    payload["campaigns"][1]["active"] = True
+    payload["campaigns"][1]["queries"] = ["data analyst", "Administration Officer"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    assert discovery_query_plan(tmp_path) == [
+        ("Data Analyst", "Sydney"), ("Data Analyst", "NSW"),
+        ("Administration Officer", "Sydney"), ("Administration Officer", "NSW"),
+    ]
+    assert campaign_query_allocation(tmp_path) == {"data": 2, "admin": 2}
+
+
 def test_empty_campaign_selection_produces_no_broad_feed_queries(tmp_path):
     _write_starter(tmp_path)
     save_enabled_campaigns(tmp_path, set())

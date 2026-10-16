@@ -95,7 +95,21 @@ def _full_campaign_query_plan(project_root: Path) -> list[tuple[str, str, str]]:
             for campaign in selected:
                 if query_index < len(campaign.queries):
                     scheduled.append((campaign.identifier, campaign.queries[query_index], location))
-    return scheduled
+    # Query vocabularies deliberately overlap: for example an IT operations
+    # role can be relevant to both support and broader IT.  Issuing the same
+    # broad-feed search twice at the same location wastes a scarce request
+    # without increasing coverage. Keep the first campaign attribution and
+    # retain distinct locations, then use the freed space for the next unique
+    # search in the fair rotation.
+    unique: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for identifier, query, location in scheduled:
+        key = (" ".join(query.casefold().split()), " ".join(location.casefold().split()))
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((identifier, query, location))
+    return unique
 
 
 def _configured_refresh_limit(project_root: Path, max_queries: int | None = None) -> int:
