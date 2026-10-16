@@ -73,6 +73,11 @@ GREATER_SYDNEY_LOCATION_TERMS = (
     "ryde", "rhodes", "homebush", "sydney olympic park", "strathfield", "burwood",
     "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
     "bella vista", "milsons point", "circular quay", "botany", "waterloo",
+    "wetherill park", "moorebank", "seven hills", "eastern creek", "huntingwood",
+    "silverwater", "granville", "lidcombe", "campsie", "hurstville", "kingsgrove",
+    "rosebery", "artarmon", "lane cove", "north ryde", "pymble", "hornsby",
+    "brookvale", "manly", "crows nest", "neutral bay", "petersham", "newtown",
+    "bondi junction", "regents park", "dural",
 )
 
 # These phrases signal a requirement that is substantially more specific than a

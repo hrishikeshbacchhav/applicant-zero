@@ -88,6 +88,11 @@ def test_candidate_detail_read_keeps_local_and_generic_australian_roles_only():
     assert not _needs_candidate_detail("Unrelated role", "Sydney, NSW")
 
 
+def test_candidate_detail_read_recognises_extended_sydney_employment_centres():
+    assert _needs_candidate_detail("Data Analyst", "Wetherill Park, NSW, Australia")
+    assert _needs_candidate_detail("IT Support Analyst", "Hurstville")
+
+
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([

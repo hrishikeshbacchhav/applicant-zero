@@ -16,7 +16,11 @@ _LOCAL_DETAIL_MARKERS = (
     "surry hills", "redfern", "alexandria", "mascot", "st leonards", "ryde", "rhodes",
     "homebush", "sydney olympic park", "strathfield", "burwood", "bankstown", "liverpool",
     "blacktown", "penrith", "castle hill", "baulkham hills", "bella vista", "milsons point",
-    "circular quay", "botany", "waterloo",
+    "circular quay", "botany", "waterloo", "wetherill park", "moorebank", "seven hills",
+    "eastern creek", "huntingwood", "silverwater", "granville", "lidcombe", "campsie",
+    "hurstville", "kingsgrove", "rosebery", "artarmon", "lane cove", "north ryde",
+    "pymble", "hornsby", "brookvale", "manly", "crows nest", "neutral bay", "petersham",
+    "newtown", "bondi junction", "regents park", "dural",
 )
 
 

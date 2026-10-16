@@ -96,6 +96,13 @@ def test_greater_sydney_suburb_is_not_lost_when_provider_omits_nsw():
     assert "Greater Sydney" in " ".join(result.reasons)
 
 
+def test_extended_sydney_employment_centres_are_kept_when_providers_omit_city():
+    for place in ("Wetherill Park", "Hurstville", "North Ryde", "Huntingwood"):
+        result = score_job(Job(f"suburb-{place}", "Data Analyst", "Example", place, "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
+        assert result.recommendation in {"Apply", "Strong apply", "Review"}
+        assert "Greater Sydney" in " ".join(result.reasons)
+
+
 def test_explicit_interstate_hybrid_role_is_not_treated_as_sydney():
     result = score_job(Job("hybrid-melb", "Data Analyst", "Example", "Hybrid, Melbourne", "test", "https://example.invalid", "SQL and Power BI"), RISHI_PROFILE)
     assert result.recommendation == "Skip"
