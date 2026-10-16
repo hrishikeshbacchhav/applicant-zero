@@ -403,5 +403,25 @@
     "company": "Cushman & Wakefield",
     "ats": "workday",
     "token": "cw.wd1.myworkdayjobs.com/External"
+  },
+  {
+    "company": "St Vincent's Health Australia",
+    "ats": "workday",
+    "token": "svha.wd3.myworkdayjobs.com/SVHA_SVHA"
+  },
+  {
+    "company": "Telstra",
+    "ats": "workday",
+    "token": "telstra.wd3.myworkdayjobs.com/Telstra_Careers"
+  },
+  {
+    "company": "Herbert Smith Freehills",
+    "ats": "workday",
+    "token": "herbertsmithfreehills.wd3.myworkdayjobs.com/External"
+  },
+  {
+    "company": "Duck Creek Technologies",
+    "ats": "workday",
+    "token": "duckcreek.wd1.myworkdayjobs.com/duckcreekcareers"
   }
 ]

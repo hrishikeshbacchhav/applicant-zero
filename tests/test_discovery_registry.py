@@ -56,6 +56,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Nasdaq", "Cochlear", "EML", "Accenture", "LGT", "NTT", "HCF",
         "Allens", "University of Sydney", "Mission Australia", "ING Australia",
         "Beca", "HUB24", "Toyota Automated Logistics", "Havas", "Cushman & Wakefield",
+        "St Vincent's Health Australia", "Telstra", "Herbert Smith Freehills", "Duck Creek Technologies",
     } <= {board["company"] for board in boards}
 
 
