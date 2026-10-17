@@ -42,7 +42,7 @@ def load_dotenv(project_root: Path) -> None:
             os.environ.setdefault(key.strip(), value.strip())
 
 
-def build_search_url(app_id: str, app_key: str, query: str, where: str, page: int = 1) -> str:
+def build_search_url(app_id: str, app_key: str, query: str, where: str, page: int = 1, *, full_time_only: bool = False) -> str:
     parameters = urlencode({
         "app_id": app_id,
         "app_key": app_key,
@@ -50,6 +50,7 @@ def build_search_url(app_id: str, app_key: str, query: str, where: str, page: in
         "where": where,
         "results_per_page": 50,
         "content-type": "application/json",
+        **({"full_time": 1} if full_time_only else {}),
     })
     return f"https://api.adzuna.com/v1/api/jobs/au/search/{page}?{parameters}"
 
@@ -80,14 +81,14 @@ def _job_from_result(result: dict) -> Job:
     )
 
 
-def fetch_jobs(project_root: Path, query: str, where: str, page: int = 1) -> list[Job]:
+def fetch_jobs(project_root: Path, query: str, where: str, page: int = 1, *, full_time_only: bool = False) -> list[Job]:
     load_dotenv(project_root)
     app_id = os.getenv("ADZUNA_APP_ID")
     app_key = os.getenv("ADZUNA_APP_KEY")
     if not app_id or not app_key:
         raise RuntimeError("Missing Adzuna credentials. Create a local .env file from .env.example.")
 
-    url = build_search_url(app_id, app_key, query, where, page)
+    url = build_search_url(app_id, app_key, query, where, page, full_time_only=full_time_only)
     with urlopen(url, timeout=20) as response:
         payload = json.loads(response.read().decode("utf-8"))
     return [_job_from_result(result) for result in payload.get("results", [])]
@@ -129,7 +130,7 @@ def fetch_query_plan(
 
 def fetch_query_plan_paged(
     project_root: Path,
-    query_plan: list[tuple[str, str]],
+    query_plan: list[tuple[str, str] | tuple[str, str, bool]],
     *,
     max_pages_per_query: int = 1,
 ) -> tuple[list[Job], list[QueryFetchReport]]:
@@ -143,13 +144,15 @@ def fetch_query_plan_paged(
     pages = max(1, min(int(max_pages_per_query), 2))
     jobs_by_id: dict[str, Job] = {}
     reports: list[QueryFetchReport] = []
-    for query, where in query_plan:
+    for item in query_plan:
+        query, where = item[:2]
+        full_time_only = bool(item[2]) if len(item) > 2 else False
         request_count = returned = 0
         query_ids: set[str] = set()
         error = ""
         for page in range(1, pages + 1):
             try:
-                result = fetch_jobs(project_root, query, where, page)
+                result = fetch_jobs(project_root, query, where, page, full_time_only=full_time_only)
                 request_count += 1
                 returned += len(result)
                 for job in result:

@@ -19,7 +19,7 @@ from .sources.remotive import fetch_jobs as fetch_remotive_jobs
 from .sources.himalayas import fetch_targeted_jobs_with_report as fetch_himalayas_jobs
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
 from .sources.remoteok import fetch_jobs as fetch_remoteok_jobs
-from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, max_pages_per_query, next_discovery_query_plan
+from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, load_campaigns, max_pages_per_query, next_discovery_query_plan
 from .sources.company_boards import fetch_company_boards_with_report
 from .source_schedule import due_today as source_due_today, record_attempt as record_source_attempt
 from .discovery_measurements import canonical_unique_jobs, measure_sources
@@ -92,8 +92,13 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     board_jobs, reports = fetch_company_boards_with_report(_board_path(state))
     query_status = discovery_query_status(state, max_queries)
     query_plan = next_discovery_query_plan(state, max_queries)
+    full_time_campaigns = {campaign.identifier for campaign in load_campaigns(state) if campaign.full_time_only}
+    query_requests = [
+        (query, location, campaign_id in full_time_campaigns)
+        for campaign_id, query, location in query_status["planned"]
+    ]
     query_jobs, query_reports = fetch_query_plan_paged(
-        state, query_plan, max_pages_per_query=max_pages_per_query(state)
+        state, query_requests, max_pages_per_query=max_pages_per_query(state)
     )
     request_count = sum(report.requests for report in query_reports)
     query_errors = [report for report in query_reports if report.error]

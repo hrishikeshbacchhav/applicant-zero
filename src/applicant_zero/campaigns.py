@@ -15,6 +15,7 @@ class SearchCampaign:
     role_lanes: tuple[str, ...]
     queries: tuple[str, ...]
     active: bool
+    full_time_only: bool = False
 
 
 def _starter_path(project_root: Path) -> Path:
@@ -45,6 +46,13 @@ def _load_raw(project_root: Path) -> dict:
 
 def load_campaigns(project_root: Path) -> tuple[SearchCampaign, ...]:
     raw = _load_raw(project_root)
+    # Private campaign files retain the candidate's switches. New shipped
+    # provider constraints still apply when an older private file lacks them.
+    starter = json.loads(_starter_path(project_root).read_text(encoding="utf-8"))
+    starter_constraints = {
+        str(row.get("id", "")): bool(row.get("full_time_only", False))
+        for row in starter.get("campaigns", []) if isinstance(row, dict)
+    }
     return tuple(
         SearchCampaign(
             identifier=str(row["id"]),
@@ -53,6 +61,7 @@ def load_campaigns(project_root: Path) -> tuple[SearchCampaign, ...]:
             role_lanes=tuple(str(item) for item in row.get("role_lanes", [])),
             queries=tuple(str(item) for item in row.get("queries", []) if str(item).strip()),
             active=bool(row.get("active", False)),
+            full_time_only=bool(row.get("full_time_only", starter_constraints.get(str(row.get("id", "")), False))),
         )
         for row in raw.get("campaigns", [])
     )

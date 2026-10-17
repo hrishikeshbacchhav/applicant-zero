@@ -13,6 +13,7 @@ def test_shipped_campaigns_cover_every_candidate_role_group_by_default():
     assert active == {"data_business", "it_support", "broader_it", "administration"}
     payload = json.loads((ROOT / "data" / "search_campaigns.starter.json").read_text(encoding="utf-8"))
     assert payload["max_queries_per_refresh"] == 20
+    assert next(campaign for campaign in load_campaigns(ROOT) if campaign.identifier == "administration").full_time_only
 
 
 def _write_starter(root):
@@ -112,3 +113,16 @@ def test_monthly_cap_limits_queries_even_when_daily_allowance_remains(tmp_path):
     status = discovery_query_status(tmp_path)
     assert status["calls_this_month"] == 4
     assert next_discovery_query_plan(tmp_path) == []
+
+
+def test_private_campaign_switches_inherit_new_shipped_provider_constraints(tmp_path):
+    _write_starter(tmp_path)
+    starter = json.loads((tmp_path / "data" / "search_campaigns.starter.json").read_text(encoding="utf-8"))
+    starter["campaigns"][1]["full_time_only"] = True
+    (tmp_path / "data" / "search_campaigns.starter.json").write_text(json.dumps(starter), encoding="utf-8")
+    save_enabled_campaigns(tmp_path, {"admin"})
+    private = json.loads((tmp_path / "private" / "search_campaigns.json").read_text(encoding="utf-8"))
+    for campaign in private["campaigns"]:
+        campaign.pop("full_time_only", None)
+    (tmp_path / "private" / "search_campaigns.json").write_text(json.dumps(private), encoding="utf-8")
+    assert next(campaign for campaign in load_campaigns(tmp_path) if campaign.identifier == "admin").full_time_only

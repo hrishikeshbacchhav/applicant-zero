@@ -162,6 +162,7 @@
       "role_lanes": [
         "administration"
       ],
+      "full_time_only": true,
       "queries": [
         "administration officer",
         "project administrator",

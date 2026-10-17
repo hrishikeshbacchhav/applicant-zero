@@ -8,6 +8,8 @@ def test_search_url_targets_australia():
     url = build_search_url("id", "key", "data analyst", "Sydney")
     assert "/jobs/au/search/1" in url
     assert "what=data+analyst" in url
+    assert "full_time" not in url
+    assert "full_time=1" in build_search_url("id", "key", "administration officer", "Sydney", full_time_only=True)
 
 
 def test_runtime_dotenv_is_loaded_before_checkout_fallback(tmp_path, monkeypatch):
@@ -71,3 +73,9 @@ def test_paged_plan_fetches_a_second_page_only_after_a_full_first_page(tmp_path)
     assert len(jobs) == 51
     assert [report.requests for report in reports] == [2, 1]
     assert [report.returned for report in reports] == [51, 1]
+
+
+def test_paged_plan_passes_the_explicit_full_time_constraint_to_adzuna(tmp_path):
+    with patch("applicant_zero.sources.adzuna.fetch_jobs", return_value=[]) as fetch:
+        fetch_query_plan_paged(tmp_path, [("administration officer", "Sydney", True)])
+    assert fetch.call_args.kwargs["full_time_only"] is True
