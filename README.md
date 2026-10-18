@@ -356,4 +356,4 @@ The review queue has one **Your next best actions** panel: an ordered local plan
 
 The full-time administration campaign sends Adzuna’s documented `full_time=1` filter, so its scarce source calls are not spent on explicitly part-time listings.
 
-Large public Workday boards use five bounded searches: the ordinary board view plus data, analyst, support and admin terms. This reaches the four chosen role lanes without turning a refresh into an unrestricted crawl.
+Large public Workday boards use five bounded searches: the ordinary board view plus four role terms. Those terms rotate daily across data, analysis, support, administration, business, operations and broader IT vocabulary, which widens coverage over time without turning a refresh into an unrestricted crawl.

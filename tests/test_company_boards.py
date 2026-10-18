@@ -3,7 +3,9 @@ from unittest.mock import patch
 import json
 
 from applicant_zero.scoring import Job
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, fetch_company_boards_with_report
+from datetime import date
+
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_boards_with_report
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -230,10 +232,12 @@ def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     analyst = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
     support = [{"title": "Support Analyst", "externalPath": "/job/support", "locationsText": "Sydney"}]
     admin = [{"title": "Administration Officer", "externalPath": "/job/admin", "locationsText": "Sydney"}]
-    with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
-        {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": analyst},
-        {"jobPostings": support}, {"jobPostings": admin},
-    ]) as post:
+    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "data", "analyst", "support", "admin")), patch(
+        "applicant_zero.sources.company_boards._post_json", side_effect=[
+            {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": analyst},
+            {"jobPostings": support}, {"jobPostings": admin},
+        ]
+    ) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert len(jobs) == 24
     assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "data", "analyst", "support", "admin"]
@@ -305,3 +309,12 @@ def test_smartrecruiters_request_estimate_includes_only_candidate_detail_reads()
         Job("two", "Unrelated role", "Example", "Sydney", "SmartRecruiters", "https://example.test/two", ""),
     ]
     assert _request_count_for_board("smartrecruiters", jobs) == 2
+
+
+def test_workday_search_rotation_is_stable_per_board_and_moves_daily():
+    first = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 18))
+    repeat = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 18))
+    following = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 19))
+    assert first == repeat
+    assert first[0] == "" and len(first) == 5
+    assert following[0] == "" and following[1:] != first[1:]

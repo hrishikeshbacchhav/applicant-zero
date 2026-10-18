@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import date
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,6 +9,28 @@ from urllib.request import Request, urlopen
 from ..scoring import Job
 from ..taxonomy import classify_lane
 from .metadata import append_listing_metadata
+
+
+_WORKDAY_ROLE_TERMS = (
+    "data", "analyst", "support", "admin", "business", "operations",
+    "technology", "coordinator", "reporting", "systems", "service desk", "information",
+)
+
+
+def _workday_search_terms(company: str, token: str, today: date | None = None) -> tuple[str, ...]:
+    """Return the ordinary board view plus four rotating candidate-role terms.
+
+    A large Workday board can contain thousands of postings. Repeating the
+    exact same four terms three times a day does not improve coverage, so use
+    a deterministic daily rotation keyed by the public board. The five normal
+    public requests remain the hard limit; every role family receives regular
+    coverage over the rotation without additional traffic.
+    """
+    day = today or date.today()
+    seed = sum(ord(character) for character in f"{company.casefold()}|{token.casefold()}") + day.toordinal()
+    start = seed % len(_WORKDAY_ROLE_TERMS)
+    terms = tuple(_WORKDAY_ROLE_TERMS[(start + offset) % len(_WORKDAY_ROLE_TERMS)] for offset in range(4))
+    return ("", *terms)
 
 
 _LOCAL_DETAIL_MARKERS = (
@@ -292,10 +315,9 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     page_size = 20
     # A large global employer board often sorts the first page by its own
     # default order, which can hide a Sydney analyst or support role far down
-    # the listing.  Use the remaining four bounded requests for the role
-    # families this private workspace actually searches.  This is a normal
-    # public-board query, not a crawl: it retains the same five-request limit.
-    queries = ("", "data", "analyst", "support", "admin")
+    # the listing. Use the remaining four bounded requests for a daily rotation
+    # of the role families this private workspace searches.
+    queries = _workday_search_terms(company, token)
     for query_index, search_text in enumerate(queries):
         offset = 0
         payload = _post_json(endpoint, {
