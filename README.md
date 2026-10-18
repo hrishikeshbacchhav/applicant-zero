@@ -355,3 +355,5 @@ The dashboard’s **How to use this** page gives the normal six-step routine: re
 The review queue has one **Your next best actions** panel: an ordered local plan based on role fit, evidence gaps, preparation effort, tracker status and the latest discovery-log health. It links directly to **Preparation queue** and **Search campaigns**, so the next useful step stays visible without hunting through the dashboard.
 
 The full-time administration campaign sends Adzuna’s documented `full_time=1` filter, so its scarce source calls are not spent on explicitly part-time listings.
+
+Large public Workday boards use five bounded searches: the ordinary board view plus data, analyst, support and admin terms. This reaches the four chosen role lanes without turning a refresh into an unrestricted crawl.

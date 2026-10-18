@@ -295,7 +295,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     # the listing.  Use the remaining four bounded requests for the role
     # families this private workspace actually searches.  This is a normal
     # public-board query, not a crawl: it retains the same five-request limit.
-    queries = ("", "data", "business", "support", "administrator")
+    queries = ("", "data", "analyst", "support", "admin")
     for query_index, search_text in enumerate(queries):
         offset = 0
         payload = _post_json(endpoint, {
@@ -313,7 +313,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
         # unnecessary searches. Large boards use all five bounded queries.
         if query_index == 0 and (len(page_rows) < page_size or len(rows) >= total):
             break
-    # Searches overlap (for example "data" and "business" can both return a
+    # Searches overlap (for example "data" and "analyst" can both return a
     # business-data analyst). Preserve first-seen order while keeping one
     # canonical public posting per employer board.
     deduplicated: dict[str, dict] = {}

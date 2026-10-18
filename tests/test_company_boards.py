@@ -227,16 +227,16 @@ def test_workday_mapping_reads_the_public_careers_search_response():
 def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
     data = [{"title": "Data Analyst", "externalPath": "/job/data", "locationsText": "Sydney"}]
-    business = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
+    analyst = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
     support = [{"title": "Support Analyst", "externalPath": "/job/support", "locationsText": "Sydney"}]
-    administrator = [{"title": "Administrator", "externalPath": "/job/admin", "locationsText": "Sydney"}]
+    admin = [{"title": "Administration Officer", "externalPath": "/job/admin", "locationsText": "Sydney"}]
     with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
-        {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": business},
-        {"jobPostings": support}, {"jobPostings": administrator},
+        {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": analyst},
+        {"jobPostings": support}, {"jobPostings": admin},
     ]) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert len(jobs) == 24
-    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "data", "business", "support", "administrator"]
+    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "data", "analyst", "support", "admin"]
 
 
 def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
