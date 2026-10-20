@@ -448,5 +448,20 @@
     "company": "TaskUs",
     "ats": "workday",
     "token": "taskus.wd1.myworkdayjobs.com/Careers"
+  },
+  {
+    "company": "Bolton Clarke",
+    "ats": "workday",
+    "token": "boltonclarke.wd105.myworkdayjobs.com/Careers"
+  },
+  {
+    "company": "St John of God Health Care",
+    "ats": "workday",
+    "token": "sjog.wd105.myworkdayjobs.com/SJGHC_External_Career_Site"
+  },
+  {
+    "company": "Leidos Australia",
+    "ats": "workday",
+    "token": "leidos.wd5.myworkdayjobs.com/External"
   }
 ]
