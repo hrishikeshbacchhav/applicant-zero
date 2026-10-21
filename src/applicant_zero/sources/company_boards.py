@@ -18,19 +18,20 @@ _WORKDAY_ROLE_TERMS = (
 
 
 def _workday_search_terms(company: str, token: str, today: date | None = None) -> tuple[str, ...]:
-    """Return the ordinary board view plus four rotating candidate-role terms.
+    """Return ordinary, Sydney-focused, and rotating candidate-role searches.
 
-    A large Workday board can contain thousands of postings. Repeating the
-    exact same four terms three times a day does not improve coverage, so use
-    a deterministic daily rotation keyed by the public board. The five normal
-    public requests remain the hard limit; every role family receives regular
-    coverage over the rotation without additional traffic.
+    A large Workday board can contain thousands of postings. The normal board
+    view is useful for general freshness, while an explicit Sydney search
+    prevents globally sorted boards from burying local jobs. The final three
+    bounded searches rotate through the candidate role families each day. The
+    five public requests remain the hard limit, with no location guessing or
+    unbounded pagination.
     """
     day = today or date.today()
     seed = sum(ord(character) for character in f"{company.casefold()}|{token.casefold()}") + day.toordinal()
     start = seed % len(_WORKDAY_ROLE_TERMS)
-    terms = tuple(_WORKDAY_ROLE_TERMS[(start + offset) % len(_WORKDAY_ROLE_TERMS)] for offset in range(4))
-    return ("", *terms)
+    terms = tuple(_WORKDAY_ROLE_TERMS[(start + offset) % len(_WORKDAY_ROLE_TERMS)] for offset in range(3))
+    return ("", "sydney", *terms)
 
 
 _LOCAL_DETAIL_MARKERS = (
@@ -315,8 +316,9 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     page_size = 20
     # A large global employer board often sorts the first page by its own
     # default order, which can hide a Sydney analyst or support role far down
-    # the listing. Use the remaining four bounded requests for a daily rotation
-    # of the role families this private workspace searches.
+    # the listing. One bounded Sydney query keeps local coverage visible; the
+    # final three requests rotate through the role families this workspace
+    # searches.
     queries = _workday_search_terms(company, token)
     for query_index, search_text in enumerate(queries):
         offset = 0

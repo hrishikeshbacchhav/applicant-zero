@@ -232,7 +232,7 @@ def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     analyst = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
     support = [{"title": "Support Analyst", "externalPath": "/job/support", "locationsText": "Sydney"}]
     admin = [{"title": "Administration Officer", "externalPath": "/job/admin", "locationsText": "Sydney"}]
-    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "data", "analyst", "support", "admin")), patch(
+    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "sydney", "data", "analyst", "support")), patch(
         "applicant_zero.sources.company_boards._post_json", side_effect=[
             {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": analyst},
             {"jobPostings": support}, {"jobPostings": admin},
@@ -240,7 +240,7 @@ def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     ) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert len(jobs) == 24
-    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "data", "analyst", "support", "admin"]
+    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "sydney", "data", "analyst", "support"]
 
 
 def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
@@ -316,5 +316,5 @@ def test_workday_search_rotation_is_stable_per_board_and_moves_daily():
     repeat = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 18))
     following = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 19))
     assert first == repeat
-    assert first[0] == "" and len(first) == 5
-    assert following[0] == "" and following[1:] != first[1:]
+    assert first[:2] == ("", "sydney") and len(first) == 5
+    assert following[:2] == ("", "sydney") and following[2:] != first[2:]
