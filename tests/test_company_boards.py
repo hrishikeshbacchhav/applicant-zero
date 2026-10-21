@@ -282,7 +282,7 @@ def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 21) == 5
     assert _request_count_for_board("workday", 101) == 5
     assert _request_count_for_board("smartrecruiters", 3) == 4
-    assert _request_count_for_board("smartrecruiters", 101) == 103
+    assert _request_count_for_board("smartrecruiters", 101) == 14
     assert _request_count_for_board("lever", 40) == 1
 
 

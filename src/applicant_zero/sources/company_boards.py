@@ -514,10 +514,12 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
         return listing_requests + detail_requests
     if normalized == "smartrecruiters":
         # One request for each 100-posting public listing page (capped at five)
-        # plus one ordinary public detail request per returned job.
+        # plus at most twelve candidate-lane detail reads.  The integer form
+        # cannot know which titles qualify, so it reports the safe upper bound
+        # under the same cap rather than incorrectly counting every listing.
         listing_pages = max(1, min(5, (max(0, job_count) + 99) // 100))
         if isinstance(jobs, int):
-            return listing_pages + max(0, job_count)
+            return listing_pages + min(12, max(0, job_count))
         detail_requests = min(12, sum(
             _needs_candidate_detail(job.title, job.location) for job in jobs
         ))
