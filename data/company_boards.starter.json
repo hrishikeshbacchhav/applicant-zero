@@ -478,5 +478,15 @@
     "company": "Genpact",
     "ats": "workday",
     "token": "genpact.wd108.myworkdayjobs.com/external_careers"
+  },
+  {
+    "company": "Challenger",
+    "ats": "workday",
+    "token": "challenger.wd3.myworkdayjobs.com/Challenger_Careers"
+  },
+  {
+    "company": "Cognizant",
+    "ats": "workday",
+    "token": "collaborative.wd1.myworkdayjobs.com/AllOpenings"
   }
 ]
