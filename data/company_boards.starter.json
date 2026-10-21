@@ -488,5 +488,15 @@
     "company": "Cognizant",
     "ats": "workday",
     "token": "collaborative.wd1.myworkdayjobs.com/AllOpenings"
+  },
+  {
+    "company": "Lendlease",
+    "ats": "workday",
+    "token": "lendlease.wd3.myworkdayjobs.com/LendleaseCareers"
+  },
+  {
+    "company": "Macquarie University",
+    "ats": "workday",
+    "token": "mq.wd3.myworkdayjobs.com/CareersatMQ"
   }
 ]
