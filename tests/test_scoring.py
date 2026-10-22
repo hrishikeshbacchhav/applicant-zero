@@ -144,6 +144,24 @@ def test_inactive_campaign_lane_does_not_clutter_the_active_queue():
     assert result.lane == "administration"
 
 
+def test_location_scope_accepts_new_greater_sydney_centres_and_rejects_overseas_suburb_names():
+    local = score_job(
+        Job("local", "Data Analyst", "Example", "Darlinghurst, NSW, Australia", "Test", "https://example.test/local", "SQL Power BI"),
+        RISHI_PROFILE,
+    )
+    overseas = score_job(
+        Job("overseas", "Data Analyst", "Example", "Liverpool, United Kingdom", "Test", "https://example.test/overseas", "SQL Power BI"),
+        RISHI_PROFILE,
+    )
+    contextual = score_job(
+        Job("contextual", "Data Analyst", "Example", "Liverpool, NSW, Australia", "Test", "https://example.test/contextual", "SQL Power BI"),
+        RISHI_PROFILE,
+    )
+    assert local.recommendation != "Skip"
+    assert overseas.recommendation == "Skip"
+    assert contextual.recommendation != "Skip"
+
+
 def test_full_time_administration_campaign_filters_explicit_part_time_work():
     job = Job(
         "admin-part-time", "Administration Officer", "Example", "Sydney", "test", "https://example.invalid",

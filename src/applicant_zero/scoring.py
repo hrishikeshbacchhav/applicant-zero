@@ -70,14 +70,28 @@ NON_FULL_TIME_PATTERNS = (r"\bpart[ -]?time\b", r"\bcasual\b", r"\bjob[ -]?share
 GREATER_SYDNEY_LOCATION_TERMS = (
     "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
     "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
-    "ryde", "rhodes", "homebush", "sydney olympic park", "strathfield", "burwood",
-    "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
-    "bella vista", "milsons point", "circular quay", "botany", "waterloo",
-    "wetherill park", "moorebank", "seven hills", "eastern creek", "huntingwood",
-    "silverwater", "granville", "lidcombe", "campsie", "hurstville", "kingsgrove",
-    "rosebery", "artarmon", "lane cove", "north ryde", "pymble", "hornsby",
-    "brookvale", "manly", "crows nest", "neutral bay", "petersham", "newtown",
-    "bondi junction", "regents park", "dural",
+    "rhodes", "homebush", "sydney olympic park", "strathfield", "bankstown",
+    "blacktown", "castle hill", "baulkham hills", "bella vista", "milsons point",
+    "circular quay", "botany", "waterloo", "wetherill park", "moorebank",
+    "seven hills", "eastern creek", "huntingwood", "silverwater", "granville",
+    "lidcombe", "campsie", "hurstville", "kingsgrove", "rosebery", "artarmon",
+    "lane cove", "north ryde", "pymble", "hornsby", "brookvale", "crows nest",
+    "neutral bay", "petersham", "newtown", "bondi junction", "dural", "darlinghurst",
+    "kings cross", "haymarket", "ultimo", "chippendale", "zetland", "randwick",
+    "kingsford", "kogarah", "epping", "gordon", "st marys", "st mary's",
+)
+
+# Some suburb names also occur overseas or in another Australian state. They
+# are accepted only when the provider also says NSW or Australia; this avoids
+# silently treating a Liverpool, UK or Penrith, England listing as Sydney.
+AMBIGUOUS_GREATER_SYDNEY_TERMS = (
+    "ryde", "burwood", "liverpool", "penrith", "manly", "regents park",
+)
+FOREIGN_LOCATION_TERMS = (
+    "united kingdom", " uk", ",uk", "england", "scotland", "wales", "ireland",
+    "united states", " usa", ",usa", "canada", "india", "singapore", "hong kong",
+    "germany", "france", "spain", "italy", "netherlands", "switzerland", "japan",
+    "philippines", "new zealand", "aotearoa", "brazil", "mexico", "china", "europe",
 )
 
 # These phrases signal a requirement that is substantially more specific than a
@@ -136,11 +150,17 @@ def _location_signals(location: str, description: str) -> tuple[bool, bool, bool
     when the provider label is generic; a named interstate location still wins
     and cannot be overwritten by incidental wording elsewhere in the ad.
     """
-    named_sydney = "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
-    interstate = any(place in location for place in (
+    foreign_location = any(place in location for place in FOREIGN_LOCATION_TERMS)
+    named_sydney = not foreign_location and (
+        "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
+    )
+    australian_context = "australia" in location or "nsw" in location or "new south wales" in location
+    if not foreign_location and australian_context:
+        named_sydney = named_sydney or any(place in location for place in AMBIGUOUS_GREATER_SYDNEY_TERMS)
+    interstate = foreign_location or any(place in location for place in (
         "melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia",
     ))
-    nsw_only = "nsw" in location or "new south wales" in location
+    nsw_only = not foreign_location and ("nsw" in location or "new south wales" in location)
     remote_australia = "remote" in location and ("australia" in location or "worldwide" in location) and not interstate
     generic_location = not named_sydney and not interstate and not nsw_only and location.strip() in {
         "", "unknown location", "australia", "remote", "hybrid", "australia remote", "remote apac", "worldwide", "remote worldwide",
