@@ -498,5 +498,10 @@
     "company": "Macquarie University",
     "ats": "workday",
     "token": "mq.wd3.myworkdayjobs.com/CareersatMQ"
+  },
+  {
+    "company": "Macquarie University",
+    "ats": "workday",
+    "token": "mq.wd3.myworkdayjobs.com/CareersatMQHealth"
   }
 ]
