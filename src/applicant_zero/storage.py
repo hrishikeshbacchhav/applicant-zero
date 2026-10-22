@@ -450,16 +450,22 @@ def get_match(connection: sqlite3.Connection, external_id: str) -> dict | None:
 
 
 def mark_company_inventory_jobs_inactive(
-    connection: sqlite3.Connection, company: str, source: str, active_external_ids: list[str]
+    connection: sqlite3.Connection, company: str, source: str, active_external_ids: list[str],
+    external_id_prefix: str = "",
 ) -> int:
-    """Retire listings absent from a successful authoritative board snapshot.
+    """Retire listings absent from one successful authoritative board snapshot.
 
-    A completed public ATS board is authoritative only for that employer and
-    source. It must never retire a matching listing from a broad feed or a
-    different ATS. Candidate tracker history lives in ``job_matches`` and is
-    intentionally untouched here.
+    A completed public ATS board is authoritative only for its employer,
+    provider, and board token. It must never retire a matching listing from a
+    broad feed, a different ATS, or another board operated by the same employer.
+    Candidate tracker history lives in ``job_matches`` and is intentionally
+    untouched here.
     """
     parameters: list[object] = [company, source]
+    scope = ""
+    if external_id_prefix:
+        scope = " AND external_id LIKE ?"
+        parameters.append(f"{external_id_prefix}%")
     exclusion = ""
     if active_external_ids:
         placeholders = ", ".join("?" for _ in active_external_ids)
@@ -469,7 +475,7 @@ def mark_company_inventory_jobs_inactive(
         """
         UPDATE discovery_inventory SET is_active = 0
         WHERE company = ? AND lower(source) = lower(?) AND is_active = 1
-        """ + exclusion,
+        """ + scope + exclusion,
         parameters,
     )
     connection.commit()
@@ -497,9 +503,25 @@ def deactivate_stale_broad_feed_inventory_records(connection: sqlite3.Connection
 
 
 def mark_company_jobs_inactive(
-    connection: sqlite3.Connection, company: str, active_external_ids: list[str]
+    connection: sqlite3.Connection, company: str, active_external_ids: list[str],
+    source: str = "", external_id_prefix: str = "",
 ) -> int:
+    """Retire review rows absent from one verified board snapshot.
+
+    ``source`` and ``external_id_prefix`` keep an employer's other ATS boards
+    and syndicated listings active. Optional defaults retain compatibility for
+    local maintenance callers that intentionally operate at company scope.
+    """
     parameters: list[object] = [company]
+    scope = ""
+    if source:
+        scope += " AND lower(source) = lower(?)"
+        parameters.append(source)
+    else:
+        scope += " AND lower(source) != 'demo'"
+    if external_id_prefix:
+        scope += " AND external_id LIKE ?"
+        parameters.append(f"{external_id_prefix}%")
     exclusion = ""
     if active_external_ids:
         placeholders = ", ".join("?" for _ in active_external_ids)
@@ -509,8 +531,8 @@ def mark_company_jobs_inactive(
         """
         UPDATE job_matches
         SET is_active = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE company = ? AND lower(source) != 'demo' AND is_active = 1
-        """ + exclusion,
+        WHERE company = ? AND is_active = 1
+        """ + scope + exclusion,
         parameters,
     )
     connection.commit()

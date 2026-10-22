@@ -56,6 +56,7 @@ class BoardReport:
     message: str = ""
     ats: str = ""
     request_count: int = 0
+    token: str = ""
 
 
 def _get_json(url: str) -> dict | list:
@@ -476,6 +477,20 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
     return valid, reports
 
 
+def public_board_identity_prefix(ats: str, token: str) -> str:
+    """Return the stable external-id namespace for one configured board.
+
+    One employer can expose more than one board on the same ATS. Snapshot
+    retirement must therefore be scoped to the board token, not just company
+    and provider, so a successful empty board never hides its sibling board.
+    """
+    normalized_ats = ats.casefold().strip()
+    normalized_token = token.strip()
+    if normalized_ats == "workday":
+        normalized_token = normalized_token.replace("/", ":")
+    return f"{normalized_ats}:{normalized_token}:"
+
+
 def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
     """Read one supported public board so onboarding can validate it first."""
     handlers = {
@@ -536,10 +551,10 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
         try:
             board_jobs = fetch_public_board(company, board["ats"], board["token"])
         except (OSError, ValueError, KeyError, TypeError) as error:
-            return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title(), 1)
+            return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title(), 1, board["token"])
         return board_jobs, BoardReport(
             company, "checked", len(board_jobs), "", board["ats"].title(),
-            _request_count_for_board(board["ats"], board_jobs),
+            _request_count_for_board(board["ats"], board_jobs), board["token"],
         )
 
     # Board APIs are independent. Parallel requests keep one slow employer

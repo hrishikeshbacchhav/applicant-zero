@@ -20,7 +20,7 @@ from .sources.himalayas import fetch_targeted_jobs_with_report as fetch_himalaya
 from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs
 from .sources.remoteok import fetch_jobs as fetch_remoteok_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, load_campaigns, max_pages_per_query, next_discovery_query_plan
-from .sources.company_boards import fetch_company_boards_with_report
+from .sources.company_boards import fetch_company_boards_with_report, public_board_identity_prefix
 from .source_schedule import due_today as source_due_today, record_attempt as record_source_attempt
 from .discovery_measurements import canonical_unique_jobs, measure_sources
 from .storage import (
@@ -177,8 +177,15 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
                 job.external_id for job in inventory_jobs
                 if job.company == report.company and job.source.casefold() == report_source.casefold()
             ]
-            retired_board_inventory += mark_company_inventory_jobs_inactive(database, report.company, report_source, board_ids)
-            mark_company_jobs_inactive(database, report.company, [job.external_id for job in board_jobs if job.company == report.company])
+            board_prefix = public_board_identity_prefix(report_source, str(getattr(report, "token", "")))
+            retired_board_inventory += mark_company_inventory_jobs_inactive(
+                database, report.company, report_source, board_ids, board_prefix,
+            )
+            mark_company_jobs_inactive(
+                database, report.company,
+                [job.external_id for job in board_jobs if job.company == report.company],
+                report_source, board_prefix,
+            )
     checked = sum(report.status == "checked" for report in reports)
     unavailable = sum(report.status == "unavailable" for report in reports)
     stale_broad = deactivate_stale_broad_feed_jobs(database)

@@ -61,6 +61,20 @@ def test_successful_board_snapshot_retires_only_that_company_and_source(tmp_path
     assert active == {"adzuna-same-company", "lever-other-company"}
 
 
+def test_board_snapshot_retires_only_its_own_token_when_an_employer_has_multiple_boards(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_discovery_inventory(database, [
+        Job("workday:example.wd3.myworkdayjobs.com:Corporate:old", "Data Analyst", "Example", "Sydney", "Workday", "https://one", ""),
+        Job("workday:example.wd3.myworkdayjobs.com:Graduate:current", "Data Analyst", "Example", "Sydney", "Workday", "https://two", ""),
+        Job("adzuna:example", "Data Analyst", "Example", "Sydney", "Adzuna", "https://three", ""),
+    ])
+    assert mark_company_inventory_jobs_inactive(
+        database, "Example", "Workday", [], "workday:example.wd3.myworkdayjobs.com:Corporate:",
+    ) == 1
+    active = {row[0] for row in database.execute("SELECT external_id FROM discovery_inventory WHERE is_active = 1")}
+    assert active == {"workday:example.wd3.myworkdayjobs.com:Graduate:current", "adzuna:example"}
+
+
 def test_old_broad_feed_inventory_is_retired_without_deleting_it(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     save_discovery_inventory(database, [

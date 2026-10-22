@@ -299,6 +299,23 @@ def test_application_timestamp_and_funnel_are_recorded(tmp_path):
     assert "Listing no longer active" in build_page(path)
 
 
+def test_board_snapshot_does_not_retire_another_board_or_broad_result(tmp_path):
+    path = tmp_path / "project" / "data" / "jobs.sqlite3"
+    database = initialise_database(path)
+    jobs = [
+        Job("workday:example.wd3.myworkdayjobs.com:Corporate:old", "Data Analyst", "Example", "Sydney", "Workday", "https://one", "SQL"),
+        Job("workday:example.wd3.myworkdayjobs.com:Graduate:current", "Data Analyst", "Example", "Sydney", "Workday", "https://two", "SQL"),
+        Job("adzuna:example", "Data Analyst", "Example", "Sydney", "Adzuna", "https://three", "SQL"),
+    ]
+    for job in jobs:
+        save_match(database, job, score_job(job, RISHI_PROFILE))
+    assert mark_company_jobs_inactive(
+        database, "Example", [], "Workday", "workday:example.wd3.myworkdayjobs.com:Corporate:",
+    ) == 1
+    active = {row[0] for row in database.execute("SELECT external_id FROM job_matches WHERE is_active = 1")}
+    assert active == {"workday:example.wd3.myworkdayjobs.com:Graduate:current", "adzuna:example"}
+
+
 def test_preparation_brief_keeps_employer_forms_out_of_the_dashboard(tmp_path):
     path = tmp_path / "project" / "data" / "jobs.sqlite3"
     database = initialise_database(path)
