@@ -503,5 +503,20 @@
     "company": "Macquarie University",
     "ats": "workday",
     "token": "mq.wd3.myworkdayjobs.com/CareersatMQHealth"
+  },
+  {
+    "company": "JLL",
+    "ats": "workday",
+    "token": "jll.wd1.myworkdayjobs.com/jllcareers"
+  },
+  {
+    "company": "Universal Music Australia",
+    "ats": "workday",
+    "token": "umusic.wd5.myworkdayjobs.com/UMGAPAC"
+  },
+  {
+    "company": "Trek Bicycle",
+    "ats": "workday",
+    "token": "trekbikes.wd1.myworkdayjobs.com/TREK"
   }
 ]
