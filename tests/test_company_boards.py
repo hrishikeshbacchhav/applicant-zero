@@ -82,6 +82,31 @@ def test_smartrecruiters_details_are_limited_to_candidate_lane_titles():
     assert get.call_count == 13
 
 
+def test_smartrecruiters_prioritises_sydney_detail_before_generic_australia_matches():
+    listing = {"content": [
+        {"id": str(index), "name": "Data Analyst", "location": {"country": "Australia"}}
+        for index in range(12)
+    ] + [{"id": "sydney", "name": "Data Analyst", "location": {"city": "Sydney", "country": "Australia"}}]}
+    with patch("applicant_zero.sources.company_boards._get_json", side_effect=[listing, *([{ "jobAd": {} }] * 12)]) as get:
+        _smartrecruiters_jobs("Example", "Example")
+    detail_urls = [call.args[0] for call in get.call_args_list[1:]]
+    assert any(url.endswith("/sydney") for url in detail_urls)
+
+
+def test_workday_prioritises_sydney_detail_before_generic_australia_matches():
+    generic = [
+        {"title": "Data Analyst", "externalPath": f"/job/generic-{index}", "locationsText": "Australia"}
+        for index in range(12)
+    ]
+    local = {"title": "Data Analyst", "externalPath": "/job/sydney", "locationsText": "Sydney, NSW, Australia"}
+    with patch("applicant_zero.sources.company_boards._post_json", return_value={"total": 13, "jobPostings": [*generic, local]}), patch(
+        "applicant_zero.sources.company_boards._get_json", return_value={"jobPostingInfo": {}}
+    ) as get:
+        _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    detail_urls = [call.args[0] for call in get.call_args_list]
+    assert any(url.endswith("/job/sydney") for url in detail_urls)
+
+
 def test_candidate_detail_read_keeps_local_and_generic_australian_roles_only():
     assert _needs_candidate_detail("Data Analyst", "Sydney, NSW, Australia")
     assert _needs_candidate_detail("Data Analyst", "Australia")

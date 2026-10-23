@@ -154,6 +154,26 @@ def _plain_text(value: object) -> str:
     return ""
 
 
+def _candidate_detail_location_priority(location: str) -> int:
+    """Prioritise local detail reads when a public board yields many matches.
+
+    The twelve-record cap protects public employer endpoints. A globally sorted
+    board can otherwise spend the entire cap on generic Australia or remote
+    roles before a Sydney record returned by the same search receives its
+    description. This only orders already-eligible public listings; it does
+    not broaden the request budget or infer a location.
+    """
+    normalized = location.casefold().strip()
+    local_markers = tuple(marker for marker in _LOCAL_DETAIL_MARKERS if marker not in {"australia", "remote", "unknown location"})
+    if "sydney" in normalized or "nsw" in normalized or "new south wales" in normalized or any(marker in normalized for marker in local_markers):
+        return 0
+    if "australia" in normalized:
+        return 1
+    if "remote" in normalized:
+        return 2
+    return 3
+
+
 def _needs_candidate_detail(title: str, location: str) -> bool:
     """Keep public detail reads for plausible candidate-lane Sydney roles.
 
@@ -215,10 +235,13 @@ def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
             return str(location)
         return ", ".join(str(location.get(key, "")) for key in ("city", "region", "country"))
 
-    detail_candidates = [
-        item for item in valid_postings
-        if _needs_candidate_detail(str(item.get("name", "")), listing_location(item))
-    ][:12]
+    detail_candidates = sorted(
+        (
+            item for item in valid_postings
+            if _needs_candidate_detail(str(item.get("name", "")), listing_location(item))
+        ),
+        key=lambda item: _candidate_detail_location_priority(listing_location(item)),
+    )[:12]
     with ThreadPoolExecutor(max_workers=min(6, len(detail_candidates) or 1), thread_name_prefix="applicant-zero-sr") as executor:
         details = list(executor.map(detail_for, detail_candidates))
     details_by_id = {
@@ -352,12 +375,15 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     # details only for titles that already match a candidate role lane, with a
     # hard cap so a large employer board remains bounded and courteous.
     detail_by_path: dict[str, dict] = {}
-    detail_candidates = [
-        item for item in rows
-        if str(item.get("externalPath", "")).strip() and _needs_candidate_detail(
-            str(item.get("title", "")), str(item.get("locationsText", "")),
-        )
-    ][:12]
+    detail_candidates = sorted(
+        (
+            item for item in rows
+            if str(item.get("externalPath", "")).strip() and _needs_candidate_detail(
+                str(item.get("title", "")), str(item.get("locationsText", "")),
+            )
+        ),
+        key=lambda item: _candidate_detail_location_priority(str(item.get("locationsText", ""))),
+    )[:12]
     for item in detail_candidates:
         external_path = str(item["externalPath"]).strip()
         detail_path = _workday_detail_path(external_path, site)
