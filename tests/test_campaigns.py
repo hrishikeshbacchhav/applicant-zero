@@ -126,3 +126,20 @@ def test_private_campaign_switches_inherit_new_shipped_provider_constraints(tmp_
         campaign.pop("full_time_only", None)
     (tmp_path / "private" / "search_campaigns.json").write_text(json.dumps(private), encoding="utf-8")
     assert next(campaign for campaign in load_campaigns(tmp_path) if campaign.identifier == "admin").full_time_only
+
+
+def test_private_campaigns_inherit_new_shipped_role_terms_without_changing_switches(tmp_path):
+    _write_starter(tmp_path)
+    save_enabled_campaigns(tmp_path, {"admin"})
+    starter_path = tmp_path / "data" / "search_campaigns.starter.json"
+    starter = json.loads(starter_path.read_text(encoding="utf-8"))
+    starter["campaigns"][1]["queries"].append("records officer")
+    starter["campaigns"][1]["role_lanes"].append("data_operations")
+    starter_path.write_text(json.dumps(starter), encoding="utf-8")
+
+    campaigns = {campaign.identifier: campaign for campaign in load_campaigns(tmp_path)}
+
+    assert campaigns["admin"].active
+    assert not campaigns["data"].active
+    assert "records officer" in campaigns["admin"].queries
+    assert "data_operations" in campaigns["admin"].role_lanes

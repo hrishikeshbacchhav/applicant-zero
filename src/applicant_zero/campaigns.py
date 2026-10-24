@@ -44,22 +44,56 @@ def _load_raw(project_root: Path) -> dict:
     return json.loads(selected.read_text(encoding="utf-8"))
 
 
+def _merged_terms(*term_groups: object) -> tuple[str, ...]:
+    """Keep private campaign choices while adding shipped search vocabulary.
+
+    A campaign selection is private because the candidate controls which
+    lanes run.  The starter vocabulary, however, is maintained with new
+    truthful role names.  Existing local copies must inherit those additions
+    or a user who enabled a campaign months ago would silently keep searching
+    only the old, smaller list.  Preserve any private terms and append only
+    previously unseen shipped terms.
+    """
+    merged: list[str] = []
+    seen: set[str] = set()
+    for group in term_groups:
+        if not isinstance(group, (list, tuple)):
+            continue
+        for value in group:
+            text = str(value).strip()
+            key = " ".join(text.casefold().split())
+            if text and key not in seen:
+                seen.add(key)
+                merged.append(text)
+    return tuple(merged)
+
+
 def load_campaigns(project_root: Path) -> tuple[SearchCampaign, ...]:
     raw = _load_raw(project_root)
     # Private campaign files retain the candidate's switches. New shipped
     # provider constraints still apply when an older private file lacks them.
     starter = json.loads(_starter_path(project_root).read_text(encoding="utf-8"))
-    starter_constraints = {
-        str(row.get("id", "")): bool(row.get("full_time_only", False))
+    starter_campaigns = {
+        str(row.get("id", "")): row
         for row in starter.get("campaigns", []) if isinstance(row, dict)
+    }
+    starter_constraints = {
+        identifier: bool(row.get("full_time_only", False))
+        for identifier, row in starter_campaigns.items()
     }
     return tuple(
         SearchCampaign(
             identifier=str(row["id"]),
             label=str(row["label"]),
             description=str(row.get("description", "")),
-            role_lanes=tuple(str(item) for item in row.get("role_lanes", [])),
-            queries=tuple(str(item) for item in row.get("queries", []) if str(item).strip()),
+            role_lanes=_merged_terms(
+                row.get("role_lanes", []),
+                starter_campaigns.get(str(row.get("id", "")), {}).get("role_lanes", []),
+            ),
+            queries=_merged_terms(
+                row.get("queries", []),
+                starter_campaigns.get(str(row.get("id", "")), {}).get("queries", []),
+            ),
             active=bool(row.get("active", False)),
             full_time_only=bool(row.get("full_time_only", starter_constraints.get(str(row.get("id", "")), False))),
         )
