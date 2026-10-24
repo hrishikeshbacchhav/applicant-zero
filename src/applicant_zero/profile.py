@@ -17,9 +17,10 @@ RISHI_PROFILE = CandidateProfile(
             "data reporting analyst", "data management analyst", "data visualisation analyst", "information management analyst", "master data analyst",
             "insight analyst", "decision support analyst", "data integrity analyst", "data assurance analyst", "data migration analyst",
             "data conversion analyst", "data reconciliation analyst", "data enablement analyst", "analytics specialist",
+            "reporting developer", "analytics and insights", "information officer", "data management officer", "data operations analyst",
         ),
         "power_bi": ("business intelligence", "power bi", "bi analyst", "bi developer"),
-        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "technology business analyst", "business process analyst", "business improvement analyst", "change analyst", "technical business analyst", "digital business analyst", "business change analyst", "business solution analyst", "requirements analyst", "workflow analyst", "systems and process analyst", "process improvement analyst", "implementation analyst"),
+        "business_analysis": ("business analyst", "process analyst", "systems analyst", "business systems", "technology business analyst", "business process analyst", "business improvement analyst", "change analyst", "technical business analyst", "digital business analyst", "business change analyst", "business solution analyst", "requirements analyst", "workflow analyst", "systems and process analyst", "process improvement analyst", "implementation analyst", "operational excellence", "transformation analyst", "change and transformation", "product operations analyst", "digital transformation analyst", "project business analyst"),
         "adjacent_analytics": (
             "commercial analyst", "pricing analyst", "operations analyst",
             "finance operations analyst", "crm analyst", "insights analyst",
@@ -29,21 +30,21 @@ RISHI_PROFILE = CandidateProfile(
         "it_support": (
             "service desk", "help desk", "it support", "technical support", "desktop support", "application support",
             "support analyst", "it operations", "technology support", "ict support", "end user support",
-            "it support specialist", "it support analyst", "support engineer", "customer support engineer", "technical customer support",
+            "it support specialist", "it support analyst", "support engineer", "customer support engineer", "technical customer support", "technical support specialist",
             "service desk technician", "field support technician", "it service management analyst", "it service desk officer",
-            "it support administrator", "workplace technology support", "endpoint support", "device support", "business applications support", "software support analyst",
+            "it support administrator", "workplace technology support", "endpoint support", "device support", "business applications support", "software support analyst", "application support officer", "desktop support engineer", "it operations coordinator", "support coordinator",
         ),
         "it_general": (
             "junior systems administrator", "systems administrator", "cloud support", "cyber security analyst", "cybersecurity analyst",
-            "security operations", "qa analyst", "test analyst", "software tester", "network support", "implementation support",
+            "security operations", "qa analyst", "test analyst", "software tester", "network support", "implementation support", "infrastructure analyst", "junior cloud engineer", "cloud operations engineer", "network administrator", "software test analyst", "test automation analyst",
             "junior developer", "graduate developer", "graduate technology", "technology graduate", "junior infrastructure", "cloud operations",
-            "information security analyst", "soc analyst", "security analyst", "technical analyst", "implementation specialist",
+            "information security analyst", "soc analyst", "security analyst", "technical analyst", "implementation specialist", "graduate cyber security", "it project officer",
             "software quality analyst", "qa engineer", "test engineer", "junior network engineer", "it project support",
         ),
         "administration": (
             "administration officer", "administration coordinator", "project administrator", "customer service administrator",
             "office administrator", "administrative assistant", "administration assistant", "administrative officer", "administration clerk", "data entry", "clerical officer", "program administrator", "reception and administration",
-            "administrative coordinator", "customer operations administrator", "office coordinator", "operations administrator", "operations coordinator", "business support officer", "team coordinator", "administration support", "business administrator", "client services administrator", "project support officer", "administrative services officer", "program support officer", "office support coordinator", "business services officer",
+            "administrative coordinator", "customer operations administrator", "office coordinator", "operations administrator", "operations coordinator", "business support officer", "team coordinator", "administration support", "business administrator", "client services administrator", "project support officer", "administrative services officer", "program support officer", "office support coordinator", "business services officer", "administrative support officer", "project coordinator", "customer service officer", "office services coordinator", "data entry officer", "records officer", "document controller", "program coordinator",
         ),
     },
     skills=(

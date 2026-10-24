@@ -29,6 +29,18 @@ def test_taxonomy_covers_broader_real_world_titles_from_each_active_lane():
     assert classify_lane("Operations Coordinator").identifier == "administration"
 
 
+def test_taxonomy_covers_additional_discovery_titles_without_merging_the_lanes():
+    examples = {
+        "Data Operations Analyst": "data_bi",
+        "Operational Excellence Analyst": "business_analysis",
+        "Technical Support Specialist": "it_support",
+        "Junior Cloud Engineer": "it_general",
+        "Records Officer": "administration",
+    }
+    for title, expected_lane in examples.items():
+        assert classify_lane(title).identifier == expected_lane
+
+
 def test_source_contracts_include_workday():
     from applicant_zero.taxonomy import SOURCE_CONTRACTS
     assert "workday" in {item.identifier for item in SOURCE_CONTRACTS}

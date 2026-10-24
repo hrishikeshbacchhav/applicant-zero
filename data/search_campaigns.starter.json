@@ -65,7 +65,17 @@
         "data migration analyst",
         "data reconciliation analyst",
         "analytics specialist",
-        "reporting and insights analyst"
+        "reporting and insights analyst",
+        "data operations analyst",
+        "data management officer",
+        "reporting developer",
+        "analytics and insights officer",
+        "information officer",
+        "operational excellence analyst",
+        "transformation analyst",
+        "product operations analyst",
+        "digital transformation analyst",
+        "project business analyst"
       ],
       "active": true
     },
@@ -109,7 +119,12 @@
         "IT service management analyst",
         "workplace technology support",
         "endpoint support analyst",
-        "software support analyst"
+        "software support analyst",
+        "application support officer",
+        "technical support specialist",
+        "desktop support engineer",
+        "IT operations coordinator",
+        "support coordinator"
       ],
       "active": true
     },
@@ -151,7 +166,14 @@
         "software quality analyst",
         "QA engineer",
         "test engineer",
-        "IT project coordinator"
+        "IT project coordinator",
+        "junior cloud engineer",
+        "cloud operations engineer",
+        "infrastructure analyst",
+        "network administrator",
+        "software test analyst",
+        "test automation analyst",
+        "IT project officer"
       ],
       "active": true
     },
@@ -190,7 +212,15 @@
         "project support officer",
         "administrative services officer",
         "program support officer",
-        "business services officer"
+        "business services officer",
+        "administrative support officer",
+        "project coordinator",
+        "customer service officer",
+        "office services coordinator",
+        "data entry officer",
+        "records officer",
+        "document controller",
+        "program coordinator"
       ],
       "active": true
     }
