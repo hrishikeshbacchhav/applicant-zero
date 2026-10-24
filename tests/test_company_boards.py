@@ -120,6 +120,12 @@ def test_candidate_detail_read_recognises_extended_sydney_employment_centres():
     assert _needs_candidate_detail("IT Support Analyst", "Hurstville")
 
 
+def test_candidate_detail_read_does_not_spend_local_budget_on_ambiguous_overseas_places():
+    assert not _needs_candidate_detail("Data Analyst", "Liverpool, England, United Kingdom")
+    assert not _needs_candidate_detail("IT Support Analyst", "Penrith, England")
+    assert _needs_candidate_detail("Data Analyst", "Liverpool, NSW, Australia")
+
+
 def test_one_unavailable_board_does_not_stop_other_boards(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([

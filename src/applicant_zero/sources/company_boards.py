@@ -47,6 +47,18 @@ _LOCAL_DETAIL_MARKERS = (
     "newtown", "bondi junction", "regents park", "dural",
 )
 
+# A public global board can use a Sydney suburb name for a city outside
+# Australia (for example Liverpool, UK).  Those records stay available to the
+# normal scorer, but must not consume one of the deliberately small local
+# detail-read slots.
+_FOREIGN_LOCATION_MARKERS = (
+    "united kingdom", " uk", ",uk", "england", "scotland", "wales", "ireland",
+    "united states", " usa", ",usa", "canada", "india", "singapore", "hong kong",
+    "germany", "france", "spain", "italy", "netherlands", "switzerland", "japan",
+    "philippines", "new zealand", "aotearoa", "brazil", "mexico", "china", "europe",
+)
+_AMBIGUOUS_LOCAL_DETAIL_MARKERS = ("ryde", "burwood", "liverpool", "penrith", "manly", "regents park")
+
 
 @dataclass(frozen=True)
 class BoardReport:
@@ -164,8 +176,18 @@ def _candidate_detail_location_priority(location: str) -> int:
     not broaden the request budget or infer a location.
     """
     normalized = location.casefold().strip()
-    local_markers = tuple(marker for marker in _LOCAL_DETAIL_MARKERS if marker not in {"australia", "remote", "unknown location"})
-    if "sydney" in normalized or "nsw" in normalized or "new south wales" in normalized or any(marker in normalized for marker in local_markers):
+    if any(marker in normalized for marker in _FOREIGN_LOCATION_MARKERS):
+        return 4
+    australian_context = "australia" in normalized or "nsw" in normalized or "new south wales" in normalized
+    local_markers = tuple(
+        marker for marker in _LOCAL_DETAIL_MARKERS
+        if marker not in {"australia", "remote", "unknown location", *_AMBIGUOUS_LOCAL_DETAIL_MARKERS}
+    )
+    if (
+        "sydney" in normalized or "nsw" in normalized or "new south wales" in normalized
+        or any(marker in normalized for marker in local_markers)
+        or (australian_context and any(marker in normalized for marker in _AMBIGUOUS_LOCAL_DETAIL_MARKERS))
+    ):
         return 0
     if "australia" in normalized:
         return 1
@@ -186,7 +208,15 @@ def _needs_candidate_detail(title: str, location: str) -> bool:
     if classify_lane(title) is None:
         return False
     normalized_location = location.casefold().strip()
-    return not normalized_location or any(marker in normalized_location for marker in _LOCAL_DETAIL_MARKERS)
+    if any(marker in normalized_location for marker in _FOREIGN_LOCATION_MARKERS):
+        return False
+    australian_context = "australia" in normalized_location or "nsw" in normalized_location or "new south wales" in normalized_location
+    unambiguous_markers = tuple(marker for marker in _LOCAL_DETAIL_MARKERS if marker not in _AMBIGUOUS_LOCAL_DETAIL_MARKERS)
+    if any(marker in normalized_location for marker in unambiguous_markers):
+        return True
+    if australian_context and any(marker in normalized_location for marker in _AMBIGUOUS_LOCAL_DETAIL_MARKERS):
+        return True
+    return not normalized_location
 
 
 def _smartrecruiters_jobs(company: str, token: str) -> list[Job]:
