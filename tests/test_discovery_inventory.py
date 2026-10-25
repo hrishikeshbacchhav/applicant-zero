@@ -88,6 +88,20 @@ def test_old_broad_feed_inventory_is_retired_without_deleting_it(tmp_path):
     assert database.execute("SELECT is_active FROM discovery_inventory WHERE external_id = 'board'").fetchone()[0] == 1
 
 
+def test_old_remote_and_licensed_inventory_records_are_retired_without_deleting_them(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    save_discovery_inventory(database, [
+        Job("remote-ok", "Data Analyst", "Example", "Sydney", "Remote OK", "https://one", ""),
+        Job("licensed", "Data Analyst", "Example", "Sydney", "JobDataLake", "https://two", ""),
+    ])
+    database.execute("UPDATE discovery_inventory SET last_seen_at = '2000-01-01'")
+    database.commit()
+
+    assert deactivate_stale_broad_feed_inventory_records(database) == 2
+    active = database.execute("SELECT COUNT(*) FROM discovery_inventory WHERE is_active = 1").fetchone()[0]
+    assert active == 0
+
+
 def test_query_performance_aggregates_relevant_yield_without_changing_inventory(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     report = type("Report", (), {"query": "data analyst", "location": "Sydney", "requests": 1, "returned": 10, "external_ids": ("one",), "error": ""})()

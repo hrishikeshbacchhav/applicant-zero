@@ -272,6 +272,19 @@ def test_old_untouched_broad_feed_listing_is_hidden_before_retention(tmp_path):
     assert get_match(database, "broad")["is_active"] == 0
 
 
+def test_old_remote_and_licensed_broad_feed_listings_are_hidden_before_retention(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    for source, identifier in (("Remote OK", "remote-ok"), ("JobDataLake", "licensed")):
+        job = Job(identifier, "Data Analyst", "Example", "Sydney", source, "https://example.invalid", "SQL")
+        save_match(database, job, score_job(job, RISHI_PROFILE))
+    database.execute("UPDATE job_matches SET last_seen_at = datetime('now', '-22 days')")
+    database.commit()
+
+    assert deactivate_stale_broad_feed_jobs(database) == 2
+    assert not get_match(database, "remote-ok")["is_active"]
+    assert not get_match(database, "licensed")["is_active"]
+
+
 def test_repeated_listing_is_collapsed_and_reported(tmp_path):
     database = initialise_database(tmp_path / "jobs.sqlite3")
     first = Job("lever:1", "Data Analyst", "Example", "Sydney, NSW", "Lever", "https://one.invalid", "SQL")
