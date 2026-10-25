@@ -1,5 +1,4 @@
 import json
-import re
 import sqlite3
 import uuid
 from datetime import date, timedelta
@@ -387,8 +386,23 @@ def list_inventory_employers(connection: sqlite3.Connection, limit: int = 200) -
 
 
 def _duplicate_key(row: dict) -> str:
-    values = (row["company"], row["title"], row["location"])
-    return "|".join(re.sub(r"[^a-z0-9]+", " ", str(value).lower()).strip() for value in values)
+    """Use the shared cross-source identity for the queue as well.
+
+    The inventory and source telemetry already recognise a legal-company-name
+    variant and a Greater Sydney suburb as the same likely syndicated role.
+    Applying that identical rule to the review queue prevents the same job
+    appearing twice simply because one source says ``Example Pty Ltd`` in
+    Parramatta and another says ``Example`` in Sydney.
+    """
+    return canonical_listing_key(Job(
+        str(row.get("external_id", "")),
+        str(row.get("title", "")),
+        str(row.get("company", "")),
+        str(row.get("location", "")),
+        str(row.get("source", "")),
+        str(row.get("url", "")),
+        str(row.get("description", "")),
+    ))
 
 
 def list_matches(connection: sqlite3.Connection, include_duplicates: bool = False) -> list[dict]:

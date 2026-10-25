@@ -297,6 +297,19 @@ def test_repeated_listing_is_collapsed_and_reported(tmp_path):
     assert len(list_matches(database, include_duplicates=True)) == 2
 
 
+def test_syndicated_legal_company_and_greater_sydney_variants_share_one_queue_card(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    board = Job("greenhouse:1", "Data Analyst", "Example Pty Ltd", "Parramatta, NSW", "Greenhouse", "https://one.invalid", "SQL")
+    broad = Job("adzuna:2", "Data Analyst", "Example", "Sydney, NSW", "Adzuna", "https://two.invalid", "SQL")
+    save_match(database, board, score_job(board, RISHI_PROFILE))
+    save_match(database, broad, score_job(broad, RISHI_PROFILE))
+
+    rows = list_matches(database)
+
+    assert len(rows) == 1
+    assert rows[0]["duplicate_count"] == 2
+
+
 def test_application_timestamp_and_funnel_are_recorded(tmp_path):
     path = tmp_path / "jobs.sqlite3"
     database = initialise_database(path)
