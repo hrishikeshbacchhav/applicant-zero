@@ -8,6 +8,27 @@ from .scoring import Job, MatchResult
 from .discovery_measurements import canonical_listing_key
 
 
+_DIRECT_EMPLOYER_SOURCES = frozenset({
+    "ashby", "greenhouse", "lever", "recruitee", "smartrecruiters", "workable", "workday",
+})
+
+
+def _source_preference(source: object) -> int:
+    """Rank otherwise-equivalent listings by their application-route provenance.
+
+    An employer's public ATS board is the most durable route for a candidate;
+    aggregators and remote feeds are useful discovery leads, but can redirect or
+    expire sooner.  This only breaks ties after workflow state and score, so a
+    richer or user-tracked record is never displaced merely for its source.
+    """
+    normalised = str(source).strip().casefold()
+    if normalised in _DIRECT_EMPLOYER_SOURCES:
+        return 2
+    if normalised.startswith("imported"):
+        return 1
+    return 0
+
+
 def initialise_database(path: Path) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path)
@@ -435,6 +456,7 @@ def list_matches(connection: sqlite3.Connection, include_duplicates: bool = Fals
                 int(row["is_active"]),
                 workflow_priority.get(row["workflow_status"], 0),
                 int(row["score"]),
+                _source_preference(row["source"]),
                 row["last_seen_at"],
             ),
             reverse=True,

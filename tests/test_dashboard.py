@@ -308,6 +308,21 @@ def test_syndicated_legal_company_and_greater_sydney_variants_share_one_queue_ca
 
     assert len(rows) == 1
     assert rows[0]["duplicate_count"] == 2
+    assert rows[0]["source"] == "Greenhouse"
+
+
+def test_syndicated_queue_prefers_direct_employer_route_when_score_is_equal(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    board = Job("lever:1", "Data Analyst", "Example", "Sydney, NSW", "Lever", "https://employer.invalid", "SQL")
+    broad = Job("adzuna:2", "Data Analyst", "Example", "Sydney NSW", "Adzuna", "https://aggregator.invalid", "SQL")
+    save_match(database, board, score_job(board, RISHI_PROFILE))
+    save_match(database, broad, score_job(broad, RISHI_PROFILE))
+
+    rows = list_matches(database)
+
+    assert len(rows) == 1
+    assert rows[0]["source"] == "Lever"
+    assert rows[0]["url"] == "https://employer.invalid"
 
 
 def test_application_timestamp_and_funnel_are_recorded(tmp_path):
