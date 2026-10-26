@@ -44,6 +44,10 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18
     assert {
+        ("lever", "recordpoint"), ("lever", "showpo-2"), ("ashby", "openai"),
+        ("ashby", "nylon"), ("ashby", "coreflow"), ("ashby", "ignition"),
+    } <= {(board["ats"], board["token"]) for board in boards}
+    assert {
         "Omni", "Lime", "Qualtrics", "Constantinople", "Palantir Australia",
         "Q-CTRL", "WalkMe", "Objective Corporation", "ServiceRocket", "Lorikeet", "Relevance AI",
         "Culture Amp", "Airwallex", "Easygo", "Intercom", "Verkada", "Vanta", "Sentry", "DoorDash Australia",
