@@ -145,6 +145,7 @@ def test_supported_public_careers_urls_produce_an_ats_and_board_token(tmp_path):
     assert public_board_from_url("https://jobs.lever.co/example-australia") == ("lever", "example-australia")
     assert public_board_from_url("https://boards.greenhouse.io/example/jobs/7") == ("greenhouse", "example")
     assert public_board_from_url("https://jobs.ashbyhq.com/example") == ("ashby", "example")
+    assert public_board_from_url("https://jobs.ashbyhq.com/Checkbox%20Technology/role") == ("ashby", "Checkbox%20Technology")
     assert public_board_from_url("https://jobs.smartrecruiters.com/Example") == ("smartrecruiters", "Example")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers/job/Sydney/Data-Analyst_123") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
@@ -158,6 +159,16 @@ def test_candidate_can_save_a_public_board_from_its_url(tmp_path):
     entry, created = add_public_board_url(tmp_path / "state", starter, "Example", "https://jobs.lever.co/example")
     assert created is True
     assert entry == {"company": "Example", "ats": "lever", "token": "example"}
+
+
+def test_candidate_can_save_an_encoded_ashby_company_token(tmp_path):
+    starter = tmp_path / "starter.json"
+    starter.write_text("[]", encoding="utf-8")
+    entry, created = add_public_board_url(
+        tmp_path / "state", starter, "Checkbox", "https://jobs.ashbyhq.com/Checkbox%20Technology"
+    )
+    assert created is True
+    assert entry == {"company": "Checkbox", "ats": "ashby", "token": "Checkbox%20Technology"}
 
 
 def test_batch_public_board_import_keeps_valid_rows_and_reports_bad_urls(tmp_path):

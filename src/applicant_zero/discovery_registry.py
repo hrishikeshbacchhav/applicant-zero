@@ -2,7 +2,7 @@
 
 import json
 import re
-from urllib.parse import urlparse
+from urllib.parse import quote, unquote, urlparse
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,6 +25,27 @@ class TargetCompany:
 
 
 SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday"}
+
+
+def _normalise_board_token(ats: str, token: str) -> str:
+    """Return a canonical public board token without accepting arbitrary URLs.
+
+    Ashby organisation slugs can legitimately contain a space (for example a
+    legal company name). Careers URLs encode that space, so store its canonical
+    percent-encoded form; other providers retain their stricter token shapes.
+    """
+    cleaned = token.strip()
+    if ats == "ashby":
+        return quote(unquote(cleaned), safe="._-")
+    return cleaned
+
+
+def _valid_board_token(ats: str, token: str) -> bool:
+    if ats == "workday":
+        return bool(re.fullmatch(r"[A-Za-z0-9._-]{2,180}/[A-Za-z0-9._-]{2,180}", token))
+    if ats == "ashby":
+        return bool(re.fullmatch(r"(?:[A-Za-z0-9._-]|%[0-9A-F]{2}){2,180}", token))
+    return bool(re.fullmatch(r"[A-Za-z0-9._-]{2,180}", token))
 
 
 def public_board_from_url(value: str) -> tuple[str, str]:
@@ -71,11 +92,8 @@ def public_board_from_url(value: str) -> tuple[str, str]:
                 ats, token = "workday", f"{host}/{site}"
     elif host.endswith(".recruitee.com") and host.count(".") >= 2:
         ats, token = "recruitee", host.split(".", 1)[0]
-    token_valid = (
-        re.fullmatch(r"[A-Za-z0-9._-]{2,180}", token)
-        if ats != "workday" else re.fullmatch(r"[A-Za-z0-9._-]{2,180}/[A-Za-z0-9._-]{2,180}", token)
-    )
-    if ats and token_valid:
+    token = _normalise_board_token(ats, token)
+    if ats and _valid_board_token(ats, token):
         return ats, token
     raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee or Workday careers URL.")
 
@@ -94,16 +112,12 @@ def add_public_board(state_root: Path, starter_path: Path, company: str, ats: st
     """
     clean_company = company.strip()
     clean_ats = ats.strip().lower()
-    clean_token = token.strip()
+    clean_token = _normalise_board_token(clean_ats, token)
     if not clean_company or len(clean_company) > 160:
         raise ValueError("Enter the employer name.")
     if clean_ats not in SUPPORTED_PUBLIC_ATS:
         raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee or Workday.")
-    token_valid = (
-        re.fullmatch(r"[A-Za-z0-9._-]{2,180}", clean_token)
-        if clean_ats != "workday" else re.fullmatch(r"[A-Za-z0-9._-]{2,180}/[A-Za-z0-9._-]{2,180}", clean_token)
-    )
-    if not token_valid:
+    if not _valid_board_token(clean_ats, clean_token):
         raise ValueError("Enter the public board token from the employer careers URL.")
 
     destination = state_root / "data" / "company_boards.json"
