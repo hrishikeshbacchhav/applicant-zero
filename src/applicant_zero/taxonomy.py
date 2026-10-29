@@ -45,6 +45,7 @@ SOURCE_CONTRACTS = (
     SourceContract("remotive", "Remotive remote jobs", "public attributed API", "daily", "open the Remotive listing"),
     SourceContract("himalayas", "Himalayas remote jobs", "public attributed API", "daily", "open the Himalayas listing"),
     SourceContract("weworkremotely", "We Work Remotely", "public attributed RSS", "daily", "open the We Work Remotely listing"),
+    SourceContract("remoteok", "Remote OK", "public attributed API", "daily", "open the Remote OK listing"),
     SourceContract("seek", "SEEK", "manual link/import", "candidate initiated", "prepare and open listing"),
     SourceContract("linkedin", "LinkedIn", "manual link/import", "candidate initiated", "prepare and open listing"),
 )

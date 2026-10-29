@@ -40,6 +40,9 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert overview["sectors"] >= 20
     assert len(overview["recruitment_source_targets"]) == 15
     assert "Lever career boards" in overview["automated_sources"]
+    assert "Permitted broad job feed" in overview["automated_sources"]
+    assert "We Work Remotely (Australia/worldwide supplement)" in overview["automated_sources"]
+    assert "SEEK" in overview["manual_sources"]
     assert overview["configured_count"] >= 6
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18

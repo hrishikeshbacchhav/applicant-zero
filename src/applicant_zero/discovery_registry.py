@@ -278,10 +278,11 @@ def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path)
     sources = load_sources(sources_path)
     targets = load_targets(targets_path)
     coverage = board_coverage(targets, board_path)
+    automated_modes = {"configured_api", "public_ats_api", "public_api", "public_rss"}
     return {
         "source_count": len(sources),
-        "automated_sources": [source.label for source in sources if source.mode in {"public_ats_api", "public_api"}],
-        "manual_sources": [source.label for source in sources if source.mode != "public_ats_api"],
+        "automated_sources": [source.label for source in sources if source.mode in automated_modes],
+        "manual_sources": [source.label for source in sources if source.mode not in automated_modes],
         "target_count": len(targets),
         "configured_count": len(coverage["configured"]),
         "configured": coverage["configured"],
