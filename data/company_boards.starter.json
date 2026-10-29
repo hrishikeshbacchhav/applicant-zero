@@ -548,5 +548,25 @@
     "company": "Ignition",
     "ats": "ashby",
     "token": "ignition"
+  },
+  {
+    "company": "Trading 212",
+    "ats": "ashby",
+    "token": "trading212"
+  },
+  {
+    "company": "UpGuard",
+    "ats": "ashby",
+    "token": "upguard"
+  },
+  {
+    "company": "Morse Micro",
+    "ats": "ashby",
+    "token": "morse-micro"
+  },
+  {
+    "company": "dreamerlabs",
+    "ats": "ashby",
+    "token": "dreamerlabs"
   }
 ]
