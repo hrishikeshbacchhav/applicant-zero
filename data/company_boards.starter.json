@@ -568,5 +568,20 @@
     "company": "dreamerlabs",
     "ats": "ashby",
     "token": "dreamerlabs"
+  },
+  {
+    "company": "Pluralis Research",
+    "ats": "ashby",
+    "token": "pluralis-research"
+  },
+  {
+    "company": "Caruso",
+    "ats": "ashby",
+    "token": "caruso"
+  },
+  {
+    "company": "Valerie Group",
+    "ats": "ashby",
+    "token": "valerie-group"
   }
 ]

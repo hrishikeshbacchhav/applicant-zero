@@ -443,5 +443,20 @@
     "company": "Qualtrics",
     "sector": "experience management software",
     "priority": 2
+  },
+  {
+    "company": "Pluralis Research",
+    "sector": "artificial intelligence research",
+    "priority": 2
+  },
+  {
+    "company": "Caruso",
+    "sector": "financial technology",
+    "priority": 2
+  },
+  {
+    "company": "Valerie Group",
+    "sector": "technology services",
+    "priority": 2
   }
 ]

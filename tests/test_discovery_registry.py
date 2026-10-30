@@ -58,7 +58,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Geotab", "Appian", "ROLLER", "PAR Technology",
         "Atomi", "Secure Code Warrior", "Maincode",
         "Firmus Technologies", "Neara", "d-Matrix", "Gilbert + Tobin", "Harvey", "Hawk-Eye Innovations",
-        "Trading 212", "UpGuard", "Morse Micro", "dreamerlabs",
+        "Trading 212", "UpGuard", "Morse Micro", "dreamerlabs", "Pluralis Research", "Caruso", "Valerie Group",
         "RSM Australia", "Pacific Smiles Group", "Iress", "Live Nation Australasia", "ERM",
         "Torrens University Australia", "Stryker", "Bain Capital",
         "Nasdaq", "Cochlear", "EML", "Accenture", "LGT", "NTT", "HCF",
