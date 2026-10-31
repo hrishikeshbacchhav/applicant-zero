@@ -48,6 +48,16 @@ python -m applicant_zero --adzuna --query "data analyst" --where "Sydney"
 
 The API's default documented access limit is 2,500 requests each month, which is sufficient for the local discovery-and-matching validation stage. Do not share the `.env` file or either API credential in chat or GitHub.
 
+## Optional registered Australia supplement: The Muse
+
+The Muse offers a documented public jobs API, but requires app registration for use beyond testing. If you register a private Applicant Zero app, add its key only to your local `.env` file:
+
+```text
+THEMUSE_API_KEY=your_registered_key
+```
+
+The next daily refresh will read at most four Australia-filtered category pages (data/analytics, business operations, IT, and administration), keep The Muse attribution and landing-page link, and continue safely if the provider is unavailable. Without this key, Applicant Zero makes no The Muse request.
+
 ## Public APAC remote supplement: Jobicy
 
 Each normal refresh reads a bounded public Jobicy APAC batch across its documented data-science, engineering, support and management categories. It needs no account or API key and retains Jobicy’s own listing URL as the source link. Applicant Zero only promotes roles when the listing explicitly supports a Sydney or Australia-remote work arrangement; APAC eligibility alone stays out of the active review queue until the original listing confirms it.
