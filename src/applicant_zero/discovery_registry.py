@@ -245,32 +245,73 @@ def employer_coverage_rows(
     board_checks: list[dict] | None = None,
     board_trends: dict[str, dict] | None = None,
 ) -> list[dict[str, object]]:
-    """Return an auditable employer-by-employer coverage map for the dashboard."""
+    """Return an auditable employer-by-employer coverage map for the dashboard.
+
+    Verified public boards are operational coverage even when their employer
+    has not yet been classified in the larger research universe. Include those
+    boards explicitly instead of hiding them behind the target-only map.
+    """
     targets = load_targets(targets_path)
     boards = _load(board_path)
-    board_by_company = {
-        str(board.get("company", "")).casefold(): str(board.get("ats", "")).title()
-        for board in boards if isinstance(board, dict)
-    }
+    board_by_company: dict[str, set[str]] = {}
+    board_names: dict[str, str] = {}
+    for board in boards:
+        if not isinstance(board, dict):
+            continue
+        company = str(board.get("company", "")).strip()
+        ats = str(board.get("ats", "")).strip().title()
+        if not company or not ats:
+            continue
+        key = company.casefold()
+        board_names.setdefault(key, company)
+        board_by_company.setdefault(key, set()).add(ats)
     health_by_company = {
         str(item.get("company", "")).casefold(): str(item.get("status", "not checked"))
         for item in (board_checks or [])
     }
     rows: list[dict[str, object]] = []
+    target_keys = {target.company.casefold() for target in targets}
     for target in targets:
         trend = (board_trends or {}).get(target.company.casefold(), {})
+        ats = " / ".join(sorted(board_by_company.get(target.company.casefold(), set())))
         rows.append({
             "company": target.company,
             "sector": target.sector,
             "priority": target.priority,
-            "route": "Public ATS refresh" if target.company.casefold() in board_by_company else "Research queue",
-            "ats": board_by_company.get(target.company.casefold(), ""),
+            "route": "Public ATS refresh" if ats else "Research queue",
+            "ats": ats,
             "health": health_by_company.get(target.company.casefold(), "not checked") if target.company.casefold() in board_by_company else "not applicable",
             "job_count": trend.get("job_count"),
             "job_change": trend.get("change"),
             "checked_at": trend.get("checked_at", ""),
         })
-    return rows
+    for key, ats_values in board_by_company.items():
+        if key in target_keys:
+            continue
+        trend = (board_trends or {}).get(key, {})
+        rows.append({
+            "company": board_names[key],
+            "sector": "Verified public board",
+            "priority": None,
+            "route": "Public ATS refresh",
+            "ats": " / ".join(sorted(ats_values)),
+            "health": health_by_company.get(key, "not checked"),
+            "job_count": trend.get("job_count"),
+            "job_change": trend.get("change"),
+            "checked_at": trend.get("checked_at", ""),
+        })
+    # Lead with live configured coverage, then retain the existing priority
+    # order for research targets. This makes the dashboard useful for auditing
+    # active discovery rather than showing only the first slice of a large
+    # employer-research registry.
+    return sorted(
+        rows,
+        key=lambda row: (
+            0 if row["priority"] is None else 1,
+            int(row["priority"] or 99),
+            str(row["company"]).casefold(),
+        ),
+    )
 
 
 def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path) -> dict[str, object]:

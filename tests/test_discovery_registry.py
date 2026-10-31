@@ -93,6 +93,24 @@ def test_employer_coverage_map_includes_latest_private_board_health():
     assert next(row for row in rows if row["company"] == "Plenti")["health"] == "checked"
 
 
+def test_employer_coverage_map_keeps_verified_boards_outside_the_target_research_list(tmp_path):
+    targets = tmp_path / "targets.json"
+    boards = tmp_path / "boards.json"
+    targets.write_text(json.dumps([
+        {"company": "Research target", "sector": "technology", "priority": 1},
+    ]), encoding="utf-8")
+    boards.write_text(json.dumps([
+        {"company": "Verified-only employer", "ats": "ashby", "token": "verified-only"},
+    ]), encoding="utf-8")
+
+    rows = employer_coverage_rows(targets, boards)
+
+    verified = next(row for row in rows if row["company"] == "Verified-only employer")
+    assert verified["route"] == "Public ATS refresh"
+    assert verified["sector"] == "Verified public board"
+    assert verified["priority"] is None
+
+
 def test_board_health_summary_distinguishes_recent_stale_and_unavailable_checks(tmp_path):
     boards = tmp_path / "boards.json"
     boards.write_text(json.dumps([
