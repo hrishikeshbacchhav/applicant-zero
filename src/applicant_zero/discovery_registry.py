@@ -27,6 +27,15 @@ class TargetCompany:
 SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday"}
 
 
+def public_board_check_key(ats: object = "", token: object = "", company: object = "") -> str:
+    """Return the local health identity for one public ATS board."""
+    provider = str(ats).strip().casefold()
+    board_token = str(token).strip().casefold()
+    if provider and board_token:
+        return f"{provider}:{board_token}"
+    return str(company).strip().casefold()
+
+
 def _normalise_board_token(ats: str, token: str) -> str:
     """Return a canonical public board token without accepting arbitrary URLs.
 
@@ -253,7 +262,7 @@ def employer_coverage_rows(
     """
     targets = load_targets(targets_path)
     boards = _load(board_path)
-    board_by_company: dict[str, set[str]] = {}
+    board_by_company: dict[str, list[dict[str, str]]] = {}
     board_names: dict[str, str] = {}
     for board in boards:
         if not isinstance(board, dict):
@@ -264,41 +273,63 @@ def employer_coverage_rows(
             continue
         key = company.casefold()
         board_names.setdefault(key, company)
-        board_by_company.setdefault(key, set()).add(ats)
-    health_by_company = {
-        str(item.get("company", "")).casefold(): str(item.get("status", "not checked"))
+        board_by_company.setdefault(key, []).append({
+            "ats": ats, "key": public_board_check_key(board.get("ats"), board.get("token"), company),
+        })
+    checks_by_key = {
+        str(item.get("board_key") or item.get("company", "")).casefold(): item
         for item in (board_checks or [])
     }
+
+    def board_snapshot(company: str) -> dict[str, object]:
+        configured = board_by_company.get(company.casefold(), [])
+        observations = [checks_by_key.get(board["key"]) for board in configured]
+        observations = [item for item in observations if item is not None]
+        # Compatibility for observations saved before scoped board health.
+        if not observations and configured:
+            legacy = checks_by_key.get(company.casefold())
+            if legacy is not None:
+                observations = [legacy]
+        if not configured:
+            return {"health": "not applicable", "job_count": None, "job_change": None, "checked_at": ""}
+        if not observations:
+            return {"health": "not checked", "job_count": None, "job_change": None, "checked_at": ""}
+        statuses = [str(item.get("status", "not checked")) for item in observations]
+        health = "unavailable" if "unavailable" in statuses else ("checked" if all(status == "checked" for status in statuses) else "not checked")
+        trends = [(board_trends or {}).get(str(item.get("board_key") or item.get("company", "")).casefold(), {}) for item in observations]
+        counts = [trend.get("job_count") for trend in trends if trend.get("job_count") is not None]
+        changes = [trend.get("change") for trend in trends if trend.get("change") is not None]
+        checked_at = max((str(trend.get("checked_at", "")) for trend in trends), default="")
+        return {
+            "health": health,
+            "job_count": sum(int(count) for count in counts) if counts else None,
+            "job_change": sum(int(change) for change in changes) if changes else None,
+            "checked_at": checked_at,
+        }
     rows: list[dict[str, object]] = []
     target_keys = {target.company.casefold() for target in targets}
     for target in targets:
-        trend = (board_trends or {}).get(target.company.casefold(), {})
-        ats = " / ".join(sorted(board_by_company.get(target.company.casefold(), set())))
+        snapshot = board_snapshot(target.company)
+        ats = " / ".join(sorted({board["ats"] for board in board_by_company.get(target.company.casefold(), [])}))
         rows.append({
             "company": target.company,
             "sector": target.sector,
             "priority": target.priority,
             "route": "Public ATS refresh" if ats else "Research queue",
             "ats": ats,
-            "health": health_by_company.get(target.company.casefold(), "not checked") if target.company.casefold() in board_by_company else "not applicable",
-            "job_count": trend.get("job_count"),
-            "job_change": trend.get("change"),
-            "checked_at": trend.get("checked_at", ""),
+            **snapshot,
         })
-    for key, ats_values in board_by_company.items():
+    for key, configured_boards in board_by_company.items():
         if key in target_keys:
             continue
-        trend = (board_trends or {}).get(key, {})
+        snapshot = board_snapshot(board_names[key])
         rows.append({
             "company": board_names[key],
             "sector": "Verified public board",
             "priority": None,
             "route": "Public ATS refresh",
-            "ats": " / ".join(sorted(ats_values)),
-            "health": health_by_company.get(key, "not checked"),
-            "job_count": trend.get("job_count"),
-            "job_change": trend.get("change"),
-            "checked_at": trend.get("checked_at", ""),
+            "ats": " / ".join(sorted({board["ats"] for board in configured_boards})),
+            **snapshot,
         })
     # Lead with live configured coverage, then retain the existing priority
     # order for research targets. This makes the dashboard useful for auditing
@@ -354,11 +385,16 @@ def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path)
 def board_health_summary(board_path: Path, board_checks: list[dict] | None = None, stale_after_hours: int = 30) -> dict[str, int]:
     """Summarise configured-board health without treating an old check as live."""
     configured = [row for row in _load(board_path) if isinstance(row, dict)]
-    checks = {str(row.get("company", "")).casefold(): row for row in (board_checks or [])}
+    checks = {
+        str(row.get("board_key") or row.get("company", "")).casefold(): row
+        for row in (board_checks or [])
+    }
     cutoff = datetime.now(timezone.utc) - timedelta(hours=stale_after_hours)
     checked = unavailable = stale = never_checked = 0
     for board in configured:
-        report = checks.get(str(board.get("company", "")).casefold())
+        report = checks.get(public_board_check_key(board.get("ats"), board.get("token"), board.get("company")))
+        if not report:
+            report = checks.get(str(board.get("company", "")).casefold())
         if not report:
             never_checked += 1
             continue

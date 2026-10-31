@@ -13,6 +13,21 @@ _DIRECT_EMPLOYER_SOURCES = frozenset({
 })
 
 
+def board_check_key(ats: object = "", token: object = "", company: object = "") -> str:
+    """Return the stable identity for one configured public careers board.
+
+    A company can legitimately publish more than one board (including two
+    Workday tenants).  Health observations must therefore be scoped to the
+    provider and board token, not merely the employer display name.  The
+    company-only fallback keeps older locally saved observations readable.
+    """
+    provider = str(ats).strip().casefold()
+    board_token = str(token).strip().casefold()
+    if provider and board_token:
+        return f"{provider}:{board_token}"
+    return str(company).strip().casefold()
+
+
 def _source_preference(source: object) -> int:
     """Rank otherwise-equivalent listings by their application-route provenance.
 
@@ -27,6 +42,42 @@ def _source_preference(source: object) -> int:
     if normalised.startswith("imported"):
         return 1
     return 0
+
+
+def _table_columns(connection: sqlite3.Connection, table: str) -> set[str]:
+    return {str(row[1]) for row in connection.execute(f"PRAGMA table_info({table})")}
+
+
+def _migrate_board_check_identity(connection: sqlite3.Connection) -> None:
+    """Upgrade pre-release company-only health rows without losing history."""
+    check_columns = _table_columns(connection, "board_checks")
+    if "board_key" not in check_columns:
+        connection.execute(
+            """
+            CREATE TABLE board_checks_scoped (
+                company TEXT NOT NULL,
+                board_key TEXT NOT NULL,
+                status TEXT NOT NULL,
+                job_count INTEGER NOT NULL,
+                detail TEXT NOT NULL DEFAULT '',
+                checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (company, board_key)
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO board_checks_scoped (company, board_key, status, job_count, detail, checked_at)
+            SELECT company, lower(company), status, job_count, detail, checked_at FROM board_checks
+            """
+        )
+        connection.execute("DROP TABLE board_checks")
+        connection.execute("ALTER TABLE board_checks_scoped RENAME TO board_checks")
+
+    history_columns = _table_columns(connection, "board_check_history")
+    if "board_key" not in history_columns:
+        connection.execute("ALTER TABLE board_check_history ADD COLUMN board_key TEXT NOT NULL DEFAULT ''")
+        connection.execute("UPDATE board_check_history SET board_key = lower(company) WHERE board_key = ''")
 
 
 def initialise_database(path: Path) -> sqlite3.Connection:
@@ -62,11 +113,13 @@ def initialise_database(path: Path) -> sqlite3.Connection:
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS board_checks (
-            company TEXT PRIMARY KEY,
+            company TEXT NOT NULL,
+            board_key TEXT NOT NULL,
             status TEXT NOT NULL,
             job_count INTEGER NOT NULL,
             detail TEXT NOT NULL DEFAULT '',
-            checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (company, board_key)
         )
         """
     )
@@ -75,6 +128,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         CREATE TABLE IF NOT EXISTS board_check_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             company TEXT NOT NULL,
+            board_key TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL,
             job_count INTEGER NOT NULL,
             detail TEXT NOT NULL DEFAULT '',
@@ -82,6 +136,7 @@ def initialise_database(path: Path) -> sqlite3.Connection:
         )
         """
     )
+    _migrate_board_check_identity(connection)
     connection.execute(
         """
         CREATE TABLE IF NOT EXISTS application_routes (
@@ -627,21 +682,23 @@ def prune_inactive_discovery_records(connection: sqlite3.Connection, days: int =
 
 def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> None:
     for report in reports:
+        company = str(report.company)
+        key = board_check_key(getattr(report, "ats", ""), getattr(report, "token", ""), company)
         connection.execute(
             """
-            INSERT INTO board_checks (company, status, job_count, detail, checked_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(company) DO UPDATE SET status=excluded.status, job_count=excluded.job_count,
+            INSERT INTO board_checks (company, board_key, status, job_count, detail, checked_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(company, board_key) DO UPDATE SET status=excluded.status, job_count=excluded.job_count,
                 detail=excluded.detail, checked_at=excluded.checked_at
             """,
-            (report.company, report.status, report.job_count, report.message),
+            (company, key, report.status, report.job_count, report.message),
         )
         connection.execute(
             """
-            INSERT INTO board_check_history (company, status, job_count, detail)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO board_check_history (company, board_key, status, job_count, detail)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (report.company, report.status, report.job_count, report.message),
+            (company, key, report.status, report.job_count, report.message),
         )
     connection.commit()
 
@@ -649,7 +706,7 @@ def save_board_checks(connection: sqlite3.Connection, reports: list[object]) -> 
 def list_board_checks(connection: sqlite3.Connection) -> list[dict]:
     connection.row_factory = sqlite3.Row
     rows = connection.execute(
-        "SELECT company, status, job_count, detail, checked_at FROM board_checks ORDER BY company"
+        "SELECT company, board_key, status, job_count, detail, checked_at FROM board_checks ORDER BY company, board_key"
     ).fetchall()
     return [dict(row) for row in rows]
 
@@ -663,13 +720,13 @@ def list_board_check_trends(connection: sqlite3.Connection, limit: int = 30) -> 
     """
     connection.row_factory = sqlite3.Row
     rows = [dict(row) for row in connection.execute(
-        """SELECT id, company, status, job_count, detail, checked_at
+        """SELECT id, company, board_key, status, job_count, detail, checked_at
            FROM board_check_history ORDER BY id DESC LIMIT ?""",
         (max(1, int(limit)),),
     ).fetchall()]
     trends: dict[str, dict] = {}
     for row in rows:
-        key = str(row["company"]).casefold()
+        key = str(row.get("board_key") or row["company"]).casefold()
         if key not in trends:
             trends[key] = {
                 "company": row["company"], "status": row["status"], "job_count": row["job_count"],

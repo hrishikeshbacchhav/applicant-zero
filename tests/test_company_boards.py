@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import json
+import sqlite3
 
 from applicant_zero.scoring import Job
 from datetime import date
@@ -176,6 +177,43 @@ def test_board_check_history_keeps_a_listing_change_without_confusing_unavailabl
     trends, _ = list_board_check_trends(database)
     assert trends["example"]["status"] == "unavailable"
     assert trends["example"]["change"] is None
+
+
+def test_board_health_keeps_separate_public_boards_for_the_same_employer(tmp_path):
+    database = initialise_database(tmp_path / "jobs.sqlite3")
+    reports = [
+        type("Report", (), {"company": "Example", "status": "checked", "job_count": 3, "message": "", "ats": "workday", "token": "example.wd1.myworkdayjobs.com/Careers"})(),
+        type("Report", (), {"company": "Example", "status": "unavailable", "job_count": 0, "message": "endpoint unavailable", "ats": "workday", "token": "example.wd5.myworkdayjobs.com/Careers"})(),
+    ]
+    save_board_checks(database, reports)
+
+    rows = list_board_checks(database)
+    trends, history = list_board_check_trends(database)
+
+    assert len(rows) == 2
+    assert {row["board_key"] for row in rows} == {
+        "workday:example.wd1.myworkdayjobs.com/careers",
+        "workday:example.wd5.myworkdayjobs.com/careers",
+    }
+    assert trends["workday:example.wd1.myworkdayjobs.com/careers"]["job_count"] == 3
+    assert trends["workday:example.wd5.myworkdayjobs.com/careers"]["status"] == "unavailable"
+    assert len(history) == 2
+
+
+def test_old_company_only_board_health_database_is_migrated_without_losing_the_check(tmp_path):
+    path = tmp_path / "legacy.sqlite3"
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE board_checks (company TEXT PRIMARY KEY, status TEXT NOT NULL, job_count INTEGER NOT NULL, detail TEXT NOT NULL DEFAULT '', checked_at TEXT NOT NULL)")
+        connection.execute("CREATE TABLE board_check_history (id INTEGER PRIMARY KEY AUTOINCREMENT, company TEXT NOT NULL, status TEXT NOT NULL, job_count INTEGER NOT NULL, detail TEXT NOT NULL DEFAULT '', checked_at TEXT NOT NULL)")
+        connection.execute("INSERT INTO board_checks VALUES ('Legacy', 'checked', 4, '', '2026-01-01 00:00:00')")
+        connection.execute("INSERT INTO board_check_history (company, status, job_count, detail, checked_at) VALUES ('Legacy', 'checked', 4, '', '2026-01-01 00:00:00')")
+
+    database = initialise_database(path)
+    rows = list_board_checks(database)
+    _, history = list_board_check_trends(database)
+
+    assert rows[0]["board_key"] == "legacy"
+    assert history[0]["board_key"] == "legacy"
 
 
 def test_invalid_or_duplicate_board_config_does_not_stop_valid_collection(tmp_path):

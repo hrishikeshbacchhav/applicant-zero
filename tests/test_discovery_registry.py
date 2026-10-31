@@ -127,6 +127,21 @@ def test_board_health_summary_distinguishes_recent_stale_and_unavailable_checks(
     assert summary == {"configured": 4, "checked": 1, "unavailable": 1, "stale": 1, "never_checked": 1}
 
 
+def test_board_health_summary_counts_each_same_company_board_independently(tmp_path):
+    boards = tmp_path / "boards.json"
+    boards.write_text(json.dumps([
+        {"company": "Example", "ats": "workday", "token": "example.wd1.myworkdayjobs.com/Careers"},
+        {"company": "Example", "ats": "workday", "token": "example.wd5.myworkdayjobs.com/Careers"},
+    ]), encoding="utf-8")
+
+    summary = board_health_summary(boards, [
+        {"company": "Example", "board_key": "workday:example.wd1.myworkdayjobs.com/careers", "status": "checked", "checked_at": "2099-01-01 00:00:00"},
+        {"company": "Example", "board_key": "workday:example.wd5.myworkdayjobs.com/careers", "status": "unavailable", "checked_at": "2099-01-01 00:00:00"},
+    ])
+
+    assert summary == {"configured": 2, "checked": 1, "unavailable": 1, "stale": 0, "never_checked": 0}
+
+
 def test_candidate_can_add_verified_public_board_without_hiding_starters(tmp_path):
     starter = tmp_path / "starter.json"
     starter.write_text(json.dumps([{"company": "Starter", "ats": "lever", "token": "starter-board"}]), encoding="utf-8")
