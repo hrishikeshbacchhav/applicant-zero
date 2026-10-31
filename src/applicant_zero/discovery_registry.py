@@ -274,18 +274,36 @@ def employer_coverage_rows(
 
 
 def discovery_overview(sources_path: Path, targets_path: Path, board_path: Path) -> dict[str, object]:
-    """Report discovery coverage without implying every target has a live vacancy."""
+    """Report discovery coverage without implying every target has a live vacancy.
+
+    The employer research universe and the verified-board registry serve
+    different purposes. A public board can be valid and actively refreshed
+    before its employer is added to the large research universe, so counting
+    only the overlap understated actual automatic coverage. Keep both figures
+    distinct: ``configured_count`` is every unique public board, while
+    ``target_configured_count`` is the subset already represented in the
+    employer research registry.
+    """
     sources = load_sources(sources_path)
     targets = load_targets(targets_path)
     coverage = board_coverage(targets, board_path)
+    board_rows = [row for row in _load(board_path) if isinstance(row, dict)]
+    unique_boards: dict[tuple[str, str], str] = {}
+    for board in board_rows:
+        ats = str(board.get("ats", "")).casefold().strip()
+        token = str(board.get("token", "")).casefold().strip()
+        company = str(board.get("company", "")).strip()
+        if ats and token and company:
+            unique_boards.setdefault((ats, token), company)
     automated_modes = {"configured_api", "public_ats_api", "public_api", "public_rss"}
     return {
         "source_count": len(sources),
         "automated_sources": [source.label for source in sources if source.mode in automated_modes],
         "manual_sources": [source.label for source in sources if source.mode not in automated_modes],
         "target_count": len(targets),
-        "configured_count": len(coverage["configured"]),
-        "configured": coverage["configured"],
+        "configured_count": len(unique_boards),
+        "configured": sorted(set(unique_boards.values()), key=str.casefold),
+        "target_configured_count": len(coverage["configured"]),
         "research_needed": coverage["research_needed"],
         "sectors": len({target.sector for target in targets}),
         "recruitment_source_targets": load_recruitment_source_targets(targets_path),

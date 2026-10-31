@@ -43,9 +43,10 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
     assert "Permitted broad job feed" in overview["automated_sources"]
     assert "We Work Remotely (Australia/worldwide supplement)" in overview["automated_sources"]
     assert "SEEK" in overview["manual_sources"]
-    assert overview["configured_count"] >= 6
     boards = json.loads((ROOT / "data" / "company_boards.starter.json").read_text(encoding="utf-8"))
     assert len(boards) >= 18
+    assert overview["configured_count"] == len({(board["ats"], board["token"]) for board in boards})
+    assert overview["target_configured_count"] <= overview["configured_count"]
     assert {
         ("lever", "recordpoint"), ("lever", "showpo-2"), ("ashby", "openai"),
         ("ashby", "nylon"), ("ashby", "coreflow"), ("ashby", "ignition"),
