@@ -68,7 +68,7 @@ Each normal refresh also reads one capped, public Remotive remote-jobs page. The
 
 ## Public remote supplement: Remote OK
 
-Each normal refresh reads one bounded public Remote OK JSON feed. Its canonical listing link and Remote OK attribution stay with every stored record. Only listings explicitly open to Australia or worldwide remote candidates progress to review.
+Each normal refresh reads one bounded public Remote OK JSON feed. Once each day it also reads four rotating, documented exact-tag feeds (covering data, analysis, support, IT, administration, business, operations and customer roles over time), so the global newest-first page is not the only remote discovery path. Its canonical listing link and Remote OK attribution stay with every stored record. Only listings explicitly open to Australia or worldwide remote candidates progress to review.
 
 ## Public remote supplement: Himalayas
 
