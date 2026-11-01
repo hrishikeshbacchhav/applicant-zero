@@ -105,6 +105,16 @@
     "token": "freelancer"
   },
   {
+    "company": "NRMA",
+    "ats": "smartrecruiters",
+    "token": "MYNRMA"
+  },
+  {
+    "company": "KPMG Australia",
+    "ats": "smartrecruiters",
+    "token": "KPMGAustralia1"
+  },
+  {
     "company": "Constantinople",
     "ats": "lever",
     "token": "cxnpl"
