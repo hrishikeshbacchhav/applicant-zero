@@ -76,7 +76,7 @@ The first refresh each day sends up to five of the current rotating campaign ter
 
 ## Public remote supplement: We Work Remotely
 
-Each normal refresh reads one public We Work Remotely RSS document and retains up to 100 current, attributed listing links. Only listings that explicitly state Australia or worldwide eligibility can progress to the review queue; all others remain out of scope.
+Each normal refresh reads one public We Work Remotely RSS document and retains up to 100 current, attributed listing links. Once each day it also reads the provider's published customer-support, management/finance, programming and DevOps/system-admin category feeds, so those lanes are not limited to the newest global entries. Only listings that explicitly state Australia or worldwide eligibility can progress to the review queue; all others remain out of scope.
 
 ## Company career-board discovery
 
