@@ -27,7 +27,7 @@ def test_target_universe_is_deduplicated_and_prioritised():
     assert targets[0].priority == 1
     coverage = board_coverage(targets, ROOT / "data" / "company_boards.starter.json")
     assert "Plenti" in coverage["configured"]
-    assert "Canva" in coverage["research_needed"]
+    assert "Canva" in coverage["configured"]
 
 
 def test_discovery_overview_labels_automated_and_manual_coverage():
@@ -81,7 +81,8 @@ def test_employer_coverage_map_keeps_priority_sector_and_route():
     canva = next(row for row in rows if row["company"] == "Canva")
     assert plenti["route"] == "Public ATS refresh"
     assert plenti["ats"] == "Lever"
-    assert canva["route"] == "Research queue"
+    assert canva["route"] == "Public ATS refresh"
+    assert canva["ats"] == "Smartrecruiters"
 
 
 def test_employer_coverage_map_includes_latest_private_board_health():

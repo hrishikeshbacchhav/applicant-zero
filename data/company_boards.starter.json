@@ -120,6 +120,31 @@
     "token": "EndeavourGroupCareers"
   },
   {
+    "company": "Turner & Townsend",
+    "ats": "smartrecruiters",
+    "token": "TurnerTownsend"
+  },
+  {
+    "company": "Canva",
+    "ats": "smartrecruiters",
+    "token": "canva"
+  },
+  {
+    "company": "AECOM",
+    "ats": "smartrecruiters",
+    "token": "AECOM2"
+  },
+  {
+    "company": "Navitas",
+    "ats": "smartrecruiters",
+    "token": "Navitas"
+  },
+  {
+    "company": "NEXTDC",
+    "ats": "smartrecruiters",
+    "token": "nextdc"
+  },
+  {
     "company": "Constantinople",
     "ats": "lever",
     "token": "cxnpl"
