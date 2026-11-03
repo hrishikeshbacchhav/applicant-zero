@@ -112,6 +112,8 @@ python -m applicant_zero --company-boards data/company_boards.json
 
 The private company-board list is excluded from Git. This command only reads public job listings and records matching results locally; it does not open or submit an application.
 
+The explicit `--company-boards` command reads the supplied registry in full. The normal scheduled refresh is deliberately different: it takes a fair rotating slice of verified boards at each of its three daily windows, so the whole registry is covered daily without repeatedly polling every employer endpoint. Each successful snapshot is scoped to its exact ATS board token, so an employer with multiple public boards cannot make a sibling board's listings disappear.
+
 For a larger reviewed list, create a CSV with `company,careers_url` columns and import the public ATS URLs in one step. Unsupported URLs are reported and skipped; the next normal refresh validates the saved public boards.
 
 ```powershell

@@ -240,17 +240,19 @@ def run_daily_refresh(
     for report in reports:
         if report.status == "checked":
             report_source = getattr(report, "ats", "")
+            board_prefix = public_board_identity_prefix(report_source, str(getattr(report, "token", "")))
             board_ids = [
                 job.external_id for job in inventory_jobs
-                if job.company == report.company and job.source.casefold() == report_source.casefold()
+                if job.company == report.company
+                and job.source.casefold() == report_source.casefold()
+                and job.external_id.startswith(board_prefix)
             ]
-            board_prefix = public_board_identity_prefix(report_source, str(getattr(report, "token", "")))
             retired_board_inventory += mark_company_inventory_jobs_inactive(
                 database, report.company, report_source, board_ids, board_prefix,
             )
             mark_company_jobs_inactive(
                 database, report.company,
-                [job.external_id for job in board_jobs if job.company == report.company],
+                [job.external_id for job in board_jobs if job.external_id.startswith(board_prefix)],
                 report_source, board_prefix,
             )
     checked = sum(report.status == "checked" for report in reports)
@@ -468,9 +470,10 @@ def main() -> None:
         for report in reports:
             if report.status == "checked":
                 source = getattr(report, "ats", "")
-                active_ids = [job.external_id for job in jobs if job.company == report.company and job.source == source]
-                mark_company_inventory_jobs_inactive(database, report.company, source, active_ids)
-                mark_company_jobs_inactive(database, report.company, [job.external_id for job in jobs if job.company == report.company])
+                board_prefix = public_board_identity_prefix(source, str(getattr(report, "token", "")))
+                active_ids = [job.external_id for job in jobs if job.external_id.startswith(board_prefix)]
+                mark_company_inventory_jobs_inactive(database, report.company, source, active_ids, board_prefix)
+                mark_company_jobs_inactive(database, report.company, active_ids, source, board_prefix)
         record_refresh_run(database, "Company career boards", len(jobs), len(visible), sum(report.status == "checked" for report in reports), sum(report.status == "unavailable" for report in reports))
     elif args.adzuna:
         record_refresh_run(database, "Adzuna", len(jobs), len(visible))
