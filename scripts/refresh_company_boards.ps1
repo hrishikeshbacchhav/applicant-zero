@@ -1,6 +1,8 @@
 param(
     [ValidateRange(-1, 20)]
     [int]$MaxQueries = -1,
+    [ValidateRange(1, 200)]
+    [int]$MaxBoards = 48,
     [switch]$SyncGmail
 )
 
@@ -39,7 +41,7 @@ if ($MaxQueries -eq -1) {
 
 "Applicant Zero discovery refresh started: $(Get-Date)" | Tee-Object -FilePath $logFile
 try {
-    python -m applicant_zero --daily-refresh --max-queries $effectiveMaxQueries 2>&1 |
+    python -m applicant_zero --daily-refresh --max-queries $effectiveMaxQueries --max-boards $MaxBoards 2>&1 |
         Tee-Object -FilePath $logFile -Append
     if ($LASTEXITCODE -ne 0) {
         throw "Applicant Zero discovery returned exit code $LASTEXITCODE."

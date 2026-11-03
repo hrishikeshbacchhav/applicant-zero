@@ -32,4 +32,8 @@ def test_scheduled_refresh_auto_uses_bounded_adzuna_search_only_when_configured(
     assert "{ 20 } else { 0 }" in refresh
     assert "[ValidateRange(-1, 20)]" in refresh
     assert "[ValidateRange(-1, 20)]" in schedule
+    assert "[ValidateRange(1, 200)]" in refresh
+    assert "[ValidateRange(1, 200)]" in schedule
+    assert "--max-boards $MaxBoards" in refresh
+    assert "-MaxBoards $MaxBoards" in schedule
     assert "automatically uses the controlled 20-query" in schedule

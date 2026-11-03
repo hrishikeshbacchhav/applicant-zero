@@ -600,8 +600,17 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
     return 1
 
 
-def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
-    boards, configuration_reports = _load_valid_boards(path)
+def fetch_company_board_entries_with_report(
+    boards: list[dict], configuration_reports: list[BoardReport] | None = None,
+) -> tuple[list[Job], list[BoardReport]]:
+    """Read an already-selected set of validated public board entries.
+
+    The scheduled runner uses this entry point to spread a large verified
+    registry across its daily refresh windows.  Keeping the network reader
+    separate from configuration parsing also makes that scheduling explicit:
+    a skipped board is simply deferred, never reported as unavailable.
+    """
+    configuration_reports = configuration_reports or []
     def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
         company = board["company"]
         try:
@@ -625,3 +634,14 @@ def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardR
         jobs.extend(board_jobs)
         reports.append(report)
     return jobs, reports
+
+
+def load_company_board_entries(path: Path) -> tuple[list[dict], list[BoardReport]]:
+    """Load valid configured board entries without making network requests."""
+    return _load_valid_boards(path)
+
+
+def fetch_company_boards_with_report(path: Path) -> tuple[list[Job], list[BoardReport]]:
+    """Read every configured public board (for explicit manual collection)."""
+    boards, configuration_reports = _load_valid_boards(path)
+    return fetch_company_board_entries_with_report(boards, configuration_reports)

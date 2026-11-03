@@ -31,3 +31,33 @@ def record_attempt(state: Path, source: str, *, today: date | None = None) -> No
     payload[source.strip().casefold()] = (today or date.today()).isoformat()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def _board_cursor_path(state: Path) -> Path:
+    return state / "private" / "board_refresh_cursor.json"
+
+
+def rotating_board_batch(state: Path, boards: list[dict], limit: int) -> list[dict]:
+    """Choose the next fair slice of public boards for a scheduled refresh.
+
+    A growing direct-employer registry should be refreshed broadly without
+    hitting every employer endpoint three times a day.  The cursor is private
+    local state; it advances only after a selection, and wraps cleanly when
+    every board has had a turn.  Explicit ``--company-boards`` collection is
+    intentionally still able to read the whole supplied file.
+    """
+    if not boards or limit <= 0:
+        return []
+    path = _board_cursor_path(state)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        cursor = int(payload.get("cursor", 0)) if isinstance(payload, dict) else 0
+    except (OSError, ValueError, TypeError):
+        cursor = 0
+    count = len(boards)
+    cursor %= count
+    size = min(limit, count)
+    selected = [boards[(cursor + offset) % count] for offset in range(size)]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"cursor": (cursor + size) % count}, indent=2), encoding="utf-8")
+    return selected

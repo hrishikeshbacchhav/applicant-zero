@@ -6,7 +6,7 @@ import sqlite3
 from applicant_zero.scoring import Job
 from datetime import date
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_boards_with_report
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -152,6 +152,19 @@ def test_parallel_board_collection_keeps_configured_order(tmp_path):
     with patch("applicant_zero.sources.company_boards._lever_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert [report.company for report in reports] == ["First", "Second"]
+
+
+def test_selected_board_entries_do_not_mark_deferred_boards_unavailable(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([
+        {"company": "First", "ats": "lever", "token": "first"},
+        {"company": "Deferred", "ats": "lever", "token": "deferred"},
+    ]), encoding="utf-8")
+    boards, configuration_reports = load_company_board_entries(path)
+    with patch("applicant_zero.sources.company_boards._lever_jobs", return_value=[]):
+        _, reports = fetch_company_board_entries_with_report(boards[:1], configuration_reports)
+    assert [report.company for report in reports] == ["First"]
+    assert reports[0].status == "checked"
 
 
 def test_board_health_is_saved_locally(tmp_path):

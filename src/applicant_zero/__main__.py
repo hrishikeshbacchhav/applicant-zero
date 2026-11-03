@@ -21,8 +21,17 @@ from .sources.weworkremotely import fetch_jobs as fetch_weworkremotely_jobs, fet
 from .sources.remoteok import fetch_jobs as fetch_remoteok_jobs, fetch_targeted_jobs as fetch_targeted_remoteok_jobs
 from .sources.themuse import configured as themuse_configured, fetch_targeted_jobs as fetch_themuse_jobs
 from .campaigns import active_lanes, consume_discovery_query_plan, discovery_query_status, load_campaigns, max_pages_per_query, next_discovery_query_plan
-from .sources.company_boards import fetch_company_boards_with_report, public_board_identity_prefix
-from .source_schedule import due_today as source_due_today, record_attempt as record_source_attempt
+from .sources.company_boards import (
+    fetch_company_board_entries_with_report,
+    fetch_company_boards_with_report,
+    load_company_board_entries,
+    public_board_identity_prefix,
+)
+from .source_schedule import (
+    due_today as source_due_today,
+    record_attempt as record_source_attempt,
+    rotating_board_batch,
+)
 from .discovery_measurements import canonical_unique_jobs, measure_sources
 from .storage import (
     deactivate_stale_broad_feed_jobs,
@@ -88,9 +97,19 @@ def _board_path(state: Path) -> Path:
     return synchronise_board_registry(ROOT)
 
 
-def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int, int, str]:
+def run_daily_refresh(
+    state: Path, max_queries: int | None = None, max_boards: int = 48,
+) -> tuple[int, int, str]:
     """Refresh public boards and a capped query batch as one daily run."""
-    board_jobs, reports = fetch_company_boards_with_report(_board_path(state))
+    boards, board_configuration_reports = load_company_board_entries(_board_path(state))
+    # The installed task runs three times a day.  A fair rotating third keeps
+    # every verified employer board fresh daily while avoiding needless repeat
+    # reads of the entire registry at each window.  The ceiling protects a
+    # future much larger registry from turning one local refresh into an
+    # unbounded network operation.
+    board_batch_size = min(max(1, (len(boards) + 2) // 3), max(1, max_boards)) if boards else 0
+    selected_boards = rotating_board_batch(state, boards, board_batch_size)
+    board_jobs, reports = fetch_company_board_entries_with_report(selected_boards, board_configuration_reports)
     query_status = discovery_query_status(state, max_queries)
     query_plan = next_discovery_query_plan(state, max_queries)
     full_time_campaigns = {campaign.identifier for campaign in load_campaigns(state) if campaign.full_time_only}
@@ -241,7 +260,7 @@ def run_daily_refresh(state: Path, max_queries: int | None = None) -> tuple[int,
     pruned = prune_inactive_discovery_records(database)
     skipped = len(jobs) - len(visible)
     detail = (
-        f"{checked} company boards checked; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); "
+        f"{checked} of {len(boards)} company boards checked in the fair rotating batch; {len(query_plan)} campaign search queries used {request_count} broad-feed API call(s); "
         f"{query_status['remaining_today']} calls remained before this run within the daily/monthly cap "
         f"({query_status['monthly_remaining']} monthly calls remaining); {skipped} hard skips not stored"
     )
@@ -316,6 +335,7 @@ def main() -> None:
     parser.add_argument("--health-check", action="store_true")
     parser.add_argument("--backup", action="store_true")
     parser.add_argument("--max-queries", type=int)
+    parser.add_argument("--max-boards", type=int, default=48)
     parser.add_argument("--query", default="data analyst")
     parser.add_argument("--where", default="Sydney")
     parser.add_argument("--page", type=int, default=1)
@@ -425,8 +445,9 @@ def main() -> None:
         return
     if args.daily_refresh:
         if source_count != 1: parser.error("Use --daily-refresh on its own.")
+        if args.max_boards < 1: parser.error("--max-boards must be at least 1.")
         backup_database(ROOT, "refresh")
-        collected, relevant, detail = run_daily_refresh(state, args.max_queries)
+        collected, relevant, detail = run_daily_refresh(state, args.max_queries, args.max_boards)
         print(f"Daily refresh complete: {collected} roles collected; {relevant} worth reviewing. {detail}.")
         return
     if source_count != 1: parser.error("Choose exactly one source: --demo, --adzuna, --company-boards, --daily-refresh, --daily-digest or --dashboard.")
