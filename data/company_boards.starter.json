@@ -145,6 +145,21 @@
     "token": "nextdc"
   },
   {
+    "company": "Magic Eden",
+    "ats": "ashby",
+    "token": "magiceden"
+  },
+  {
+    "company": "Sigma Prime",
+    "ats": "ashby",
+    "token": "sigp"
+  },
+  {
+    "company": "Breaker",
+    "ats": "ashby",
+    "token": "breaker"
+  },
+  {
     "company": "Constantinople",
     "ats": "lever",
     "token": "cxnpl"
