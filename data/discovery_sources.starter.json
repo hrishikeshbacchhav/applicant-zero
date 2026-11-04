@@ -105,6 +105,21 @@
     ]
   },
   {
+    "id": "pinpoint",
+    "label": "Pinpoint public career boards",
+    "mode": "public_ats_api",
+    "cadence": "weekday_4h",
+    "role_lanes": [
+      "data_bi",
+      "business_analysis",
+      "commercial_analytics",
+      "data_operations",
+      "it_support",
+      "it_general",
+      "administration"
+    ]
+  },
+  {
     "id": "adzuna",
     "label": "Permitted broad job feed",
     "mode": "configured_api",

@@ -12,12 +12,17 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_source_register_has_public_and_manual_routes():
     sources = load_sources(ROOT / "data" / "discovery_sources.starter.json")
     assert {source.identifier for source in sources} >= {"lever", "greenhouse", "ashby", "seek", "linkedin"}
+    assert "pinpoint" in {source.identifier for source in sources}
     assert any(source.mode == "public_ats_api" for source in sources)
     assert all({"data_bi", "it_support", "it_general", "administration"} <= set(source.role_lanes) for source in sources)
 
 
 def test_recruitee_public_careers_url_is_recognised():
     assert public_board_from_url("https://example.recruitee.com/o/data-analyst") == ("recruitee", "example")
+
+
+def test_pinpoint_public_careers_url_is_recognised():
+    assert public_board_from_url("https://example.pinpointhq.com/aus/postings/123") == ("pinpoint", "example")
 
 
 def test_target_universe_is_deduplicated_and_prioritised():
@@ -186,6 +191,7 @@ def test_supported_public_careers_urls_produce_an_ats_and_board_token(tmp_path):
     assert public_board_from_url("https://jobs.ashbyhq.com/example") == ("ashby", "example")
     assert public_board_from_url("https://jobs.ashbyhq.com/Checkbox%20Technology/role") == ("ashby", "Checkbox%20Technology")
     assert public_board_from_url("https://jobs.smartrecruiters.com/Example") == ("smartrecruiters", "Example")
+    assert public_board_from_url("https://example.pinpointhq.com/en/postings/42") == ("pinpoint", "example")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers/job/Sydney/Data-Analyst_123") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     with pytest.raises(ValueError, match="supported public"):

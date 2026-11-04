@@ -494,6 +494,53 @@ def _recruitee_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _pinpoint_location(value: object) -> str:
+    """Keep Pinpoint's public location wording without guessing a city."""
+    if isinstance(value, str):
+        return value.strip() or "Unknown location"
+    if not isinstance(value, dict):
+        return "Unknown location"
+    parts = [str(value.get(key, "")).strip() for key in ("name", "city", "state", "country")]
+    return ", ".join(dict.fromkeys(part for part in parts if part)) or "Unknown location"
+
+
+def _pinpoint_jobs(company: str, token: str) -> list[Job]:
+    """Read Pinpoint's documented public postings JSON feed.
+
+    Pinpoint publishes this company-scoped feed specifically for external job
+    listings.  It contains the employer's public listing URL; no application
+    form is opened or interacted with here.
+    """
+    payload = _get_json(f"https://{token}.pinpointhq.com/postings.json")
+    postings = payload.get("data", []) if isinstance(payload, dict) else []
+    if not isinstance(postings, list):
+        return []
+    jobs: list[Job] = []
+    for item in postings:
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        description = "\n\n".join(
+            str(item.get(key, "")).strip()
+            for key in ("description", "key_responsibilities", "skills_knowledge_expertise", "benefits")
+            if str(item.get(key, "")).strip()
+        )
+        compensation = item.get("compensation") if item.get("compensation_visible") else ""
+        jobs.append(Job(
+            external_id=f"pinpoint:{token}:{item['id']}",
+            title=str(item.get("title") or "Untitled role"),
+            company=company,
+            location=_pinpoint_location(item.get("location")),
+            source="Pinpoint",
+            url=str(item.get("url") or ""),
+            description=append_listing_metadata(
+                description,
+                employment_type=item.get("employment_type_text", item.get("employment_type", "")),
+                salary=compensation,
+            ),
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -521,7 +568,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -557,6 +604,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "workable": _workable_jobs,
         "recruitee": _recruitee_jobs,
         "workday": _workday_jobs,
+        "pinpoint": _pinpoint_jobs,
     }
     try:
         handler = handlers[ats.lower()]

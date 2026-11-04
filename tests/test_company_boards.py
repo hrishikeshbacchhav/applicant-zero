@@ -6,7 +6,7 @@ import sqlite3
 from applicant_zero.scoring import Job
 from datetime import date
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _pinpoint_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -38,6 +38,22 @@ def test_lever_mapping():
         jobs = _lever_jobs("Example", "token")
     assert jobs[0].external_id == "lever:token:9"
     assert jobs[0].title == "Business Analyst"
+
+
+def test_pinpoint_mapping_uses_the_documented_public_postings_feed():
+    payload = {"data": [{
+        "id": "42", "title": "IT Support Officer", "url": "https://example.pinpointhq.com/en/postings/42",
+        "location": {"name": "Sydney, NSW, Australia"}, "description": "Resolve support incidents.",
+        "skills_knowledge_expertise": "Microsoft 365", "employment_type_text": "Permanent - Full Time",
+        "compensation_visible": True, "compensation": "AUD 75,000",
+    }]}
+    with patch("applicant_zero.sources.company_boards._get_json", return_value=payload) as get:
+        jobs = _pinpoint_jobs("Example", "example")
+    assert get.call_args.args[0] == "https://example.pinpointhq.com/postings.json"
+    assert jobs[0].external_id == "pinpoint:example:42"
+    assert jobs[0].location == "Sydney, NSW, Australia"
+    assert "Employment type: Permanent - Full Time" in jobs[0].description
+    assert "Compensation: AUD 75,000" in jobs[0].description
 
 
 def test_ashby_mapping_keeps_plain_description_and_salary():
@@ -267,6 +283,14 @@ def test_workable_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{"company": "Example", "ats": "workable", "token": "example"}]), encoding="utf-8")
     with patch("applicant_zero.sources.company_boards._workable_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert reports[0].status == "checked"
+
+
+def test_pinpoint_board_is_an_accepted_public_board_type(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([{"company": "Example", "ats": "pinpoint", "token": "example"}]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._pinpoint_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
 
