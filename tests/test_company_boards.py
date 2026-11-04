@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from xml.etree import ElementTree
 
 import json
 import sqlite3
@@ -6,7 +7,7 @@ import sqlite3
 from applicant_zero.scoring import Job
 from datetime import date
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _pinpoint_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
+from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _personio_jobs, _pinpoint_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -54,6 +55,17 @@ def test_pinpoint_mapping_uses_the_documented_public_postings_feed():
     assert jobs[0].location == "Sydney, NSW, Australia"
     assert "Employment type: Permanent - Full Time" in jobs[0].description
     assert "Compensation: AUD 75,000" in jobs[0].description
+
+
+def test_personio_mapping_reads_the_employer_enabled_public_xml_feed():
+    payload = """<result><positions><position><id>42</id><name>Data Analyst</name><office>Sydney, NSW, Australia</office><createdAt>2026-11-04</createdAt><employmentType>permanent</employmentType><schedule>full-time</schedule><seniority>entry-level</seniority><jobDescriptions><jobDescription><name>Responsibilities</name><value>Use SQL and Power BI.</value></jobDescription></jobDescriptions></position></positions></result>"""
+    with patch("applicant_zero.sources.company_boards._get_xml", return_value=ElementTree.fromstring(payload)) as get:
+        jobs = _personio_jobs("Example", "example")
+    assert get.call_args.args[0] == "https://example.jobs.personio.de/xml?language=en"
+    assert jobs[0].external_id == "personio:example:42"
+    assert jobs[0].url == "https://example.jobs.personio.de/job/42?language=en"
+    assert jobs[0].location == "Sydney, NSW, Australia"
+    assert "Use SQL and Power BI." in jobs[0].description
 
 
 def test_ashby_mapping_keeps_plain_description_and_salary():
@@ -291,6 +303,14 @@ def test_pinpoint_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{"company": "Example", "ats": "pinpoint", "token": "example"}]), encoding="utf-8")
     with patch("applicant_zero.sources.company_boards._pinpoint_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert reports[0].status == "checked"
+
+
+def test_personio_board_is_an_accepted_public_board_type(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([{"company": "Example", "ats": "personio", "token": "example"}]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._personio_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
 

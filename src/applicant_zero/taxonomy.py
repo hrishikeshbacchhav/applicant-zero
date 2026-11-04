@@ -41,6 +41,7 @@ SOURCE_CONTRACTS = (
     SourceContract("recruitee", "Recruitee", "transitional public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("workday", "Workday", "public ATS job feed", "weekday, several checks", "prepare and open listing"),
     SourceContract("pinpoint", "Pinpoint", "public employer postings JSON", "weekday, several checks", "prepare and open listing"),
+    SourceContract("personio", "Personio", "public employer careers XML", "weekday, several checks", "prepare and open listing"),
     SourceContract("adzuna", "Permitted broad job feed", "configured API", "daily", "prepare and open listing"),
     SourceContract("jobicy", "Jobicy remote jobs", "public attributed API", "daily", "open the Jobicy listing"),
     SourceContract("remotive", "Remotive remote jobs", "public attributed API", "daily", "open the Remotive listing"),

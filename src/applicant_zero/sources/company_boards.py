@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import Request, urlopen
+from xml.etree import ElementTree
 
 from ..scoring import Job
 from ..taxonomy import classify_lane
@@ -91,6 +92,13 @@ def _post_json(url: str, payload: dict) -> dict | list:
     )
     with urlopen(request, timeout=12) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def _get_xml(url: str) -> ElementTree.Element:
+    """Read a documented public XML careers feed without browser automation."""
+    request = Request(url, headers={"User-Agent": "Applicant-Zero/0.1 (private job discovery)"})
+    with urlopen(request, timeout=12) as response:
+        return ElementTree.fromstring(response.read())
 
 
 def _greenhouse_jobs(company: str, token: str) -> list[Job]:
@@ -541,6 +549,50 @@ def _pinpoint_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _xml_text(element: ElementTree.Element | None, name: str) -> str:
+    child = element.find(name) if element is not None else None
+    return " ".join(child.itertext()).strip() if child is not None else ""
+
+
+def _personio_jobs(company: str, token: str) -> list[Job]:
+    """Read Personio's employer-enabled public XML career-site feed.
+
+    Personio documents this as a published-careers XML feed.  The adapter reads
+    only the employer-enabled listing document and stores a direct public job
+    link; it never uses Personio's recruiting API or application endpoint.
+    """
+    root = _get_xml(f"https://{token}.jobs.personio.de/xml?language=en")
+    positions = root.findall(".//position") or root.findall(".//posting")
+    jobs: list[Job] = []
+    for position in positions:
+        identifier = _xml_text(position, "id")
+        if not identifier:
+            continue
+        descriptions = position.find("jobDescriptions")
+        description = "\n\n".join(
+            " ".join(child.itertext()).strip()
+            for child in list(descriptions) if " ".join(child.itertext()).strip()
+        ) if descriptions is not None else ""
+        location = _xml_text(position, "office") or _xml_text(position, "location") or "Unknown location"
+        jobs.append(Job(
+            external_id=f"personio:{token}:{identifier}",
+            title=_xml_text(position, "name") or "Untitled role",
+            company=company,
+            location=location,
+            source="Personio",
+            url=f"https://{token}.jobs.personio.de/job/{identifier}?language=en",
+            description=append_listing_metadata(
+                description,
+                posted_at=_xml_text(position, "createdAt"),
+                employment_type=" · ".join(filter(None, (
+                    _xml_text(position, "employmentType"), _xml_text(position, "schedule"),
+                ))),
+            ),
+            seniority=_xml_text(position, "seniority") or "graduate",
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -568,7 +620,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -605,6 +657,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "recruitee": _recruitee_jobs,
         "workday": _workday_jobs,
         "pinpoint": _pinpoint_jobs,
+        "personio": _personio_jobs,
     }
     try:
         handler = handlers[ats.lower()]

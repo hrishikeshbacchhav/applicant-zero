@@ -80,7 +80,7 @@ Each normal refresh reads one public We Work Remotely RSS document and retains u
 
 ## Company career-board discovery
 
-The preferred first live source is public company career boards. Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Workday and Pinpoint publish public job-board reads, so no candidate account or employer application credential is used to discover roles.
+The preferred first live source is public company career boards. Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Workday, Pinpoint and Personio publish public job-board reads, so no candidate account or employer application credential is used to discover roles.
 
 From the local dashboard, open **Discovery coverage** and use **Add a verified public employer board** after you have opened an employer's own public careers page. Select the provider and enter the public board token from that URL. This is the simplest option: it saves no password, login or API key, and it adds the board to your private local registry for the next discovery refresh.
 
@@ -102,7 +102,7 @@ python scripts/validate_public_board_urls.py C:\path\to\reviewed_boards.csv C:\p
 python scripts/import_public_board_urls.py C:\path\to\validated_boards.json
 ```
 
-1. Add only companies whose public careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file. Use the starter example as the schema reference; supported values for `ats` are `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workable`, `recruitee`, `workday` and `pinpoint`. Workable uses the public account subdomain from its `apply.workable.com` link. Pinpoint uses the public subdomain from its `*.pinpointhq.com` careers URL. Workday stores a public `host/site` identifier derived from the employer careers URL; it never stores a login or employer API credential.
+1. Add only companies whose public careers pages you want Applicant Zero to monitor to a private `data/company_boards.json` file. Use the starter example as the schema reference; supported values for `ats` are `greenhouse`, `lever`, `ashby`, `smartrecruiters`, `workable`, `recruitee`, `workday`, `pinpoint` and `personio`. Workable uses the public account subdomain from its `apply.workable.com` link. Pinpoint uses the public subdomain from its `*.pinpointhq.com` careers URL. Personio uses the public employer subdomain from its `*.jobs.personio.de` careers URL and only its employer-enabled XML listing feed. Workday stores a public `host/site` identifier derived from the employer careers URL; it never stores a login or employer API credential.
 2. Run:
 
 ```powershell
