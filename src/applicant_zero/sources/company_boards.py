@@ -550,8 +550,12 @@ def _pinpoint_jobs(company: str, token: str) -> list[Job]:
 
 
 def _xml_text(element: ElementTree.Element | None, name: str) -> str:
-    child = element.find(name) if element is not None else None
-    return " ".join(child.itertext()).strip() if child is not None else ""
+    if element is None:
+        return ""
+    for child in list(element):
+        if child.tag.rsplit("}", 1)[-1] == name:
+            return " ".join(child.itertext()).strip()
+    return ""
 
 
 def _personio_jobs(company: str, token: str) -> list[Job]:
@@ -593,6 +597,55 @@ def _personio_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _teamtailor_location(item: ElementTree.Element, remote_status: str) -> str:
+    """Map the public Teamtailor RSS location extension without guessing."""
+    locations: list[str] = []
+    for element in item.iter():
+        if element.tag.rsplit("}", 1)[-1] != "location":
+            continue
+        parts = tuple(filter(None, (_xml_text(element, key) for key in ("name", "city", "country"))))
+        if parts:
+            locations.append(", ".join(dict.fromkeys(parts)))
+    if locations:
+        return " · ".join(dict.fromkeys(locations))
+    return "Remote" if remote_status.casefold() in {"fully", "temporary"} else "Unknown location"
+
+
+def _teamtailor_jobs(company: str, token: str) -> list[Job]:
+    """Read Teamtailor's documented public RSS career-site feed.
+
+    Teamtailor provides this URL specifically for sharing published career-site
+    jobs.  It is an employer board read only; no Teamtailor API key, account,
+    candidate information, or application endpoint is used.
+    """
+    root = _get_xml(f"https://{token}.teamtailor.com/jobs.rss?per_page=200")
+    jobs: list[Job] = []
+    for item in root.findall("./channel/item"):
+        identifier = _xml_text(item, "guid") or _xml_text(item, "link")
+        if not identifier:
+            continue
+        remote_status = _xml_text(item, "remoteStatus")
+        description = _xml_text(item, "description")
+        department = _xml_text(item, "department")
+        role = _xml_text(item, "role")
+        if department or role:
+            description = "\n".join(filter(None, (description, f"Department: {department}" if department else "", f"Role: {role}" if role else "")))
+        jobs.append(Job(
+            external_id=f"teamtailor:{token}:{identifier}",
+            title=_xml_text(item, "title") or "Untitled role",
+            company=company,
+            location=_teamtailor_location(item, remote_status),
+            source="Teamtailor",
+            url=_xml_text(item, "link"),
+            description=append_listing_metadata(
+                description,
+                posted_at=_xml_text(item, "pubDate"),
+                employment_type=remote_status,
+            ),
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -620,7 +673,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -658,6 +711,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "workday": _workday_jobs,
         "pinpoint": _pinpoint_jobs,
         "personio": _personio_jobs,
+        "teamtailor": _teamtailor_jobs,
     }
     try:
         handler = handlers[ats.lower()]

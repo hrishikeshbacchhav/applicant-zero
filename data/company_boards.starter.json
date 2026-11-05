@@ -648,5 +648,10 @@
     "company": "Trina Solar",
     "ats": "personio",
     "token": "trina-solar-1"
+  },
+  {
+    "company": "Redion ANZ",
+    "ats": "teamtailor",
+    "token": "redionanz"
   }
 ]
