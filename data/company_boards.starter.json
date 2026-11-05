@@ -638,5 +638,15 @@
     "company": "Valerie Group",
     "ats": "ashby",
     "token": "valerie-group"
+  },
+  {
+    "company": "TNG Technology Consulting",
+    "ats": "personio",
+    "token": "tngtech"
+  },
+  {
+    "company": "Trina Solar",
+    "ats": "personio",
+    "token": "trina-solar-1"
   }
 ]
