@@ -7,7 +7,7 @@ import sqlite3
 from applicant_zero.scoring import Job
 from datetime import date
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _personio_jobs, _pinpoint_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _teamtailor_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
+from applicant_zero.sources.company_boards import _ashby_jobs, _gem_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _personio_jobs, _pinpoint_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _teamtailor_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -77,6 +77,16 @@ def test_teamtailor_mapping_reads_the_published_public_rss_feed():
     assert jobs[0].location == "Sydney Office, Sydney, Australia"
     assert "Department: IT" in jobs[0].description
     assert "Employment type: hybrid" in jobs[0].description
+
+
+def test_gem_mapping_reads_the_documented_public_job_board_endpoint():
+    payload = [{"id": "post-42", "title": "Data Analyst", "absolute_url": "https://jobs.gem.com/example/post-42", "content_plain": "Build reports.", "first_published_at": "2026-11-05", "employment_type": "full_time", "location_type": "hybrid", "location": {"name": "Sydney, Australia"}, "offices": [{"location": {"name": "Sydney, Australia"}}]}]
+    with patch("applicant_zero.sources.company_boards._get_json", return_value=payload) as get:
+        jobs = _gem_jobs("Example", "example")
+    assert get.call_args.args[0] == "https://api.gem.com/job_board/v0/example/job_posts/"
+    assert jobs[0].external_id == "gem:example:post-42"
+    assert jobs[0].location == "Sydney, Australia"
+    assert "Employment type: full_time · hybrid" in jobs[0].description
 
 
 def test_ashby_mapping_keeps_plain_description_and_salary():
@@ -330,6 +340,14 @@ def test_teamtailor_board_is_an_accepted_public_board_type(tmp_path):
     path = tmp_path / "boards.json"
     path.write_text(json.dumps([{"company": "Example", "ats": "teamtailor", "token": "example"}]), encoding="utf-8")
     with patch("applicant_zero.sources.company_boards._teamtailor_jobs", return_value=[]):
+        _, reports = fetch_company_boards_with_report(path)
+    assert reports[0].status == "checked"
+
+
+def test_gem_board_is_an_accepted_public_board_type(tmp_path):
+    path = tmp_path / "boards.json"
+    path.write_text(json.dumps([{"company": "Example", "ats": "gem", "token": "example"}]), encoding="utf-8")
+    with patch("applicant_zero.sources.company_boards._gem_jobs", return_value=[]):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
 

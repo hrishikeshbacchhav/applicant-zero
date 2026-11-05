@@ -24,7 +24,7 @@ class TargetCompany:
     priority: int
 
 
-SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor"}
+SUPPORTED_PUBLIC_ATS = {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor", "gem"}
 
 
 def public_board_check_key(ats: object = "", token: object = "", company: object = "") -> str:
@@ -107,10 +107,12 @@ def public_board_from_url(value: str) -> tuple[str, str]:
         ats, token = "personio", host.split(".", 1)[0]
     elif host.endswith(".teamtailor.com") and host.count(".") >= 2:
         ats, token = "teamtailor", host.split(".", 1)[0]
+    elif host == "jobs.gem.com" and parts:
+        ats, token = "gem", parts[0]
     token = _normalise_board_token(ats, token)
     if ats and _valid_board_token(ats, token):
         return ats, token
-    raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee, Workday, Pinpoint, Personio or Teamtailor careers URL.")
+    raise ValueError("Use a supported public Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee, Workday, Pinpoint, Personio, Teamtailor or Gem careers URL.")
 
 
 def add_public_board_url(state_root: Path, starter_path: Path, company: str, public_url: str) -> tuple[dict[str, str], bool]:
@@ -131,7 +133,7 @@ def add_public_board(state_root: Path, starter_path: Path, company: str, ats: st
     if not clean_company or len(clean_company) > 160:
         raise ValueError("Enter the employer name.")
     if clean_ats not in SUPPORTED_PUBLIC_ATS:
-        raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee, Workday, Pinpoint, Personio or Teamtailor.")
+        raise ValueError("Choose Greenhouse, Lever, Ashby, SmartRecruiters, Workable, Recruitee, Workday, Pinpoint, Personio, Teamtailor or Gem.")
     if not _valid_board_token(clean_ats, clean_token):
         raise ValueError("Enter the public board token from the employer careers URL.")
 

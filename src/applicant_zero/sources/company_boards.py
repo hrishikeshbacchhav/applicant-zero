@@ -646,6 +646,53 @@ def _teamtailor_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _gem_location(item: dict) -> str:
+    """Use only Gem's public location and office fields, in source order."""
+    values = []
+    location = item.get("location")
+    if isinstance(location, dict) and location.get("name"):
+        values.append(str(location["name"]))
+    for office in item.get("offices", []) if isinstance(item.get("offices"), list) else []:
+        if not isinstance(office, dict):
+            continue
+        office_location = office.get("location")
+        if isinstance(office_location, dict) and office_location.get("name"):
+            values.append(str(office_location["name"]))
+        elif office.get("name"):
+            values.append(str(office["name"]))
+    return " · ".join(dict.fromkeys(values)) or "Unknown location"
+
+
+def _gem_jobs(company: str, token: str) -> list[Job]:
+    """Read Gem's documented public job-board listing endpoint.
+
+    Gem documents its GET job-board routes as public.  This adapter only reads
+    published listing data and preserves the hosted Gem job link; it never
+    invokes Gem's separately authenticated application route.
+    """
+    payload = _get_json(f"https://api.gem.com/job_board/v0/{token}/job_posts/")
+    postings = payload if isinstance(payload, list) else []
+    jobs: list[Job] = []
+    for item in postings:
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        employment = " · ".join(filter(None, (str(item.get("employment_type") or ""), str(item.get("location_type") or ""))))
+        jobs.append(Job(
+            external_id=f"gem:{token}:{item['id']}",
+            title=str(item.get("title") or "Untitled role"),
+            company=company,
+            location=_gem_location(item),
+            source="Gem",
+            url=str(item.get("absolute_url") or ""),
+            description=append_listing_metadata(
+                str(item.get("content_plain") or item.get("content") or ""),
+                posted_at=item.get("first_published_at", item.get("created_at", "")),
+                employment_type=employment,
+            ),
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -673,7 +720,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor", "gem"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -712,6 +759,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "pinpoint": _pinpoint_jobs,
         "personio": _personio_jobs,
         "teamtailor": _teamtailor_jobs,
+        "gem": _gem_jobs,
     }
     try:
         handler = handlers[ats.lower()]
