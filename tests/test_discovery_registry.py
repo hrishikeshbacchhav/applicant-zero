@@ -16,6 +16,7 @@ def test_source_register_has_public_and_manual_routes():
     assert "personio" in {source.identifier for source in sources}
     assert "teamtailor" in {source.identifier for source in sources}
     assert "gem" in {source.identifier for source in sources}
+    assert "polymer" in {source.identifier for source in sources}
     assert any(source.mode == "public_ats_api" for source in sources)
     assert all({"data_bi", "it_support", "it_general", "administration"} <= set(source.role_lanes) for source in sources)
 
@@ -38,6 +39,10 @@ def test_teamtailor_public_careers_url_is_recognised():
 
 def test_gem_public_careers_url_is_recognised():
     assert public_board_from_url("https://jobs.gem.com/example/post-42") == ("gem", "example")
+
+
+def test_polymer_public_careers_url_is_recognised():
+    assert public_board_from_url("https://jobs.polymer.co/example/42") == ("polymer", "example")
 
 
 def test_target_universe_is_deduplicated_and_prioritised():
@@ -210,6 +215,7 @@ def test_supported_public_careers_urls_produce_an_ats_and_board_token(tmp_path):
     assert public_board_from_url("https://example.jobs.personio.de/job/42?language=en") == ("personio", "example")
     assert public_board_from_url("https://example.teamtailor.com/jobs/42") == ("teamtailor", "example")
     assert public_board_from_url("https://jobs.gem.com/example/post-42") == ("gem", "example")
+    assert public_board_from_url("https://jobs.polymer.co/example/42") == ("polymer", "example")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     assert public_board_from_url("https://example.wd3.myworkdayjobs.com/en-US/Careers/job/Sydney/Data-Analyst_123") == ("workday", "example.wd3.myworkdayjobs.com/Careers")
     with pytest.raises(ValueError, match="supported public"):

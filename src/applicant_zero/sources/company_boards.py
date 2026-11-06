@@ -693,6 +693,61 @@ def _gem_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
+def _polymer_location(item: dict) -> str:
+    """Keep Polymer's employer-provided location or remote declaration."""
+    if item.get("display_location"):
+        return str(item["display_location"])
+    parts = tuple(filter(None, (str(item.get(key) or "") for key in ("city", "state_region", "country"))))
+    if parts:
+        return ", ".join(parts)
+    return "Remote" if "remote" in str(item.get("remoteness_pretty") or "").casefold() else "Unknown location"
+
+
+def _polymer_jobs(company: str, token: str) -> list[Job]:
+    """Read Polymer's documented unauthenticated public jobs API.
+
+    The listing request returns the employer's published postings.  Details are
+    read only for a bounded set of candidate-aligned postings because Polymer's
+    public detail route is where the employer publishes each job description.
+    """
+    endpoint = f"https://api.polymer.co/v1/hire/organizations/{token}/jobs"
+    payload = _get_json(endpoint)
+    listings = payload.get("items", []) if isinstance(payload, dict) else []
+    if not isinstance(listings, list):
+        return []
+    selected = [item for item in listings if isinstance(item, dict) and item.get("id")]
+    detail_ids = {
+        str(item["id"])
+        for item in selected
+        if _needs_candidate_detail(str(item.get("title") or ""), _polymer_location(item))
+    }
+    details: dict[str, dict] = {}
+    for identifier in list(detail_ids)[:12]:
+        detail = _get_json(f"{endpoint}/{identifier}")
+        if isinstance(detail, dict):
+            details[identifier] = detail
+    jobs: list[Job] = []
+    for listing in selected:
+        identifier = str(listing["id"])
+        item = {**listing, **details.get(identifier, {})}
+        employment = " · ".join(filter(None, (str(item.get("kind_pretty") or ""), str(item.get("remoteness_pretty") or ""))))
+        jobs.append(Job(
+            external_id=f"polymer:{token}:{identifier}",
+            title=str(item.get("title") or "Untitled role"),
+            company=company,
+            location=_polymer_location(item),
+            source="Polymer",
+            url=str(item.get("job_post_url") or item.get("job_application_description_url") or ""),
+            description=append_listing_metadata(
+                str(item.get("description") or ""),
+                posted_at=item.get("published_at", item.get("created_at", "")),
+                employment_type=employment,
+                salary=item.get("salary_pretty", ""),
+            ),
+        ))
+    return jobs
+
+
 def fetch_company_boards(path: Path) -> list[Job]:
     jobs, reports = fetch_company_boards_with_report(path)
     failures = [report for report in reports if report.status == "unavailable"]
@@ -720,7 +775,7 @@ def _load_valid_boards(path: Path) -> tuple[list[dict], list[BoardReport]]:
         company = str(item.get("company", "")).strip()
         token = str(item.get("token", "")).strip()
         ats = str(item.get("ats", "")).strip().lower()
-        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor", "gem"}:
+        if not company or not token or ats not in {"greenhouse", "lever", "ashby", "smartrecruiters", "workable", "recruitee", "workday", "pinpoint", "personio", "teamtailor", "gem", "polymer"}:
             reports.append(BoardReport(company or f"Board entry {index}", "unavailable", 0, "Each board needs a company, token, and supported ATS type."))
             continue
         key = (ats, token.casefold())
@@ -760,6 +815,7 @@ def fetch_public_board(company: str, ats: str, token: str) -> list[Job]:
         "personio": _personio_jobs,
         "teamtailor": _teamtailor_jobs,
         "gem": _gem_jobs,
+        "polymer": _polymer_jobs,
     }
     try:
         handler = handlers[ats.lower()]
