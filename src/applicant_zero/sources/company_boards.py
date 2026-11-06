@@ -716,13 +716,17 @@ def _polymer_jobs(company: str, token: str) -> list[Job]:
     if not isinstance(listings, list):
         return []
     selected = [item for item in listings if isinstance(item, dict) and item.get("id")]
-    detail_ids = {
+    # Preserve the employer's public listing order.  Apart from making a
+    # refresh repeatable, this means the bounded detail budget favours the
+    # same newly-listed candidate roles rather than whichever IDs happened to
+    # be yielded first by a set.
+    detail_ids = [
         str(item["id"])
         for item in selected
         if _needs_candidate_detail(str(item.get("title") or ""), _polymer_location(item))
-    }
+    ][:12]
     details: dict[str, dict] = {}
-    for identifier in list(detail_ids)[:12]:
+    for identifier in detail_ids:
         detail = _get_json(f"{endpoint}/{identifier}")
         if isinstance(detail, dict):
             details[identifier] = detail
@@ -856,6 +860,16 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
             _needs_candidate_detail(job.title, job.location) for job in jobs
         ))
         return listing_pages + detail_requests
+    if normalized == "polymer":
+        # Polymer's public list is one request.  It then reads at most twelve
+        # candidate-aligned detail pages to obtain employer-published job
+        # descriptions.  Keep the report honest about those bounded reads.
+        if isinstance(jobs, int):
+            return 1 + min(12, max(0, job_count))
+        detail_requests = min(12, sum(
+            _needs_candidate_detail(job.title, job.location) for job in jobs
+        ))
+        return 1 + detail_requests
     return 1
 
 

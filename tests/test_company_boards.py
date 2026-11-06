@@ -465,6 +465,8 @@ def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 101) == 5
     assert _request_count_for_board("smartrecruiters", 3) == 4
     assert _request_count_for_board("smartrecruiters", 101) == 14
+    assert _request_count_for_board("polymer", 3) == 4
+    assert _request_count_for_board("polymer", 101) == 13
     assert _request_count_for_board("lever", 40) == 1
 
 
@@ -491,6 +493,14 @@ def test_smartrecruiters_request_estimate_includes_only_candidate_detail_reads()
         Job("two", "Unrelated role", "Example", "Sydney", "SmartRecruiters", "https://example.test/two", ""),
     ]
     assert _request_count_for_board("smartrecruiters", jobs) == 2
+
+
+def test_polymer_request_estimate_includes_only_candidate_detail_reads():
+    jobs = [
+        Job("one", "Data Analyst", "Example", "Sydney", "Polymer", "https://example.test/one", ""),
+        Job("two", "Unrelated role", "Example", "Sydney", "Polymer", "https://example.test/two", ""),
+    ]
+    assert _request_count_for_board("polymer", jobs) == 2
 
 
 def test_workday_search_rotation_is_stable_per_board_and_moves_daily():
