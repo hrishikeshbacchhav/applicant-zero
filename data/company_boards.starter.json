@@ -660,6 +660,21 @@
     "token": "salvationarmy.wd3.myworkdayjobs.com/broadbean_external"
   },
   {
+    "company": "ResMed",
+    "ats": "workday",
+    "token": "resmed.wd3.myworkdayjobs.com/ResMed_External_Careers"
+  },
+  {
+    "company": "Insulet",
+    "ats": "workday",
+    "token": "insulet.wd5.myworkdayjobs.com/insuletcareers"
+  },
+  {
+    "company": "Helia",
+    "ats": "workday",
+    "token": "itsmyhome.wd3.myworkdayjobs.com/GNW-"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"

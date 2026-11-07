@@ -92,6 +92,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Beca", "HUB24", "Toyota Automated Logistics", "Havas", "Cushman & Wakefield",
         "St Vincent's Health Australia", "Telstra", "Herbert Smith Freehills", "Duck Creek Technologies",
         "Commonwealth Bank", "REA Group", "Crown Resorts", "Salvation Army Australia",
+        "ResMed", "Insulet", "Helia",
     } <= {board["company"] for board in boards}
 
 
