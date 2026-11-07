@@ -645,6 +645,21 @@
     "token": "cba.wd3.myworkdayjobs.com/CommBank_Careers"
   },
   {
+    "company": "REA Group",
+    "ats": "workday",
+    "token": "reagroup.wd3.myworkdayjobs.com/reacareers"
+  },
+  {
+    "company": "Crown Resorts",
+    "ats": "workday",
+    "token": "crownresorts.wd3.myworkdayjobs.com/crown_careers"
+  },
+  {
+    "company": "Salvation Army Australia",
+    "ats": "workday",
+    "token": "salvationarmy.wd3.myworkdayjobs.com/broadbean_external"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"
