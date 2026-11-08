@@ -451,6 +451,22 @@ def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
     assert [job.external_id for job in jobs].count("workday:example.wd3.myworkdayjobs.com:Careers:/job/analyst") == 1
 
 
+def test_workday_keeps_ordinary_public_results_when_one_targeted_query_fails():
+    first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
+    recovered = [{"title": "Data Analyst", "externalPath": "/job/data", "locationsText": "Parramatta, NSW"}]
+    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "sydney", "nsw", "data", "analyst", "support")), patch(
+        "applicant_zero.sources.company_boards._post_json", side_effect=[
+            {"total": 21, "jobPostings": first}, OSError("optional query unavailable"),
+            {"jobPostings": []}, {"jobPostings": recovered}, {"jobPostings": []}, {"jobPostings": []},
+        ]
+    ) as post, patch("applicant_zero.sources.company_boards._get_json", return_value={"jobPostingInfo": {}}):
+        jobs, request_count = _workday_jobs_with_request_count("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert len(jobs) == 21
+    assert any(job.title == "Data Analyst" for job in jobs)
+    assert post.call_count == 6
+    assert request_count == 7
+
+
 def test_workday_details_are_limited_to_candidate_lane_titles():
     first = [
         {"title": "IT Support Analyst", "externalPath": f"/job/{index}", "locationsText": "Sydney"}

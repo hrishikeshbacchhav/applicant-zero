@@ -386,9 +386,18 @@ def _workday_jobs_with_request_count(company: str, token: str) -> tuple[list[Job
     for query_index, search_text in enumerate(queries):
         offset = 0
         request_count += 1
-        payload = _post_json(endpoint, {
-            "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": search_text,
-        })
+        try:
+            payload = _post_json(endpoint, {
+                "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": search_text,
+            })
+        except (OSError, ValueError, KeyError, TypeError):
+            # The ordinary board view is the minimum viable source read. If it
+            # fails, report the board as unavailable; once it succeeds, a
+            # failed optional Sydney/NSW or role-family query must not discard
+            # the already-read public listings.
+            if query_index == 0:
+                raise
+            continue
         page = payload.get("jobPostings", []) if isinstance(payload, dict) else []
         page_rows = [item for item in page if isinstance(item, dict)]
         rows.extend(page_rows)
