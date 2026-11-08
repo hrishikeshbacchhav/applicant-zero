@@ -7,7 +7,7 @@ import sqlite3
 from applicant_zero.scoring import Job
 from datetime import date
 
-from applicant_zero.sources.company_boards import _ashby_jobs, _gem_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _personio_jobs, _pinpoint_jobs, _polymer_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _teamtailor_jobs, _workable_jobs, _workday_jobs, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
+from applicant_zero.sources.company_boards import _ashby_jobs, _gem_jobs, _get_json, _greenhouse_jobs, _lever_jobs, _needs_candidate_detail, _personio_jobs, _pinpoint_jobs, _polymer_jobs, _recruitee_jobs, _request_count_for_board, _smartrecruiters_jobs, _teamtailor_jobs, _workable_jobs, _workday_jobs, _workday_jobs_with_request_count, _workday_search_terms, fetch_company_board_entries_with_report, fetch_company_boards_with_report, load_company_board_entries
 from applicant_zero.storage import initialise_database, list_board_checks, list_board_check_trends, save_board_checks
 
 
@@ -408,6 +408,21 @@ def test_workday_mapping_reads_the_public_careers_search_response():
     assert "Resolve service desk requests" in jobs[0].description
 
 
+def test_workday_request_report_counts_actual_listing_and_detail_reads():
+    payload = {"jobPostings": [{
+        "title": "Service Desk Analyst", "externalPath": "/job/sydney-support",
+        "locationsText": "Sydney, NSW, Australia",
+    }]}
+    with patch("applicant_zero.sources.company_boards._post_json", return_value=payload), patch(
+        "applicant_zero.sources.company_boards._get_json", return_value={"jobPostingInfo": {}}
+    ):
+        jobs, request_count = _workday_jobs_with_request_count(
+            "Example", "example.wd3.myworkdayjobs.com/Careers"
+        )
+    assert len(jobs) == 1
+    assert request_count == 2
+
+
 def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     first = [{"title": f"Role {index}", "externalPath": f"/job/{index}", "locationsText": "Sydney"} for index in range(20)]
     data = [{"title": "Data Analyst", "externalPath": "/job/data", "locationsText": "Sydney"}]
@@ -454,7 +469,7 @@ def test_workday_board_is_an_accepted_public_board_type(tmp_path):
     path.write_text(json.dumps([{
         "company": "Example", "ats": "workday", "token": "example.wd3.myworkdayjobs.com/Careers"
     }]), encoding="utf-8")
-    with patch("applicant_zero.sources.company_boards._workday_jobs", return_value=[]):
+    with patch("applicant_zero.sources.company_boards._workday_jobs_with_request_count", return_value=([], 1)):
         _, reports = fetch_company_boards_with_report(path)
     assert reports[0].status == "checked"
 

@@ -354,8 +354,8 @@ def _workable_jobs(company: str, token: str) -> list[Job]:
     return jobs
 
 
-def _workday_jobs(company: str, token: str) -> list[Job]:
-    """Read a Workday public careers search endpoint with a bounded page cap.
+def _workday_jobs_with_request_count(company: str, token: str) -> tuple[list[Job], int]:
+    """Read a Workday board and return its exact bounded public-read count.
 
     The token is ``host/site`` (for example
     ``example.wd3.myworkdayjobs.com/ExampleCareers``), derived from an
@@ -371,6 +371,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     endpoint = f"https://{host}/wday/cxs/{tenant}/{site}/jobs"
     rows: list[dict] = []
     total = 0
+    request_count = 0
     # The public CXS endpoint accepts at most 20 listings in one request.
     # Asking for 100 makes many otherwise-working Workday boards return 400
     # or 500. Five ordinary pages keep the existing bounded-board policy while
@@ -384,6 +385,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     queries = _workday_search_terms(company, token)
     for query_index, search_text in enumerate(queries):
         offset = 0
+        request_count += 1
         payload = _post_json(endpoint, {
             "appliedFacets": {}, "limit": page_size, "offset": offset, "searchText": search_text,
         })
@@ -425,6 +427,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     for item in detail_candidates:
         external_path = str(item["externalPath"]).strip()
         detail_path = _workday_detail_path(external_path, site)
+        request_count += 1
         try:
             detail = _get_json(f"https://{host}/wday/cxs/{tenant}/{site}{detail_path}")
         except (OSError, ValueError, KeyError, TypeError):
@@ -453,6 +456,12 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
             url=f"https://{host}{external_path}" if external_path.startswith("/") else f"https://{host}",
             description=detail,
         ))
+    return jobs, request_count
+
+
+def _workday_jobs(company: str, token: str) -> list[Job]:
+    """Read Workday listings while preserving the common board-reader shape."""
+    jobs, _ = _workday_jobs_with_request_count(company, token)
     return jobs
 
 
@@ -887,12 +896,16 @@ def fetch_company_board_entries_with_report(
     def fetch_one(board: dict) -> tuple[list[Job], BoardReport]:
         company = board["company"]
         try:
-            board_jobs = fetch_public_board(company, board["ats"], board["token"])
+            if board["ats"] == "workday":
+                board_jobs, request_count = _workday_jobs_with_request_count(company, board["token"])
+            else:
+                board_jobs = fetch_public_board(company, board["ats"], board["token"])
+                request_count = _request_count_for_board(board["ats"], board_jobs)
         except (OSError, ValueError, KeyError, TypeError) as error:
             return [], BoardReport(company, "unavailable", 0, str(error), board["ats"].title(), 1, board["token"])
         return board_jobs, BoardReport(
             company, "checked", len(board_jobs), "", board["ats"].title(),
-            _request_count_for_board(board["ats"], board_jobs), board["token"],
+            request_count, board["token"],
         )
 
     # Board APIs are independent. Parallel requests keep one slow employer
