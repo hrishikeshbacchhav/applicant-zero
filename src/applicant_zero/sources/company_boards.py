@@ -19,20 +19,20 @@ _WORKDAY_ROLE_TERMS = (
 
 
 def _workday_search_terms(company: str, token: str, today: date | None = None) -> tuple[str, ...]:
-    """Return ordinary, Sydney-focused, and rotating candidate-role searches.
+    """Return ordinary, Sydney/NSW, and rotating candidate-role searches.
 
     A large Workday board can contain thousands of postings. The normal board
-    view is useful for general freshness, while an explicit Sydney search
-    prevents globally sorted boards from burying local jobs. The final three
-    bounded searches rotate through the candidate role families each day. The
-    five public requests remain the hard limit, with no location guessing or
-    unbounded pagination.
+    view is useful for general freshness, while explicit Sydney and NSW
+    searches prevent globally sorted boards from burying CBD or suburban/NSW
+    roles. The final three bounded searches rotate through the candidate role
+    families each day. The six public requests remain the hard limit, with no
+    location guessing or unbounded pagination.
     """
     day = today or date.today()
     seed = sum(ord(character) for character in f"{company.casefold()}|{token.casefold()}") + day.toordinal()
     start = seed % len(_WORKDAY_ROLE_TERMS)
     terms = tuple(_WORKDAY_ROLE_TERMS[(start + offset) % len(_WORKDAY_ROLE_TERMS)] for offset in range(3))
-    return ("", "sydney", *terms)
+    return ("", "sydney", "nsw", *terms)
 
 
 _LOCAL_DETAIL_MARKERS = (
@@ -361,7 +361,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     ``example.wd3.myworkdayjobs.com/ExampleCareers``), derived from an
     employer's public Workday URL. This route uses the same read-only public
     endpoint that the careers page uses. It does not accept a login, session
-    cookie or employer API credential. A five-page cap avoids one unusually
+    cookie or employer API credential. A six-request cap avoids one unusually
     large board consuming an unbounded discovery run.
     """
     host, separator, site = token.partition("/")
@@ -379,8 +379,8 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
     # A large global employer board often sorts the first page by its own
     # default order, which can hide a Sydney analyst or support role far down
     # the listing. One bounded Sydney query keeps local coverage visible; the
-    # final three requests rotate through the role families this workspace
-    # searches.
+    # NSW query reaches suburb or state-labelled roles; the final three
+    # requests rotate through the role families this workspace searches.
     queries = _workday_search_terms(company, token)
     for query_index, search_text in enumerate(queries):
         offset = 0
@@ -396,7 +396,7 @@ def _workday_jobs(company: str, token: str) -> list[Job]:
             except (TypeError, ValueError):
                 total = len(page_rows)
         # A small board is complete after its ordinary first page, so avoid
-        # unnecessary searches. Large boards use all five bounded queries.
+        # unnecessary searches. Large boards use all six bounded queries.
         if query_index == 0 and (len(page_rows) < page_size or len(rows) >= total):
             break
     # Searches overlap (for example "data" and "analyst" can both return a
@@ -839,9 +839,9 @@ def _request_count_for_board(ats: str, jobs: int | list[Job]) -> int:
     normalized = ats.casefold()
     if normalized == "workday":
         # Workday accepts at most 20 jobs per public search page. Small boards
-        # finish in one request; a larger board uses four targeted role-family
-        # queries in addition to the ordinary first page.
-        listing_requests = 1 if max(0, job_count) <= 20 else 5
+        # finish in one request; a larger board uses Sydney, NSW and three
+        # rotating role-family queries in addition to the ordinary first page.
+        listing_requests = 1 if max(0, job_count) <= 20 else 6
         if isinstance(jobs, int):
             return listing_requests
         detail_requests = min(12, sum(

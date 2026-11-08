@@ -414,15 +414,15 @@ def test_workday_mapping_pages_a_large_public_board_with_a_bounded_cap():
     analyst = [{"title": "Business Analyst", "externalPath": "/job/business", "locationsText": "Sydney"}]
     support = [{"title": "Support Analyst", "externalPath": "/job/support", "locationsText": "Sydney"}]
     admin = [{"title": "Administration Officer", "externalPath": "/job/admin", "locationsText": "Sydney"}]
-    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "sydney", "data", "analyst", "support")), patch(
+    with patch("applicant_zero.sources.company_boards._workday_search_terms", return_value=("", "sydney", "nsw", "data", "analyst", "support")), patch(
         "applicant_zero.sources.company_boards._post_json", side_effect=[
             {"total": 21, "jobPostings": first}, {"jobPostings": data}, {"jobPostings": analyst},
-            {"jobPostings": support}, {"jobPostings": admin},
+            {"jobPostings": support}, {"jobPostings": admin}, {"jobPostings": []},
         ]
     ) as post:
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert len(jobs) == 24
-    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "sydney", "data", "analyst", "support"]
+    assert [call.args[1]["searchText"] for call in post.call_args_list] == ["", "sydney", "nsw", "data", "analyst", "support"]
 
 
 def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
@@ -430,7 +430,7 @@ def test_workday_mapping_deduplicates_overlapping_targeted_search_results():
     overlapping = {"title": "Business Data Analyst", "externalPath": "/job/analyst", "locationsText": "Sydney"}
     with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
         {"total": 21, "jobPostings": first}, {"jobPostings": [overlapping]}, {"jobPostings": [overlapping]},
-        {"jobPostings": []}, {"jobPostings": []},
+        {"jobPostings": []}, {"jobPostings": []}, {"jobPostings": []},
     ]):
         jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert [job.external_id for job in jobs].count("workday:example.wd3.myworkdayjobs.com:Careers:/job/analyst") == 1
@@ -443,7 +443,7 @@ def test_workday_details_are_limited_to_candidate_lane_titles():
     ]
     with patch("applicant_zero.sources.company_boards._post_json", side_effect=[
         {"total": 21, "jobPostings": first}, {"jobPostings": []}, {"jobPostings": []},
-        {"jobPostings": []}, {"jobPostings": []},
+        {"jobPostings": []}, {"jobPostings": []}, {"jobPostings": []},
     ]), patch("applicant_zero.sources.company_boards._get_json", return_value={"jobPostingInfo": {}}) as get:
         _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
     assert get.call_count == 12
@@ -461,8 +461,8 @@ def test_workday_board_is_an_accepted_public_board_type(tmp_path):
 
 def test_public_board_request_estimates_reflect_paginated_and_detail_reads():
     assert _request_count_for_board("workday", 0) == 1
-    assert _request_count_for_board("workday", 21) == 5
-    assert _request_count_for_board("workday", 101) == 5
+    assert _request_count_for_board("workday", 21) == 6
+    assert _request_count_for_board("workday", 101) == 6
     assert _request_count_for_board("smartrecruiters", 3) == 4
     assert _request_count_for_board("smartrecruiters", 101) == 14
     assert _request_count_for_board("polymer", 3) == 4
@@ -508,5 +508,5 @@ def test_workday_search_rotation_is_stable_per_board_and_moves_daily():
     repeat = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 18))
     following = _workday_search_terms("Example", "example.wd3.myworkdayjobs.com/Careers", date(2026, 10, 19))
     assert first == repeat
-    assert first[:2] == ("", "sydney") and len(first) == 5
-    assert following[:2] == ("", "sydney") and following[2:] != first[2:]
+    assert first[:3] == ("", "sydney", "nsw") and len(first) == 6
+    assert following[:3] == ("", "sydney", "nsw") and following[3:] != first[3:]
