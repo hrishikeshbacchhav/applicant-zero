@@ -94,6 +94,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Commonwealth Bank", "REA Group", "Crown Resorts", "Salvation Army Australia",
         "ResMed", "Insulet", "Helia", "Transurban", "Tennis Australia",
         "Bega Cheese", "dentsu", "Service Stream", "Unilever",
+        "Bunnings", "Vanderlande",
     } <= {board["company"] for board in boards}
 
 
