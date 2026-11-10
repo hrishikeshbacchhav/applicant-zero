@@ -93,6 +93,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "St Vincent's Health Australia", "Telstra", "Herbert Smith Freehills", "Duck Creek Technologies",
         "Commonwealth Bank", "REA Group", "Crown Resorts", "Salvation Army Australia",
         "ResMed", "Insulet", "Helia", "Transurban", "Tennis Australia",
+        "Bega Cheese", "dentsu", "Service Stream", "Unilever",
     } <= {board["company"] for board in boards}
 
 
