@@ -79,6 +79,14 @@ GREATER_SYDNEY_LOCATION_TERMS = (
     "neutral bay", "petersham", "newtown", "bondi junction", "dural", "darlinghurst",
     "kings cross", "haymarket", "ultimo", "chippendale", "zetland", "randwick",
     "kingsford", "kogarah", "epping", "gordon", "st marys", "st mary's",
+    # Public employer feeds commonly publish warehouse, airport and back-office
+    # suburbs instead of Sydney or NSW.  These are unambiguous Greater Sydney
+    # locations, so keeping them here avoids losing otherwise relevant roles.
+    "greenacre", "erskine park", "frenchs forest", "balgowlah", "rozelle",
+    "gregory hills", "leppington", "hoxton park", "narrellan", "westmead",
+    "marrickville", "mount druitt", "minchinbury", "ingleburn", "prestons",
+    "revesby", "yennora", "marsden park", "minto", "padstow", "villawood",
+    "tempe", "caringbah", "miranda", "cronulla", "sutherland", "warwick farm",
 )
 
 # Some suburb names also occur overseas or in another Australian state. They
