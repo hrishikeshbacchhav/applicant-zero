@@ -3,7 +3,7 @@
 import re
 from collections import defaultdict
 
-from .scoring import Job
+from .scoring import Job, is_named_greater_sydney_location
 
 
 def canonical_listing_key(job: Job) -> str:
@@ -20,14 +20,7 @@ def canonical_listing_key(job: Job) -> str:
     company = re.sub(r"\b(?:pty|ltd|limited|inc|llc|plc)\b", "", clean(job.company))
     company = re.sub(r"\s+", " ", company).strip()
     location = clean(job.location)
-    greater_sydney = (
-        "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo",
-        "pyrmont", "surry hills", "redfern", "alexandria", "mascot", "st leonards",
-        "ryde", "rhodes", "homebush", "olympic park", "strathfield", "burwood",
-        "bankstown", "liverpool", "blacktown", "penrith", "castle hill", "baulkham hills",
-        "bella vista", "milsons point", "circular quay", "botany", "waterloo",
-    )
-    if "sydney" in location or any(place in location for place in greater_sydney):
+    if is_named_greater_sydney_location(location):
         location = "greater sydney"
     elif "remote" in location and any(term in location for term in ("australia", "worldwide", "anywhere")):
         # Syndicated remote listings often say either Australia, worldwide or

@@ -129,6 +129,24 @@ def _normalise(value: str) -> str:
     return value.lower().strip()
 
 
+def is_named_greater_sydney_location(location: str) -> bool:
+    """Return whether a provider location safely identifies Greater Sydney.
+
+    This shared guard deliberately requires Australian/NSW context for suburb
+    names that also occur overseas or in another state.  Discovery
+    deduplication and job scoring must use the same rule: otherwise a trusted
+    Sydney role can be counted as separate from its syndicated counterpart,
+    or an overseas role can be collapsed into a local one.
+    """
+    normalized = _normalise(location)
+    if any(place in normalized for place in FOREIGN_LOCATION_TERMS):
+        return False
+    if "sydney" in normalized or any(place in normalized for place in GREATER_SYDNEY_LOCATION_TERMS):
+        return True
+    australian_context = "australia" in normalized or "nsw" in normalized or "new south wales" in normalized
+    return australian_context and any(place in normalized for place in AMBIGUOUS_GREATER_SYDNEY_TERMS)
+
+
 def _role_family(title: str, profile: CandidateProfile) -> str | None:
     title = _normalise(title)
     for family, terms in profile.role_families.items():
@@ -159,12 +177,8 @@ def _location_signals(location: str, description: str) -> tuple[bool, bool, bool
     and cannot be overwritten by incidental wording elsewhere in the ad.
     """
     foreign_location = any(place in location for place in FOREIGN_LOCATION_TERMS)
-    named_sydney = not foreign_location and (
-        "sydney" in location or any(place in location for place in GREATER_SYDNEY_LOCATION_TERMS)
-    )
+    named_sydney = is_named_greater_sydney_location(location)
     australian_context = "australia" in location or "nsw" in location or "new south wales" in location
-    if not foreign_location and australian_context:
-        named_sydney = named_sydney or any(place in location for place in AMBIGUOUS_GREATER_SYDNEY_TERMS)
     interstate = foreign_location or any(place in location for place in (
         "melbourne", "victoria", "brisbane", "queensland", "perth", "western australia", "adelaide", "south australia",
     ))

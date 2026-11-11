@@ -33,6 +33,14 @@ def test_canonical_key_aligns_suburb_and_legal_company_variants():
     assert canonical_listing_key(broad) == canonical_listing_key(direct)
 
 
+def test_canonical_key_uses_current_sydney_scope_without_collapsing_overseas_suburbs():
+    sydney = job("sydney", "Adzuna", company="Example", title="Data Analyst", location="Sydney, NSW")
+    greenacre = job("greenacre", "Workday", company="Example", title="Data Analyst", location="Greenacre Warehouse")
+    liverpool_uk = job("liverpool-uk", "Workday", company="Example", title="Data Analyst", location="Liverpool, United Kingdom")
+    assert canonical_listing_key(sydney) == canonical_listing_key(greenacre)
+    assert canonical_listing_key(sydney) != canonical_listing_key(liverpool_uk)
+
+
 def test_canonical_key_combines_eligible_remote_location_variants():
     australia = job("au", "Jobicy", company="Example Pty Ltd", title="Data Analyst", location="Remote, Australia")
     worldwide = job("world", "Remotive", company="Example", title="Data Analyst", location="Remote, Worldwide")
