@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
-from ..scoring import Job
+from ..scoring import AMBIGUOUS_GREATER_SYDNEY_TERMS, GREATER_SYDNEY_LOCATION_TERMS, Job
 from ..taxonomy import classify_lane
 from .metadata import append_listing_metadata
 
@@ -35,17 +35,13 @@ def _workday_search_terms(company: str, token: str, today: date | None = None) -
     return ("", "sydney", "nsw", *terms)
 
 
+# Keep detail selection aligned with the scorer's Greater Sydney policy. A
+# public Workday/SmartRecruiters listing needs its description to be scored,
+# so a suburb accepted by the scorer must also be eligible for the bounded
+# local detail-read queue.
 _LOCAL_DETAIL_MARKERS = (
     "sydney", "nsw", "new south wales", "australia", "remote", "unknown location",
-    "parramatta", "north sydney", "macquarie park", "chatswood", "barangaroo", "pyrmont",
-    "surry hills", "redfern", "alexandria", "mascot", "st leonards", "ryde", "rhodes",
-    "homebush", "sydney olympic park", "strathfield", "burwood", "bankstown", "liverpool",
-    "blacktown", "penrith", "castle hill", "baulkham hills", "bella vista", "milsons point",
-    "circular quay", "botany", "waterloo", "wetherill park", "moorebank", "seven hills",
-    "eastern creek", "huntingwood", "silverwater", "granville", "lidcombe", "campsie",
-    "hurstville", "kingsgrove", "rosebery", "artarmon", "lane cove", "north ryde",
-    "pymble", "hornsby", "brookvale", "manly", "crows nest", "neutral bay", "petersham",
-    "newtown", "bondi junction", "regents park", "dural",
+    *GREATER_SYDNEY_LOCATION_TERMS, *AMBIGUOUS_GREATER_SYDNEY_TERMS,
 )
 
 # A public global board can use a Sydney suburb name for a city outside
@@ -58,7 +54,7 @@ _FOREIGN_LOCATION_MARKERS = (
     "germany", "france", "spain", "italy", "netherlands", "switzerland", "japan",
     "philippines", "new zealand", "aotearoa", "brazil", "mexico", "china", "europe",
 )
-_AMBIGUOUS_LOCAL_DETAIL_MARKERS = ("ryde", "burwood", "liverpool", "penrith", "manly", "regents park")
+_AMBIGUOUS_LOCAL_DETAIL_MARKERS = AMBIGUOUS_GREATER_SYDNEY_TERMS
 
 
 @dataclass(frozen=True)
