@@ -720,6 +720,11 @@
     "token": "dowjones.wd1.myworkdayjobs.com/News_Corp_Australia_Careers"
   },
   {
+    "company": "DXC Technology",
+    "ats": "workday",
+    "token": "dxctechnology.wd1.myworkdayjobs.com/DXCJobs"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"

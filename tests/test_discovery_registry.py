@@ -96,6 +96,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Bega Cheese", "dentsu", "Service Stream", "Unilever",
         "Bunnings", "Vanderlande",
         "News Corp Australia",
+        "DXC Technology",
     } <= {board["company"] for board in boards}
 
 
