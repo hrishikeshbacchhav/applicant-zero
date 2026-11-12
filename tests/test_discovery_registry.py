@@ -95,6 +95,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "ResMed", "Insulet", "Helia", "Transurban", "Tennis Australia",
         "Bega Cheese", "dentsu", "Service Stream", "Unilever",
         "Bunnings", "Vanderlande",
+        "News Corp Australia",
     } <= {board["company"] for board in boards}
 
 

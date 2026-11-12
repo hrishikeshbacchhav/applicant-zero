@@ -456,12 +456,35 @@ def _workday_jobs_with_request_count(company: str, token: str) -> tuple[list[Job
             external_id=f"workday:{host}:{site}:{identifier}",
             title=str(item.get("title", "Untitled role")),
             company=company,
-            location=str(item.get("locationsText", "Unknown location")),
+            location=_workday_location_text(item, info),
             source="Workday",
             url=f"https://{host}{external_path}" if external_path.startswith("/") else f"https://{host}",
             description=detail,
         ))
     return jobs, request_count
+
+
+def _workday_location_text(item: dict, info: dict) -> str:
+    """Return the best published Workday location without guessing.
+
+    Workday's public list response normally supplies ``locationsText``. Some
+    valid boards (including News Corp Australia) instead put the location in
+    the first public ``bulletFields`` value and in the public detail record.
+    Candidate-lane detail reads are already bounded, so use that explicit
+    detail value when available and otherwise preserve the public list value.
+    """
+    detailed = info.get("location", "") if isinstance(info, dict) else ""
+    if isinstance(detailed, dict):
+        detailed = " ".join(str(detailed.get(key, "")).strip() for key in ("name", "city", "region", "country") if str(detailed.get(key, "")).strip())
+    if str(detailed).strip():
+        return str(detailed).strip()
+    listed = str(item.get("locationsText", "")).strip()
+    if listed:
+        return listed
+    bullet_fields = item.get("bulletFields", [])
+    if isinstance(bullet_fields, list) and bullet_fields and str(bullet_fields[0]).strip():
+        return str(bullet_fields[0]).strip()
+    return "Unknown location"
 
 
 def _workday_jobs(company: str, token: str) -> list[Job]:

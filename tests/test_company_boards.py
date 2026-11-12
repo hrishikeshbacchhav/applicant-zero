@@ -410,6 +410,19 @@ def test_workday_mapping_reads_the_public_careers_search_response():
     assert "Resolve service desk requests" in jobs[0].description
 
 
+def test_workday_mapping_recovers_published_detail_location_when_list_omits_it():
+    payload = {"jobPostings": [{
+        "title": "Technical Business Analyst", "externalPath": "/job/Surry-Hills/Technical-Business-Analyst_123",
+        "bulletFields": ["NSW - SHS 2 Holt Street Surry Hills", "Job_Req_123"],
+    }]}
+    detail = {"jobPostingInfo": {"location": "NSW - SHS 2 Holt Street Surry Hills", "jobDescription": "SQL and stakeholder analysis."}}
+    with patch("applicant_zero.sources.company_boards._post_json", return_value=payload), patch(
+        "applicant_zero.sources.company_boards._get_json", return_value=detail,
+    ):
+        jobs = _workday_jobs("Example", "example.wd3.myworkdayjobs.com/Careers")
+    assert jobs[0].location == "NSW - SHS 2 Holt Street Surry Hills"
+
+
 def test_workday_request_report_counts_actual_listing_and_detail_reads():
     payload = {"jobPostings": [{
         "title": "Service Desk Analyst", "externalPath": "/job/sydney-support",

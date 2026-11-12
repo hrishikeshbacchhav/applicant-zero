@@ -715,6 +715,11 @@
     "token": "vanderlande.wd3.myworkdayjobs.com/careers"
   },
   {
+    "company": "News Corp Australia",
+    "ats": "workday",
+    "token": "dowjones.wd1.myworkdayjobs.com/News_Corp_Australia_Careers"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"
