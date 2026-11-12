@@ -725,6 +725,16 @@
     "token": "dxctechnology.wd1.myworkdayjobs.com/DXCJobs"
   },
   {
+    "company": "Kyndryl",
+    "ats": "workday",
+    "token": "kyndryl.wd5.myworkdayjobs.com/KyndrylProfessionalCareers"
+  },
+  {
+    "company": "Guidewire",
+    "ats": "workday",
+    "token": "guidewire.wd5.myworkdayjobs.com/external"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"
