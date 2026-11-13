@@ -98,6 +98,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "News Corp Australia",
         "DXC Technology",
         "Kyndryl", "Guidewire", "Hewlett Packard Enterprise", "Visa", "RELX",
+        "Galderma", "KION Group", "PVH",
     } <= {board["company"] for board in boards}
 
 

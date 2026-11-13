@@ -750,6 +750,21 @@
     "token": "relx.wd3.myworkdayjobs.com/RiskSolutions"
   },
   {
+    "company": "Galderma",
+    "ats": "workday",
+    "token": "galderma.wd3.myworkdayjobs.com/external"
+  },
+  {
+    "company": "KION Group",
+    "ats": "workday",
+    "token": "kiongroup.wd3.myworkdayjobs.com/KION_SCS"
+  },
+  {
+    "company": "PVH",
+    "ats": "workday",
+    "token": "pvh.wd1.myworkdayjobs.com/PVH_Careers"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"
