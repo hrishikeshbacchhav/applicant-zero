@@ -97,7 +97,7 @@ def test_discovery_overview_labels_automated_and_manual_coverage():
         "Bunnings", "Vanderlande",
         "News Corp Australia",
         "DXC Technology",
-        "Kyndryl", "Guidewire",
+        "Kyndryl", "Guidewire", "Hewlett Packard Enterprise", "Visa", "RELX",
     } <= {board["company"] for board in boards}
 
 

@@ -735,6 +735,21 @@
     "token": "guidewire.wd5.myworkdayjobs.com/external"
   },
   {
+    "company": "Hewlett Packard Enterprise",
+    "ats": "workday",
+    "token": "hpe.wd5.myworkdayjobs.com/Jobsathpe"
+  },
+  {
+    "company": "Visa",
+    "ats": "workday",
+    "token": "visa.wd5.myworkdayjobs.com/Visa"
+  },
+  {
+    "company": "RELX",
+    "ats": "workday",
+    "token": "relx.wd3.myworkdayjobs.com/RiskSolutions"
+  },
+  {
     "company": "TNG Technology Consulting",
     "ats": "personio",
     "token": "tngtech"
