@@ -75,7 +75,23 @@
         "transformation analyst",
         "product operations analyst",
         "digital transformation analyst",
-        "project business analyst"
+        "project business analyst",
+        "business intelligence developer",
+        "business insights analyst",
+        "commercial analyst",
+        "pricing analyst",
+        "demand analyst",
+        "risk analyst",
+        "analytics coordinator",
+        "data coordinator",
+        "data governance officer",
+        "data product analyst",
+        "digital analyst",
+        "customer data analyst",
+        "data reporting analyst",
+        "process improvement analyst",
+        "continuous improvement analyst",
+        "PMO analyst"
       ],
       "active": true
     },
@@ -124,7 +140,18 @@
         "technical support specialist",
         "desktop support engineer",
         "IT operations coordinator",
-        "support coordinator"
+        "support coordinator",
+        "IT service desk analyst",
+        "IT help desk officer",
+        "service desk officer",
+        "IT support administrator",
+        "technology support analyst",
+        "application support engineer",
+        "technical customer support",
+        "junior technical support",
+        "IT operations analyst",
+        "systems support officer",
+        "workplace support analyst"
       ],
       "active": true
     },
@@ -173,7 +200,17 @@
         "network administrator",
         "software test analyst",
         "test automation analyst",
-        "IT project officer"
+        "IT project officer",
+        "IT graduate program",
+        "cyber security graduate",
+        "graduate software engineer",
+        "junior QA analyst",
+        "junior test analyst",
+        "junior business systems analyst",
+        "digital support analyst",
+        "technology project coordinator",
+        "systems implementation analyst",
+        "information technology officer"
       ],
       "active": true
     },
@@ -220,7 +257,18 @@
         "data entry officer",
         "records officer",
         "document controller",
-        "program coordinator"
+        "program coordinator",
+        "executive assistant",
+        "administrative assistant",
+        "accounts administrator",
+        "sales administrator",
+        "scheduling coordinator",
+        "compliance administrator",
+        "HR administrator",
+        "customer administration officer",
+        "service coordinator",
+        "facilities coordinator",
+        "document control officer"
       ],
       "active": true
     }

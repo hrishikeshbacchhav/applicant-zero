@@ -16,6 +16,15 @@ def test_shipped_campaigns_cover_every_candidate_role_group_by_default():
     assert next(campaign for campaign in load_campaigns(ROOT) if campaign.identifier == "administration").full_time_only
 
 
+def test_shipped_campaigns_include_broad_adjacent_role_titles():
+    campaigns = {campaign.identifier: campaign for campaign in load_campaigns(ROOT)}
+
+    assert {"business intelligence developer", "process improvement analyst"} <= set(campaigns["data_business"].queries)
+    assert {"IT service desk analyst", "application support engineer"} <= set(campaigns["it_support"].queries)
+    assert {"cyber security graduate", "junior QA analyst"} <= set(campaigns["broader_it"].queries)
+    assert {"sales administrator", "customer administration officer"} <= set(campaigns["administration"].queries)
+
+
 def _write_starter(root):
     (root / "data").mkdir()
     (root / "data" / "search_campaigns.starter.json").write_text(json.dumps({
