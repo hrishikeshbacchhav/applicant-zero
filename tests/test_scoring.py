@@ -250,8 +250,16 @@ def test_broader_supported_title_vocabulary_keeps_discoverable_roles_visible():
         ("Technical Support Specialist", "it_support"),
         ("Junior Cloud Engineer", "it_general"),
         ("Records Officer", "administration"),
+        ("Business Insights Analyst", "data_bi"),
+        ("Demand Analyst", "commercial_analytics"),
+        ("PMO Analyst", "business_analysis"),
+        ("Workplace Support Analyst", "it_support"),
+        ("Cyber Security Graduate", "it_general"),
+        ("Digital Support Analyst", "it_general"),
+        ("Sales Administrator", "administration"),
+        ("Customer Administration Officer", "administration"),
     ]
-    enabled = {"data_bi", "business_analysis", "it_support", "it_general", "administration"}
+    enabled = {"data_bi", "business_analysis", "commercial_analytics", "it_support", "it_general", "administration"}
     for index, (title, lane) in enumerate(examples):
         result = score_job(Job(f"expanded-{index}", title, "Example", "Sydney, NSW", "test", "https://example.invalid", "SQL, Excel, technical support and stakeholder communication."), RISHI_PROFILE, enabled)
         assert result.recommendation != "Skip"
